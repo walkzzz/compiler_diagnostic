@@ -12,4 +12,6 @@ test-dir = "test"
 # 无外部依赖，仅使用 std 和 stdx
 
 [target.x86_64-w64-mingw32.bin-dependencies]
-    path-option = ["C:\\Users\\Administrator\\.cangjie\\stdx\\cangjie-stdx-windows-x64-1.1.3.1\\dynamic\\stdx"]
+    # 仓库内自带 stdx（与官方 1.1.3.1 一致），使用相对路径，避免硬编码本机绝对路径/用户名。
+    # 评委环境只需提供 SDK（设置 CANGJIE_HOME），无需预先安装 stdx。
+    path-option = ["cangjie-stdx-1.1.3.1/windows_x86_64_cjnative/dynamic/stdx"]
