@@ -56,7 +56,7 @@ class DiagnosticBuilderTest {
             message: "测试消息",
             span: span
         )
-        let cands: List<String> = ArrayList<String>(["foo", "bar"])
+        let cands: List<Candidate> = ArrayList<Candidate>([Candidate(name: "foo", kind: "variable"), Candidate(name: "bar", kind: "variable")])
         let diag = builder.setCandidates(cands).build()
         @Expect(diag.candidates.isSome(), true)
     }

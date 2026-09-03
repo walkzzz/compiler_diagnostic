@@ -20,7 +20,7 @@ public class SemaDiagnostic {
         ).build()
     }
 
-    public func reportOverloadAmbiguity(span!: Span, funcName!: String, candidates!: List<String>): DiagnosticMessage {
+    public func reportOverloadAmbiguity(span!: Span, funcName!: String, candidates!: List<Candidate>): DiagnosticMessage {
         return DiagnosticBuilder(
             code: ErrorCode.SemaOverloadAmbiguity,
             message: "函数重载歧义：" + funcName + " 有多个匹配的重载",

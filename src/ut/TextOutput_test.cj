@@ -60,7 +60,7 @@ class TextOutputTest {
         let output = TextOutput()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let cands: List<String> = ArrayList<String>(["foo", "bar", "baz"])
+        let cands: List<Candidate> = ArrayList<Candidate>([Candidate(name: "foo", kind: "variable"), Candidate(name: "bar", kind: "variable"), Candidate(name: "baz", kind: "function")])
         let diag = DiagnosticBuilder(
             code: ErrorCode.ParserUndefinedIdentifier,
             message: "未定义标识符",

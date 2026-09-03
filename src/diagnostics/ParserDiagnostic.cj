@@ -31,7 +31,7 @@ public class ParserDiagnostic {
             .build()
     }
 
-    public func reportUndefinedIdentifier(span!: Span, identifier!: String, candidates!: List<String>): DiagnosticMessage {
+    public func reportUndefinedIdentifier(span!: Span, identifier!: String, candidates!: List<Candidate>): DiagnosticMessage {
         return DiagnosticBuilder(
             code: ErrorCode.ParserUndefinedIdentifier,
             message: "未定义的标识符：" + identifier,

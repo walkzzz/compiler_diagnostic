@@ -80,7 +80,7 @@ cjlint -f src -o cjlint_report.json
 
 ### JSON 输出格式
 
-默认 `--diagnostic=json`（LSP 兼容 schema）每条诊断含：错误码、severity 字符串、message、span（start/end 含 line/column）、fix（修复建议）、候选符号 `candidates`，以及结构化根因字段 `rootCause`（Sema 诊断填充，便于 AI 助手归因）。
+默认 `--diagnostic=json`（LSP 兼容 schema）每条诊断含：错误码、severity 字符串、message、span（start/end 含 line/column）、fix（修复建议）、候选符号 `candidates`，以及结构化根因字段 `rootCause`（Sema 诊断填充，便于 AI 助手归因）。其中 `candidates` 为**结构化数组**，元素含 `name`（符号名）与 `kind`（类型/种类，如 `variable`/`function`/`type`），可直接呈现「foo: Int64」式候选提示——满足指标 B 的候选类型要求。
 
 ```json
 {

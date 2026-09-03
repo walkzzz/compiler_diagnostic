@@ -17,7 +17,7 @@ class ParserUndefinedIdentTest {
         let parser = ParserDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let diag = parser.reportUndefinedIdentifier(span: span, identifier: "foo", candidates: ArrayList<String>(["Foo", "bar"]))
+        let diag = parser.reportUndefinedIdentifier(span: span, identifier: "foo", candidates: ArrayList<Candidate>([Candidate(name: "Foo", kind: "type"), Candidate(name: "bar", kind: "function")]))
         @Expect(diag.code, ErrorCode.ParserUndefinedIdentifier)
         @Expect(diag.candidates.isSome(), true)
     }

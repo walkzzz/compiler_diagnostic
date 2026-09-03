@@ -65,7 +65,14 @@ public class JSONSchema {
               },
               "candidates": {
                 "type": "array",
-                "items": { "type": "string" }
+                "items": {
+                  "type": "object",
+                  "required": ["name", "kind"],
+                  "properties": {
+                    "name": { "type": "string", "description": "候选符号名称" },
+                    "kind": { "type": "string", "description": "候选符号的类型或种类" }
+                  }
+                }
               },
               "rootCause": {
                 "type": "string",
@@ -153,7 +160,14 @@ public class JSONSchema {
           },
           "candidates": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "object",
+              "required": ["name", "kind"],
+              "properties": {
+                "name": { "type": "string" },
+                "kind": { "type": "string" }
+              }
+            }
           },
           "rootCause": {
             "type": "string",

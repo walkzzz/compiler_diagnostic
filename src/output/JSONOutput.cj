@@ -5,6 +5,7 @@ import compiler_diagnostic.diagnostics.DiagnosticMessage
 import compiler_diagnostic.diagnostics.Span
 import compiler_diagnostic.diagnostics.RelatedInfo
 import compiler_diagnostic.diagnostics.FixSuggestion
+import compiler_diagnostic.diagnostics.Candidate
 import compiler_diagnostic.diagnostics.getCodeStr
 
 /// JSON 诊断输出
@@ -109,20 +110,22 @@ public class JSONDiagnosticOutput <: DiagnosticOutput {
             sb.append("]")
         }
 
-        // candidates（两种模式均输出，对应指标 B：候选符号列表）
+        // candidates（两种模式均输出，对应指标 B：候选符号及其类型/种类）
         if (diag.candidates.isSome()) {
             sb.append(",\"candidates\":[")
             let cands = diag.candidates.getOrThrow()
-            let arr: Array<String> = cands.toArray()
+            let arr: Array<Candidate> = cands.toArray()
             var firstCand = true
-            for (s in arr) {
+            for (c in arr) {
                 if (!firstCand) {
                     sb.append(",")
                 }
                 firstCand = false
-                sb.append("\"")
-                sb.append(this.escapeJson(s))
-                sb.append("\"")
+                sb.append("{\"name\":\"")
+                sb.append(this.escapeJson(c.name))
+                sb.append("\",\"kind\":\"")
+                sb.append(this.escapeJson(c.kind))
+                sb.append("\"}")
             }
             sb.append("]")
         }

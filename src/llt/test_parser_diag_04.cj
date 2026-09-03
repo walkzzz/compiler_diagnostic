@@ -18,7 +18,7 @@ class ParserDiag04Test {
         let parser = ParserDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let diag = parser.reportUndefinedIdentifier(span: span, identifier: "foo", candidates: ArrayList<String>(["foo", "bar"]))
+        let diag = parser.reportUndefinedIdentifier(span: span, identifier: "foo", candidates: ArrayList<Candidate>([Candidate(name: "foo", kind: "variable"), Candidate(name: "bar", kind: "function")]))
         @Expect(diag.code.code(), "E0004")
         @Expect(diag.candidates.isSome(), true)
     }

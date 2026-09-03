@@ -18,7 +18,7 @@ class SemaDiag03Test {
         let sema = SemaDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let diag = sema.reportOverloadAmbiguity(span: span, funcName: "foo", candidates: ArrayList<String>(["foo(Int)", "foo(String)"]))
+        let diag = sema.reportOverloadAmbiguity(span: span, funcName: "foo", candidates: ArrayList<Candidate>([Candidate(name: "foo(Int)", kind: "function"), Candidate(name: "foo(String)", kind: "function")]))
         @Expect(diag.code.code(), "E1003")
         @Expect(diag.candidates.isSome(), true)
     }

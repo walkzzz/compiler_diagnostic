@@ -9,7 +9,7 @@ public class DiagnosticBuilder {
     private var severity: String = "error"
     private var fix: Option<FixSuggestion> = None
     private var related: List<RelatedInfo> = ArrayList<RelatedInfo>()
-    private var candidates: Option<List<String>> = None
+    private var candidates: Option<List<Candidate>> = None
     private var rootCause: String = ""
 
     public init(code!: ErrorCode, message!: String, span!: Span) {
@@ -35,8 +35,17 @@ public class DiagnosticBuilder {
         return this
     }
 
-    public func setCandidates(cands: List<String>): DiagnosticBuilder {
+    public func setCandidates(cands: List<Candidate>): DiagnosticBuilder {
         this.candidates = Some(cands)
+        return this
+    }
+
+    /// 追加单个候选符号（name + 类型/种类），便于逐条累积候选
+    public func addCandidate(name: String, kind: String): DiagnosticBuilder {
+        match (this.candidates) {
+            case Some(c) => c.add(Candidate(name: name, kind: kind))
+            case None => this.candidates = Some(ArrayList<Candidate>([Candidate(name: name, kind: kind)]))
+        }
         return this
     }
 

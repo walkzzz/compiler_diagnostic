@@ -30,14 +30,14 @@ public func generateSampleDiagnostics(): List<DiagnosticMessage> {
 
     let diag1 = parserDiag.reportUnterminatedString(span: span1)
     let diag2 = parserDiag.reportTypeMismatch(span: span1, expectedType: "Int", actualType: "String")
-    let diag3 = parserDiag.reportUndefinedIdentifier(span: span1, identifier: "undefVar", candidates: ArrayList<String>(["var1", "var2"]))
+    let diag3 = parserDiag.reportUndefinedIdentifier(span: span1, identifier: "undefVar", candidates: ArrayList<Candidate>([Candidate(name: "var1", kind: "variable"), Candidate(name: "var2", kind: "variable")]))
     let diag4 = parserDiag.reportBracketMismatch(span: span1)
     let diag5 = parserDiag.reportExprSyntaxError(span: span1)
     let diag6 = semaDiag.reportTypeCheckFail(span: span1, expectedType: "Int", actualType: "String",
         rootCause: "类型转换失败")
     let diag7 = semaDiag.reportGenericInstantiateFail(span: span1, genericName: "List<T>",
         constraintViolation: "类型 T 不满足约束")
-    let diag8 = semaDiag.reportOverloadAmbiguity(span: span1, funcName: "foo", candidates: ArrayList<String>(["foo(Int)", "foo(String)"]))
+    let diag8 = semaDiag.reportOverloadAmbiguity(span: span1, funcName: "foo", candidates: ArrayList<Candidate>([Candidate(name: "foo(Int)", kind: "function"), Candidate(name: "foo(String)", kind: "function")]))
     let diag9 = semaDiag.reportVisibilityFail(span: span1, memberName: "privateField", accessPath: "公共访问私有成员")
 
     let result: List<DiagnosticMessage> = ArrayList<DiagnosticMessage>()

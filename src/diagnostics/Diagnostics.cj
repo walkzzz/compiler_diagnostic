@@ -92,6 +92,19 @@ public struct FixSuggestion {
     }
 }
 
+/// 结构化候选符号（指标 B：候选符号及其类型/种类，便于 IDE 显示「foo: Int64」式提示）
+public struct Candidate {
+    /// 候选符号名称
+    public var name: String
+    /// 候选符号的类型或种类（如 "variable" / "function" / "type" / 具体类型 "Int64"）
+    public var kind: String
+
+    public init(name!: String, kind!: String) {
+        this.name = name
+        this.kind = kind
+    }
+}
+
 /// 错误码枚举
 public enum ErrorCode <: Equatable<ErrorCode> {
     | ParserUnterminatedString
@@ -151,8 +164,8 @@ public struct DiagnosticMessage {
     public var fix: Option<FixSuggestion>
     /// 关联位置信息列表
     public var related: List<RelatedInfo>
-    /// 候选符号列表（None 表示无候选）
-    public var candidates: Option<List<String>>
+    /// 候选符号列表（None 表示无候选），元素为结构化 Candidate{name,kind}
+    public var candidates: Option<List<Candidate>>
     /// 结构化根本原因（从 message 文本抽离，便于工具/IDE 机器消费）
     public var rootCause: String
 
@@ -203,7 +216,7 @@ public struct DiagnosticMessage {
     }
 
     public init(code!: ErrorCode, message!: String, span!: Span, severity!: String, fix!: Option<FixSuggestion>,
-        related!: List<RelatedInfo>, candidates!: Option<List<String>>, rootCause!: String) {
+        related!: List<RelatedInfo>, candidates!: Option<List<Candidate>>, rootCause!: String) {
         this.code = code
         this.severity = severity
         this.message = message

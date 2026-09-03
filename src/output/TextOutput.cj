@@ -5,6 +5,7 @@ import compiler_diagnostic.diagnostics.DiagnosticMessage
 import compiler_diagnostic.diagnostics.Span
 import compiler_diagnostic.diagnostics.RelatedInfo
 import compiler_diagnostic.diagnostics.FixSuggestion
+import compiler_diagnostic.diagnostics.Candidate
 import compiler_diagnostic.diagnostics.getCodeStr
 
 /// 文本诊断输出（人类可读）
@@ -54,9 +55,13 @@ public class TextOutput <: DiagnosticOutput {
 
         if (diag.candidates.isSome()) {
             let cands = diag.candidates.getOrThrow()
-            let arr: Array<String> = cands.toArray()
+            let arr: Array<Candidate> = cands.toArray()
             sb.append("\n  候选符号: ")
-            sb.append(String.join(arr, delimiter: ", "))
+            let parts: ArrayList<String> = ArrayList<String>()
+            for (c in arr) {
+                parts.add(c.name + "(" + c.kind + ")")
+            }
+            sb.append(String.join(parts.toArray(), delimiter: ", "))
         }
 
         return sb.toString()
