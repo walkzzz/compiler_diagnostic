@@ -10,6 +10,7 @@ public class DiagnosticBuilder {
     private var fix: Option<FixSuggestion> = None
     private var related: List<RelatedInfo> = ArrayList<RelatedInfo>()
     private var candidates: Option<List<String>> = None
+    private var rootCause: String = ""
 
     public init(code!: ErrorCode, message!: String, span!: Span) {
         this.code = code
@@ -39,6 +40,12 @@ public class DiagnosticBuilder {
         return this
     }
 
+    /// 设置结构化根本原因（从 message 文本抽离）
+    public func setRootCause(rc: String): DiagnosticBuilder {
+        this.rootCause = rc
+        return this
+    }
+
     public func build(): DiagnosticMessage {
         return DiagnosticMessage(
             code: this.code,
@@ -47,7 +54,8 @@ public class DiagnosticBuilder {
             severity: this.severity,
             fix: this.fix,
             related: this.related,
-            candidates: this.candidates
+            candidates: this.candidates,
+            rootCause: this.rootCause
         )
     }
 }

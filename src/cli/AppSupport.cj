@@ -3,10 +3,14 @@ import std.collection.*
 import compiler_diagnostic.diagnostics.*
 
 /// 命令行参数解析
+/// 支持模式：--diagnostic=text（默认） | --diagnostic=json | --diagnostic=lsp
 public func parseArgs(args: Array<String>): String {
     for (arg in args) {
         if (arg == "--diagnostic=json") {
             return "json"
+        }
+        if (arg == "--diagnostic=lsp") {
+            return "lsp"
         }
         if (arg == "--diagnostic=text") {
             return "text"

@@ -30,11 +30,14 @@ cjpm build
 ### 运行
 
 ```bash
-# 文本输出（默认）
+# 文本输出（默认，含性能基线校验）
 cjpm run
 
-# JSON 输出
+# 结构化 JSON 输出（默认 schema，含 rootCause / candidates）
 cjpm run -- --diagnostic=json
+
+# LSP 兼容 JSON 输出（range.character + 数字 severity + codeAction/relatedInformation）
+cjpm run -- --diagnostic=lsp
 ```
 
 ### 测试（UT / HLT / LLT 三层）
@@ -75,7 +78,9 @@ cjlint -f src -o cjlint_report.json
 | E1003 | 函数重载歧义 | Sema |
 | E1004 | 可见性检查失败 | Sema |
 
-### JSON 输出格式（LSP 兼容）
+### JSON 输出格式
+
+默认 `--diagnostic=json`（LSP 兼容 schema）每条诊断含：错误码、severity 字符串、message、span（start/end 含 line/column）、fix（修复建议）、候选符号 `candidates`，以及结构化根因字段 `rootCause`（Sema 诊断填充，便于 AI 助手归因）。
 
 ```json
 {
@@ -91,11 +96,17 @@ cjlint -f src -o cjlint_report.json
       "fix": {
         "description": "添加结束引号",
         "replacement": "\""
-      }
+      },
+      "candidates": [],
+      "rootCause": ""
     }
   ]
 }
 ```
+
+### LSP 模式（`--diagnostic=lsp`）
+
+`--diagnostic=lsp` 输出严格对齐 `LSP Diagnostic[]`：位置用 `range`（含 `character` 而非 `column`）、`severity` 为数字（1=Error / 2=Warning / 3=Info / 4=Hint）、`codeAction`（fix → quickfix，含 `edit.changes[uri][{range,newText}]`）、`relatedInformation`（`location.uri` 为 `file://` + 绝对路径）、`code` / `source` / `message` / `candidates` / `rootCause`。可直接被 IDE 的 `textDocument/publishDiagnostics` 与 `codeAction` 消费。
 
 ## 项目结构
 
@@ -138,14 +149,14 @@ compiler-diagnostic/
 |------|------|----------|
 | `cjpm build` | exit code 0 | ✅ |
 | 编译警告 | warning = 0（不使用 `-Woff all` 屏蔽） | ✅ |
-| 三层测试 | UT + HLT + LLT 全绿 | ✅ 80 用例全部通过 |
-| `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 320 项均为 SUGGESTIONS（非阻断） |
+| 三层测试 | UT + HLT + LLT 全绿 | ✅ 80 用例全部通过（hlt 22 + llt 12 + ut 46） |
+| `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 324 项均为 SUGGESTIONS（非阻断，G.SEC.01 = 0） |
 
 > 注：`ci_test.cfg` 的 `compile_options` 已设为 `--test -Woff unused --dy-std`，仅抑制无害的“未用导入”类别，真实警告仍会暴露；当前工程零警告。
 
 ## 已知非阻断提示（cjlint SUGGESTIONS）
 
-cjlint 扫描 `src/` 共报告 320 条 `SUGGESTIONS`（非 MANDATORY，不阻断赛事门禁），主要类别：
+cjlint 扫描 `src/` 共报告 324 条 `SUGGESTIONS`（非 MANDATORY，不阻断赛事门禁），主要类别：
 
 - `G.PKG.01` 通配符导入（如 `import x.*`）—— 可读性建议
 - `G.NAM.01 / G.NAM.02 / G.NAM.03 / G.NAM.04` 命名与文件名风格建议

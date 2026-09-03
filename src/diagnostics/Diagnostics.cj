@@ -153,6 +153,8 @@ public struct DiagnosticMessage {
     public var related: List<RelatedInfo>
     /// 候选符号列表（None 表示无候选）
     public var candidates: Option<List<String>>
+    /// 结构化根本原因（从 message 文本抽离，便于工具/IDE 机器消费）
+    public var rootCause: String
 
     /// 构造函数：最小参数（默认 severity 为 "error"）
     public init(code!: ErrorCode, message!: String, span!: Span) {
@@ -163,6 +165,7 @@ public struct DiagnosticMessage {
         this.fix = None
         this.related = ArrayList<RelatedInfo>()
         this.candidates = None
+        this.rootCause = ""
     }
 
     public init(code!: ErrorCode, message!: String, span!: Span, severity!: String) {
@@ -173,6 +176,7 @@ public struct DiagnosticMessage {
         this.fix = None
         this.related = ArrayList<RelatedInfo>()
         this.candidates = None
+        this.rootCause = ""
     }
 
     public init(code!: ErrorCode, message!: String, span!: Span, severity!: String, fix!: Option<FixSuggestion>) {
@@ -183,6 +187,7 @@ public struct DiagnosticMessage {
         this.fix = fix
         this.related = ArrayList<RelatedInfo>()
         this.candidates = None
+        this.rootCause = ""
     }
 
     public init(code!: ErrorCode, message!: String, span!: Span, severity!: String, fix!: Option<FixSuggestion>,
@@ -194,10 +199,11 @@ public struct DiagnosticMessage {
         this.fix = fix
         this.related = related
         this.candidates = None
+        this.rootCause = ""
     }
 
     public init(code!: ErrorCode, message!: String, span!: Span, severity!: String, fix!: Option<FixSuggestion>,
-        related!: List<RelatedInfo>, candidates!: Option<List<String>>) {
+        related!: List<RelatedInfo>, candidates!: Option<List<String>>, rootCause!: String) {
         this.code = code
         this.severity = severity
         this.message = message
@@ -205,6 +211,7 @@ public struct DiagnosticMessage {
         this.fix = fix
         this.related = related
         this.candidates = candidates
+        this.rootCause = rootCause
     }
 }
 

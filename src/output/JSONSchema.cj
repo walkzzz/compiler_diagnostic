@@ -66,6 +66,10 @@ public class JSONSchema {
               "candidates": {
                 "type": "array",
                 "items": { "type": "string" }
+              },
+              "rootCause": {
+                "type": "string",
+                "description": "结构化根本原因（从 message 抽离，便于机器消费）"
               }
             }
           }
@@ -86,4 +90,80 @@ public class JSONSchema {
 
     /// 对外暴露的 JSON Schema 字符串（公共变量，已显式声明类型）
     public static let SCHEMA: String = injectUri(RAW_SCHEMA)
+
+    // LSP 兼容 Schema：描述 outputLsp() 产出的 Diagnostic[] 数组，严格对齐
+    // LSP 3.x `Diagnostic` 规范（range/character/severity 数字/codeAction 等）
+    private static let RAW_SCHEMA_LSP: String = """
+    {
+      "$schema": "__SCHEMA_URI__",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["range", "severity", "code", "source", "message"],
+        "properties": {
+          "range": {
+            "type": "object",
+            "required": ["start", "end"],
+            "properties": {
+              "start": {
+                "type": "object",
+                "required": ["line", "character"],
+                "properties": {
+                  "line": { "type": "integer" },
+                  "character": { "type": "integer" }
+                }
+              },
+              "end": {
+                "type": "object",
+                "required": ["line", "character"],
+                "properties": {
+                  "line": { "type": "integer" },
+                  "character": { "type": "integer" }
+                }
+              }
+            }
+          },
+          "severity": { "type": "integer", "enum": [1, 2, 3, 4] },
+          "code": { "type": "string" },
+          "source": { "type": "string" },
+          "message": { "type": "string" },
+          "relatedInformation": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "object",
+                  "properties": {
+                    "uri": { "type": "string" },
+                    "range": { "$ref": "#/items/properties/range" }
+                  }
+                },
+                "message": { "type": "string" }
+              }
+            }
+          },
+          "codeAction": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "kind": { "type": "string" },
+              "edit": { "type": "object" }
+            }
+          },
+          "candidates": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "rootCause": {
+            "type": "string",
+            "description": "结构化根本原因（从 message 抽离，便于机器消费）"
+          }
+        }
+      }
+    }
+    """
+
+    /// 对外暴露的 LSP 兼容 JSON Schema 字符串（公共变量，已显式声明类型）
+    public static let SCHEMA_LSP: String = injectUri(RAW_SCHEMA_LSP)
 }

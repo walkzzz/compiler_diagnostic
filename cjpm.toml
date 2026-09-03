@@ -6,7 +6,9 @@ version = "0.1.0"
 output-type = "executable"
 target-dir = "target"
 src-dir = "src"
-test-dir = "test"
+# 测试目录指向真实测试源码位置（src 下 ut/hlt/llt 子包）。
+# 原 "test" 为不存在的遗留配置，已清理（P2-10）。
+test-dir = "src"
 
 [dependencies]
 # 无外部依赖，仅使用 std 和 stdx

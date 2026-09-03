@@ -8,7 +8,8 @@ public class SemaDiagnostic {
             code: ErrorCode.SemaTypeCheckFail,
             message: "类型检查失败：" + rootCause,
             span: span
-        ).addRelated(RelatedInfo(span: span, message: "期望类型: " + expectedType + ", 实际类型: " + actualType)).build()
+        ).setRootCause(rootCause)
+        .addRelated(RelatedInfo(span: span, message: "期望类型: " + expectedType + ", 实际类型: " + actualType)).build()
     }
 
     public func reportGenericInstantiateFail(span!: Span, genericName!: String, constraintViolation!: String): DiagnosticMessage {
