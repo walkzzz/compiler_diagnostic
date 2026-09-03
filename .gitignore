@@ -26,3 +26,8 @@ scratch/
 # ===== Leftover helper scripts / backups =====
 add_imports.py
 cjpm.toml.stdx.bak
+
+# ===== Coverage / test runtime artifacts =====
+*.gcda
+*.gcno
+cov_output/
