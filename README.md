@@ -102,8 +102,7 @@ cjlint -f src -o cjlint_report.json
 ```
 compiler-diagnostic/
 ├── cjpm.toml                          # 包配置（cjc-version = "1.1.3"）
-├── ci_test.cfg                        # 测试框架配置
-├── ci_test/ciTest.py                  # TPC 简化测试框架
+├── ci_test/                           # 测试框架（ciTest.py + ci_test.cfg）
 ├── README.md                          # 项目说明
 ├── src/
 │   ├── main.cj                        # 入口
@@ -128,7 +127,7 @@ compiler-diagnostic/
 │   └── llt/   (10 低级测试)
 ├── examples/                          # 示例
 │   ├── demo/main.cj
-│   └── error_samples/                 # 5 个错误样例
+│   └── error_samples/                 # 9 个错误样例（5 Parser + 4 Sema）
 ├── docs/                              # 阶段报告与交付物
 └── LICENSE                            # Apache-2.0
 ```
