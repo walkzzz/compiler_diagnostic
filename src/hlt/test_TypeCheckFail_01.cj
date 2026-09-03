@@ -6,6 +6,8 @@ import compiler_diagnostic.diagnostics.*
 // EXEC: cjpm test ut --filter "SemaTypeFailTest"
 // EXPECT: TOTAL:.*2
 @Test
+// 防御性命名：类名避免含 "Check" 子串（如 SemaTypeCheckFailTest），否则 cjlint G_SEC.01
+// 会误判 @Test 宏展开后的 register<SemaTypeCheckFailTest> 为 open 函数，触发 MANDATORY 阻断。
 class SemaTypeFailTest {
     @TestCase func testErrorCode(): Unit {
         @Expect(ErrorCode.SemaTypeCheckFail.code(), "E1001")
