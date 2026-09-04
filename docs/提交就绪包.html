@@ -102,7 +102,7 @@
   <tr><td>① Parser 高频语法错误诊断优化</td><td><code>Diagnostics.cj</code> E01xx（15 个 Parser 语法错误码，如 E0101 未闭合字符串带修复、E0104 括号不匹配、E0105 语法不合法），高频错误带可执行修复</td><td class="ok">✅</td></tr>
   <tr><td>② Sema 类型/泛型/重载/可见性诊断优化</td><td><code>Diagnostics.cj</code> E20xx/E30xx（Type/Resolution 各 15 码，共 30 码）精确覆盖四类：E2001 类型不匹配、E2006 泛型约束、E2004 重载歧义（带候选符号）、E3004 访问私有成员</td><td class="ok">✅</td></tr>
   <tr><td>③ 面向 IDE/AI 的结构化 JSON 诊断字段</td><td><code>JSONOutput.cj</code> 双模式：默认（code/severity/span/rootCause/fix/related/candidates）+ LSP（range.character / 数字 severity / codeAction / relatedInformation / source）；<code>Severity</code> 三级（Fatal/Error/Warning）</td><td class="ok">✅</td></tr>
-  <tr><td>④ 样例库 / 贡献指南 / 回归基线</td><td><code>examples/error_samples/</code> 样例库 + 根 <code>CONTRIBUTING.md</code> + <code>generateSampleDiagnostics</code> 15 条示例（覆盖全 8 大类）+ 81 用例基线 + <code>PerfBenchmark</code> 性能基线（接入进程退出码）</td><td class="ok">✅</td></tr>
+  <tr><td>④ 样例库 / 贡献指南 / 回归基线</td><td><code>examples/error_samples/</code> 样例库 + 根 <code>CONTRIBUTING.md</code> + <code>generateSampleDiagnostics</code> 15 条示例（覆盖全 8 大类）+ 82 用例基线 + <code>PerfBenchmark</code> 性能基线（接入进程退出码）</td><td class="ok">✅</td></tr>
 </table>
 
 <h2>④ 四项「关键验收指标」复核 · 全部完成 ✅</h2>
@@ -110,7 +110,7 @@
   <tr><th>官方关键验收指标</th><th>本作品完成情况</th><th>状态</th></tr>
   <tr><td>A. 稳定错误码 + 准确位置 + 可执行修复建议</td><td>120 个规范错误码（8 大类，每类 15 个）+ 8 别名；<code>Span{line,column}</code>（实跑 <code>test.cj:11:6</code>）；<code>FixSuggestion</code> / LSP <code>codeAction</code>(quickfix)</td><td class="ok">✅</td></tr>
   <tr><td>B. 根因 + 候选符号/类型 + 关联位置</td><td><code>rootCause</code> + <code>Candidate{name,kind}</code>（如 <code>var1(variable)</code>、<code>foo(Int)(function)</code>）+ <code>related</code> / <code>relatedInformation</code></td><td class="ok">✅</td></tr>
-  <tr><td>C. 正向、反向用例语义保持稳定</td><td><code>cjpm test</code> 81/81 全绿（ut 47 + hlt 22 + llt 12），含正向/反向语义</td><td class="ok">✅</td></tr>
+  <tr><td>C. 正向、反向用例语义保持稳定</td><td><code>cjpm test</code> 82/82 全绿（ut 48 + hlt 22 + llt 12），含正向/反向语义</td><td class="ok">✅</td></tr>
   <tr><td>D. 编译性能不超过原基线 1.05 倍</td><td>真实性能基线 <code>memRatio = 1.033155x ≤ 1.05</code>（通过）</td><td class="ok">✅</td></tr>
 </table>
 
@@ -118,8 +118,8 @@
 <table>
   <tr><th>门禁</th><th>命令 / 来源</th><th>结果</th></tr>
   <tr><td>构建</td><td><code>cjpm build</code></td><td class="ok">exit 0，warning = 0</td></tr>
-  <tr><td>测试</td><td><code>cjpm test</code></td><td class="ok">TOTAL 81 / PASSED 81 / FAILED 0</td></tr>
-  <tr><td>静态检查</td><td><code>cjlint -f src</code></td><td class="ok">340 条全部 SUGGESTIONS；MANDATORY/MAJOR/CRITICAL = 0</td></tr>
+  <tr><td>测试</td><td><code>cjpm test</code></td><td class="ok">TOTAL 82 / PASSED 82 / FAILED 0</td></tr>
+  <tr><td>静态检查</td><td><code>cjlint -f src</code></td><td class="ok">344 条全部 SUGGESTIONS；MANDATORY/MAJOR/CRITICAL = 0</td></tr>
   <tr><td>性能</td><td><code>main</code> 实跑 <code>compareWithBaseline</code></td><td class="ok">memRatio = 1.033155x ≤ 1.05（通过）</td></tr>
 </table>
 
@@ -152,13 +152,13 @@ compiler-diagnostic 面向仓颉编译器开发者，提供结构化的编译器
 | 官方关键验收指标 | 本作品完成情况 |
 | 典型错误具备稳定错误码、准确的位置及可执行修复建议 | ✅ 120 个稳定错误码（8 大类，每类 15 个）；span 行/列精确定位；fix 提供可执行修复建议 |
 | 复杂语义错误可展示根因、候选符号或类型及关联位置 | ✅ rootCause + Candidate{name,kind} + related 关联位置；JSON 与 LSP 双 schema 均输出 |
-| 正向、反向用例语义保持稳定 | ✅ 81 个测试用例（ut 47 + hlt 22 + llt 12）全绿，含正向/反向用例 |
+| 正向、反向用例语义保持稳定 | ✅ 82 个测试用例（ut 48 + hlt 22 + llt 12）全绿，含正向/反向用例 |
 | 编译性能不超过原基线的 1.05 倍 | ✅ 真实性能基线 memRatio≈1.033x（≤1.05），通过 |
 
 四、门禁状态
 - cjpm build：exit 0，warning 0
-- cjpm test：81/81 通过
-- cjlint：340 条 SUGGESTIONS，MANDATORY 阻断项 0
+- cjpm test：82/82 通过
+- cjlint：344 条 SUGGESTIONS，MANDATORY 阻断项 0
 
 附件包含作品提交模板 PDF 与官方作品简介统一模板，请审阅。如有需要补充材料，请随时联系，谢谢！
 

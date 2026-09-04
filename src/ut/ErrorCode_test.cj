@@ -74,3 +74,29 @@ class ErrorCodeTest {
         @Expect(noneD.message, "空指针解引用")
     }
 }
+
+/// 全量错误码一致性校验：遍历全部 128 个变体（120 规范码 + 8 向后兼容别名）。
+/// 任一变体若缺失 META 条目，category()/severity()/template() 内部 META.get(...).getOrThrow() 会抛错 → 测试失败。
+@Test
+class ErrorCodeCompletenessTest {
+    @TestCase func testAllCodesHaveMetaAndConsistent(): Unit {
+        let all = ErrorCode.all()
+        var count = 0
+        for (c in all) {
+            count = count + 1
+            // 这些访问均经 META.get(...).getOrThrow()，缺条目即抛错中断本用例
+            let code = c.code()
+            let cat = c.category()
+            let sev = c.severity()
+            let tpl = c.template()
+            // 码前缀必须与所属类别前缀一致（如 E00xx -> Lexer、E2001 -> Type）
+            @Expect(code.startsWith(cat.codePrefix()), true)
+            // 严重级别必须落在三级之内
+            @Expect(sev == Severity.Fatal || sev == Severity.Error || sev == Severity.Warning, true)
+            // 模板不得为空
+            @Expect(tpl.size > 0, true)
+        }
+        // 锁定变体总数：120 规范 + 8 别名
+        @Expect(count, 128)
+    }
+}
