@@ -255,6 +255,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "检测到非标准换行符（如单独 \\r）", fix: Some(FixSuggestion(description: "统一使用 \\n 换行")))
     m["E0020"] = ErrorMeta(code: "E0020", category: ErrorCategory.Lexer, severity: Severity.Warning,
         template: "源码含 BOM 且编码声明冲突", fix: Some(FixSuggestion(description: "移除 BOM 或统一编码声明")))
+    m["E0021"] = ErrorMeta(code: "E0021", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "数值字面量中的分隔符(_)位置非法", fix: Some(FixSuggestion(description: "移除或仅将 _ 用于分组数字")))
+    m["E0022"] = ErrorMeta(code: "E0022", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "原生(raw)字符串字面量未闭合", fix: Some(FixSuggestion(description: "补全结束定界符")))
+    m["E0023"] = ErrorMeta(code: "E0023", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "字符串前缀非法（不支持的编码或类型前缀）", fix: None)
+    m["E0024"] = ErrorMeta(code: "E0024", category: ErrorCategory.Lexer, severity: Severity.Warning,
+        template: "源码文件编码声明与 BOM 冲突", fix: Some(FixSuggestion(description: "统一编码声明与 BOM")))
+    m["E0025"] = ErrorMeta(code: "E0025", category: ErrorCategory.Lexer, severity: Severity.Warning,
+        template: "源码含零宽字符，可能导致不可见错误", fix: Some(FixSuggestion(description: "删除零宽字符")))
     // ---------------- Parser 语法分析（E01xx） ----------------
     m["E0101"] = ErrorMeta(code: "E0101", category: ErrorCategory.Parser, severity: Severity.Error,
         template: "字符串字面量未闭合", fix: Some(FixSuggestion(description: "添加结束引号", replacement: "\"")))
@@ -296,6 +306,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "函数参数名重复：{name}", fix: Some(FixSuggestion(description: "重命名重复参数")))
     m["E0120"] = ErrorMeta(code: "E0120", category: ErrorCategory.Parser, severity: Severity.Warning,
         template: "标注（annotation）位置非法", fix: Some(FixSuggestion(description: "将标注移至允许的声明位置")))
+    m["E0121"] = ErrorMeta(code: "E0121", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "泛型约束语法非法", fix: None)
+    m["E0122"] = ErrorMeta(code: "E0122", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "函数声明缺少返回类型标注", fix: Some(FixSuggestion(description: "补充返回类型标注")))
+    m["E0123"] = ErrorMeta(code: "E0123", category: ErrorCategory.Parser, severity: Severity.Warning,
+        template: "文档注释未附着到任何声明", fix: None)
+    m["E0124"] = ErrorMeta(code: "E0124", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "属性注解应用到了不支持的目标", fix: None)
+    m["E0125"] = ErrorMeta(code: "E0125", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "可变性修饰符相互冲突（mut 与不可变注解并存）", fix: None)
     // ---------------- Sema 语义分析（E10xx） ----------------
     m["E1001"] = ErrorMeta(code: "E1001", category: ErrorCategory.Sema, severity: Severity.Error,
         template: "使用了未定义的符号：{name}", fix: Some(FixSuggestion(description: "检查拼写或补充定义")))
@@ -337,6 +357,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "接口默认实现冲突：{name}", fix: Some(FixSuggestion(description: "显式实现以消除歧义")))
     m["E1020"] = ErrorMeta(code: "E1020", category: ErrorCategory.Sema, severity: Severity.Warning,
         template: "主构造函数参数未使用：{name}", fix: Some(FixSuggestion(description: "移除未使用参数或使用下划线")))
+    m["E1021"] = ErrorMeta(code: "E1021", category: ErrorCategory.Sema, severity: Severity.Warning,
+        template: "循环体不可达（条件恒假）", fix: Some(FixSuggestion(description: "检查循环条件")))
+    m["E1022"] = ErrorMeta(code: "E1022", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "类型转换的安全性标注非法", fix: Some(FixSuggestion(description: "使用受支持的转换标注")))
+    m["E1023"] = ErrorMeta(code: "E1023", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "程序缺少入口 main 函数", fix: Some(FixSuggestion(description: "补充 main 函数")))
+    m["E1024"] = ErrorMeta(code: "E1024", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "同一 trait 存在相互冲突的实现", fix: Some(FixSuggestion(description: "移除冲突的实现")))
+    m["E1025"] = ErrorMeta(code: "E1025", category: ErrorCategory.Sema, severity: Severity.Warning,
+        template: "检测到不安全的逃逸（escape）", fix: Some(FixSuggestion(description: "审查逃逸点安全性")))
     // ---------------- Type 类型系统（E20xx） ----------------
     m["E2001"] = ErrorMeta(code: "E2001", category: ErrorCategory.Type, severity: Severity.Error,
         template: "类型不匹配：期望 {expected}，实际 {actual}", fix: Some(FixSuggestion(description: "强制转换或修正变量类型")))
@@ -378,6 +408,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "泛型实参与约束数量不匹配：{name}", fix: Some(FixSuggestion(description: "补上缺失的泛型实参")))
     m["E2020"] = ErrorMeta(code: "E2020", category: ErrorCategory.Type, severity: Severity.Error,
         template: "接口存在循环继承：{name}", fix: Some(FixSuggestion(description: "打断循环继承关系")))
+    m["E2021"] = ErrorMeta(code: "E2021", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "返回类型与声明不兼容：{expected}", fix: Some(FixSuggestion(description: "修正返回表达式或返回类型")))
+    m["E2022"] = ErrorMeta(code: "E2022", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "关联类型无法解析：{name}", fix: Some(FixSuggestion(description: "提供关联类型绑定")))
+    m["E2023"] = ErrorMeta(code: "E2023", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "self 类型在当前上下文中非法", fix: Some(FixSuggestion(description: "仅在允许的位置使用 self")))
+    m["E2024"] = ErrorMeta(code: "E2024", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "高阶量化边界（HRTB）不满足", fix: Some(FixSuggestion(description: "调整生命周期/类型边界")))
+    m["E2025"] = ErrorMeta(code: "E2025", category: ErrorCategory.Type, severity: Severity.Warning,
+        template: "幽灵类型(phantom)参数不匹配", fix: Some(FixSuggestion(description: "统一 phantom 类型实参")))
     // ---------------- Resolution 名称解析（E30xx） ----------------
     m["E3001"] = ErrorMeta(code: "E3001", category: ErrorCategory.Resolution, severity: Severity.Error,
         template: "模块未找到：{name}", fix: Some(FixSuggestion(description: "检查模块路径或依赖配置")))
@@ -419,6 +459,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "条件编译符号未定义：{key}", fix: Some(FixSuggestion(description: "定义该编译符号或条件编译")))
     m["E3020"] = ErrorMeta(code: "E3020", category: ErrorCategory.Resolution, severity: Severity.Warning,
         template: "可见性提升可能导致 API 破坏：{name}", fix: Some(FixSuggestion(description: "收紧可见性或显式导出")))
+    m["E3021"] = ErrorMeta(code: "E3021", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "导入别名冲突：{name}", fix: Some(FixSuggestion(description: "重命名导入别名")))
+    m["E3022"] = ErrorMeta(code: "E3022", category: ErrorCategory.Resolution, severity: Severity.Warning,
+        template: "调用了不稳定的 API（需显式启用）", fix: Some(FixSuggestion(description: "启用对应的不稳定特性开关")))
+    m["E3023"] = ErrorMeta(code: "E3023", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "缺少启用该能力所需的特性标志", fix: Some(FixSuggestion(description: "在配置中开启对应 feature")))
+    m["E3024"] = ErrorMeta(code: "E3024", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "符号优先级解析冲突", fix: Some(FixSuggestion(description: "使用显式限定消除歧义")))
+    m["E3025"] = ErrorMeta(code: "E3025", category: ErrorCategory.Resolution, severity: Severity.Warning,
+        template: "孤立的实现(impl)未被任何 trait 引用", fix: None)
     // ---------------- Codegen 代码生成（E40xx） ----------------
     m["E4001"] = ErrorMeta(code: "E4001", category: ErrorCategory.Codegen, severity: Severity.Error,
         template: "不支持的语言结构：{construct}", fix: Some(FixSuggestion(description: "改写为支持的写法")))
@@ -460,6 +510,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "不支持的内联汇编语法", fix: Some(FixSuggestion(description: "使用受支持的汇编方言")))
     m["E4020"] = ErrorMeta(code: "E4020", category: ErrorCategory.Codegen, severity: Severity.Error,
         template: "目标架构不支持该对齐指令：{align}", fix: Some(FixSuggestion(description: "改用软件对齐或条件编译")))
+    m["E4021"] = ErrorMeta(code: "E4021", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "目标平台不支持该 SIMD 指令", fix: None)
+    m["E4022"] = ErrorMeta(code: "E4022", category: ErrorCategory.Codegen, severity: Severity.Warning,
+        template: "调试信息生成失败", fix: None)
+    m["E4023"] = ErrorMeta(code: "E4023", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "目标段(section)超出平台大小限制", fix: None)
+    m["E4024"] = ErrorMeta(code: "E4024", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "不支持的重定位类型", fix: None)
+    m["E4025"] = ErrorMeta(code: "E4025", category: ErrorCategory.Codegen, severity: Severity.Warning,
+        template: "性能采样插桩失败", fix: None)
     // ---------------- Runtime 运行时（E50xx） ----------------
     m["E5001"] = ErrorMeta(code: "E5001", category: ErrorCategory.Runtime, severity: Severity.Fatal,
         template: "空指针解引用", fix: Some(FixSuggestion(description: "增加空值检查")))
@@ -501,6 +561,16 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "非法的协程挂起点", fix: Some(FixSuggestion(description: "仅在 suspend 上下文调用")))
     m["E5020"] = ErrorMeta(code: "E5020", category: ErrorCategory.Runtime, severity: Severity.Fatal,
         template: "内存对齐错误", fix: None)
+    m["E5021"] = ErrorMeta(code: "E5021", category: ErrorCategory.Runtime, severity: Severity.Warning,
+        template: "资源未被释放（可能泄漏）", fix: None)
+    m["E5022"] = ErrorMeta(code: "E5022", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "运行时契约(contract)被破坏", fix: None)
+    m["E5023"] = ErrorMeta(code: "E5023", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "操作超过运行时时限", fix: None)
+    m["E5024"] = ErrorMeta(code: "E5024", category: ErrorCategory.Runtime, severity: Severity.Fatal,
+        template: "检测到栈内存损坏", fix: None)
+    m["E5025"] = ErrorMeta(code: "E5025", category: ErrorCategory.Runtime, severity: Severity.Fatal,
+        template: "未知运行时错误（兜底）", fix: None)
     // ---------------- System 系统/内部（E90xx） ----------------
     m["E9001"] = ErrorMeta(code: "E9001", category: ErrorCategory.System, severity: Severity.Fatal,
         template: "编译器内部错误（ICE）", fix: None)
@@ -542,10 +612,20 @@ func buildMeta(): Map<String, ErrorMeta> {
         template: "中断信号导致编译中止", fix: None)
     m["E9020"] = ErrorMeta(code: "E9020", category: ErrorCategory.System, severity: Severity.Fatal,
         template: "未知内部错误（兜底）", fix: None)
+    m["E9021"] = ErrorMeta(code: "E9021", category: ErrorCategory.System, severity: Severity.Error,
+        template: "系统资源达到上限", fix: None)
+    m["E9022"] = ErrorMeta(code: "E9022", category: ErrorCategory.System, severity: Severity.Error,
+        template: "当前平台/配置不支持该特性", fix: None)
+    m["E9023"] = ErrorMeta(code: "E9023", category: ErrorCategory.System, severity: Severity.Fatal,
+        template: "收到致命信号（如 SIGSEGV）", fix: None)
+    m["E9024"] = ErrorMeta(code: "E9024", category: ErrorCategory.System, severity: Severity.Fatal,
+        template: "进入不可恢复的内部状态", fix: None)
+    m["E9025"] = ErrorMeta(code: "E9025", category: ErrorCategory.System, severity: Severity.Warning,
+        template: "已请求关闭（正常退出路径）", fix: None)
     return m
 }
 
-/// 错误码枚举（扩展后：8 大类、共 160 个规范错误码（每类 20 个）+ 8 个向后兼容别名）
+/// 错误码枚举（扩展后：8 大类、共 200 个规范错误码（每类 25 个）+ 8 个向后兼容别名）
 ///
 /// 命名规范：首字母 E + 类别号（1 位）+ 子类号（1 位）+ 序号（2 位）。
 /// 旧版 8 个变体名（ParserTypeMismatch 等）保留为别名，映射至新码，旧代码无需修改即可编译。
@@ -571,6 +651,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | LexerCharLiteralTooLong
     | LexerUnsupportedLineEnding
     | LexerBOMEncodingConflict
+    | LexerDigitSeparatorMisplaced
+    | LexerUnterminatedRawString
+    | LexerInvalidStringPrefix
+    | LexerConflictingSourceEncoding
+    | LexerZeroWidthCharacter
     | ParserMissingOperand
     | ParserInvalidModifierOrder
     | ParserDuplicateImport
@@ -592,6 +677,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | ParserInvalidDeclaration
     | ParserTrailingComma
     | ParserUnexpectedEOF
+    | ParserInvalidGenericConstraint
+    | ParserMissingReturnType
+    | ParserDanglingDocComment
+    | ParserInvalidAttributeTarget
+    | ParserConflictingMutability
     | SemaUninitializedConstant
     | SemaDuplicateImportItem
     | SemaIllegalRecursion
@@ -602,6 +692,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | SemaOperatorOverloadMismatch
     | SemaInterfaceDefaultConflict
     | SemaUnusedConstructorParam
+    | SemaUnreachableLoop
+    | SemaInvalidCastSafety
+    | SemaMissingMainFunction
+    | SemaConflictingTraitImpl
+    | SemaUnsafeEscape
     // ===== Sema 语义分析（E10xx） =====
     | SemaUndefinedSymbol
     | SemaRedeclaration
@@ -623,6 +718,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | TypeUnsafeTraitUpcast
     | TypeArgumentCountMismatch
     | TypeCyclicInterfaceInheritance
+    | TypeIncompatibleReturn
+    | TypeUnresolvedAssociatedType
+    | TypeInvalidSelfType
+    | TypeHigherRankedBound
+    | TypePhantomTypeMismatch
     // ===== Type 类型系统（E20xx） =====
     | TypeMismatch
     | TypeInferenceFailed
@@ -644,6 +744,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | ResolutionPackageInitCycle
     | ResolutionUndefinedCfgSymbol
     | ResolutionVisibilityLeak
+    | ResolutionConflictingImportAlias
+    | ResolutionUnstableApi
+    | ResolutionMissingFeatureFlag
+    | ResolutionSymbolPrecedence
+    | ResolutionOrphanedImpl
     // ===== Resolution 名称解析（E30xx） =====
     | ResolutionModuleNotFound
     | ResolutionImportNotFound
@@ -665,6 +770,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | CodegenLargeEhTable
     | CodegenInvalidInlineAsm
     | CodegenAlignmentUnsupported
+    | CodegenUnsupportedSimd
+    | CodegenDebugInfoFailed
+    | CodegenSectionTooLarge
+    | CodegenRelocUnsupported
+    | CodegenProfileInstrumentFailed
     // ===== Codegen 代码生成（E40xx） =====
     | CodegenUnsupportedConstruct
     | CodegenStackOverflowRisk
@@ -686,6 +796,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | RuntimeNegativeIndex
     | RuntimeInvalidSuspend
     | RuntimeAlignmentFault
+    | RuntimeLeakedResource
+    | RuntimeContractViolation
+    | RuntimeTimeoutExceeded
+    | RuntimeStackCorruption
+    | RuntimeUnknownError
     // ===== Runtime 运行时（E50xx） =====
     | RuntimeNullDereference
     | RuntimeIndexOutOfBounds
@@ -718,6 +833,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | SystemNetworkError
     | SystemPermissionDenied
     | SystemUnknown
+    | SystemResourceLimit
+    | SystemFeatureUnsupported
+    | SystemFatalSignal
+    | SystemUnrecoverableState
+    | SystemShutdownRequested
     // ===== 向后兼容别名（旧版 8 个变体名，映射至新码） =====
     | ParserTypeMismatch
     | ParserExprSyntaxError
@@ -750,6 +870,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.LexerCharLiteralTooLong)
         list.add(ErrorCode.LexerUnsupportedLineEnding)
         list.add(ErrorCode.LexerBOMEncodingConflict)
+        list.add(ErrorCode.LexerDigitSeparatorMisplaced)
+        list.add(ErrorCode.LexerUnterminatedRawString)
+        list.add(ErrorCode.LexerInvalidStringPrefix)
+        list.add(ErrorCode.LexerConflictingSourceEncoding)
+        list.add(ErrorCode.LexerZeroWidthCharacter)
         list.add(ErrorCode.ParserMissingOperand)
         list.add(ErrorCode.ParserInvalidModifierOrder)
         list.add(ErrorCode.ParserDuplicateImport)
@@ -770,6 +895,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.ParserInvalidDeclaration)
         list.add(ErrorCode.ParserTrailingComma)
         list.add(ErrorCode.ParserUnexpectedEOF)
+        list.add(ErrorCode.ParserInvalidGenericConstraint)
+        list.add(ErrorCode.ParserMissingReturnType)
+        list.add(ErrorCode.ParserDanglingDocComment)
+        list.add(ErrorCode.ParserInvalidAttributeTarget)
+        list.add(ErrorCode.ParserConflictingMutability)
         list.add(ErrorCode.SemaUninitializedConstant)
         list.add(ErrorCode.SemaDuplicateImportItem)
         list.add(ErrorCode.SemaIllegalRecursion)
@@ -780,6 +910,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.SemaOperatorOverloadMismatch)
         list.add(ErrorCode.SemaInterfaceDefaultConflict)
         list.add(ErrorCode.SemaUnusedConstructorParam)
+        list.add(ErrorCode.SemaUnreachableLoop)
+        list.add(ErrorCode.SemaInvalidCastSafety)
+        list.add(ErrorCode.SemaMissingMainFunction)
+        list.add(ErrorCode.SemaConflictingTraitImpl)
+        list.add(ErrorCode.SemaUnsafeEscape)
         list.add(ErrorCode.SemaUndefinedSymbol)
         list.add(ErrorCode.SemaRedeclaration)
         list.add(ErrorCode.SemaInvalidArgumentCount)
@@ -800,6 +935,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.TypeUnsafeTraitUpcast)
         list.add(ErrorCode.TypeArgumentCountMismatch)
         list.add(ErrorCode.TypeCyclicInterfaceInheritance)
+        list.add(ErrorCode.TypeIncompatibleReturn)
+        list.add(ErrorCode.TypeUnresolvedAssociatedType)
+        list.add(ErrorCode.TypeInvalidSelfType)
+        list.add(ErrorCode.TypeHigherRankedBound)
+        list.add(ErrorCode.TypePhantomTypeMismatch)
         list.add(ErrorCode.TypeMismatch)
         list.add(ErrorCode.TypeInferenceFailed)
         list.add(ErrorCode.TypeInvalidCast)
@@ -820,6 +960,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.ResolutionPackageInitCycle)
         list.add(ErrorCode.ResolutionUndefinedCfgSymbol)
         list.add(ErrorCode.ResolutionVisibilityLeak)
+        list.add(ErrorCode.ResolutionConflictingImportAlias)
+        list.add(ErrorCode.ResolutionUnstableApi)
+        list.add(ErrorCode.ResolutionMissingFeatureFlag)
+        list.add(ErrorCode.ResolutionSymbolPrecedence)
+        list.add(ErrorCode.ResolutionOrphanedImpl)
         list.add(ErrorCode.ResolutionModuleNotFound)
         list.add(ErrorCode.ResolutionImportNotFound)
         list.add(ErrorCode.ResolutionAmbiguousImport)
@@ -840,6 +985,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.CodegenLargeEhTable)
         list.add(ErrorCode.CodegenInvalidInlineAsm)
         list.add(ErrorCode.CodegenAlignmentUnsupported)
+        list.add(ErrorCode.CodegenUnsupportedSimd)
+        list.add(ErrorCode.CodegenDebugInfoFailed)
+        list.add(ErrorCode.CodegenSectionTooLarge)
+        list.add(ErrorCode.CodegenRelocUnsupported)
+        list.add(ErrorCode.CodegenProfileInstrumentFailed)
         list.add(ErrorCode.CodegenUnsupportedConstruct)
         list.add(ErrorCode.CodegenStackOverflowRisk)
         list.add(ErrorCode.CodegenInvalidIntrinsic)
@@ -860,6 +1010,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.RuntimeNegativeIndex)
         list.add(ErrorCode.RuntimeInvalidSuspend)
         list.add(ErrorCode.RuntimeAlignmentFault)
+        list.add(ErrorCode.RuntimeLeakedResource)
+        list.add(ErrorCode.RuntimeContractViolation)
+        list.add(ErrorCode.RuntimeTimeoutExceeded)
+        list.add(ErrorCode.RuntimeStackCorruption)
+        list.add(ErrorCode.RuntimeUnknownError)
         list.add(ErrorCode.RuntimeNullDereference)
         list.add(ErrorCode.RuntimeIndexOutOfBounds)
         list.add(ErrorCode.RuntimeDivisionByZero)
@@ -890,6 +1045,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.SystemNetworkError)
         list.add(ErrorCode.SystemPermissionDenied)
         list.add(ErrorCode.SystemUnknown)
+        list.add(ErrorCode.SystemResourceLimit)
+        list.add(ErrorCode.SystemFeatureUnsupported)
+        list.add(ErrorCode.SystemFatalSignal)
+        list.add(ErrorCode.SystemUnrecoverableState)
+        list.add(ErrorCode.SystemShutdownRequested)
         list.add(ErrorCode.ParserTypeMismatch)
         list.add(ErrorCode.ParserExprSyntaxError)
         list.add(ErrorCode.ParserUndefinedIdentifier)
@@ -926,6 +1086,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.LexerCharLiteralTooLong => "E0018"
             case ErrorCode.LexerUnsupportedLineEnding => "E0019"
             case ErrorCode.LexerBOMEncodingConflict => "E0020"
+            case ErrorCode.LexerDigitSeparatorMisplaced => "E0021"
+            case ErrorCode.LexerUnterminatedRawString => "E0022"
+            case ErrorCode.LexerInvalidStringPrefix => "E0023"
+            case ErrorCode.LexerConflictingSourceEncoding => "E0024"
+            case ErrorCode.LexerZeroWidthCharacter => "E0025"
             // Parser
             case ErrorCode.ParserUnterminatedString => "E0101"
             case ErrorCode.ParserUnexpectedToken => "E0102"
@@ -947,6 +1112,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.ParserUnclosedTypeParams => "E0118"
             case ErrorCode.ParserDuplicateParameterName => "E0119"
             case ErrorCode.ParserMisplacedAnnotation => "E0120"
+            case ErrorCode.ParserInvalidGenericConstraint => "E0121"
+            case ErrorCode.ParserMissingReturnType => "E0122"
+            case ErrorCode.ParserDanglingDocComment => "E0123"
+            case ErrorCode.ParserInvalidAttributeTarget => "E0124"
+            case ErrorCode.ParserConflictingMutability => "E0125"
             // Sema
             case ErrorCode.SemaUndefinedSymbol => "E1001"
             case ErrorCode.SemaRedeclaration => "E1002"
@@ -968,6 +1138,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.SemaOperatorOverloadMismatch => "E1018"
             case ErrorCode.SemaInterfaceDefaultConflict => "E1019"
             case ErrorCode.SemaUnusedConstructorParam => "E1020"
+            case ErrorCode.SemaUnreachableLoop => "E1021"
+            case ErrorCode.SemaInvalidCastSafety => "E1022"
+            case ErrorCode.SemaMissingMainFunction => "E1023"
+            case ErrorCode.SemaConflictingTraitImpl => "E1024"
+            case ErrorCode.SemaUnsafeEscape => "E1025"
             // Type
             case ErrorCode.TypeMismatch => "E2001"
             case ErrorCode.TypeInferenceFailed => "E2002"
@@ -989,6 +1164,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.TypeUnsafeTraitUpcast => "E2018"
             case ErrorCode.TypeArgumentCountMismatch => "E2019"
             case ErrorCode.TypeCyclicInterfaceInheritance => "E2020"
+            case ErrorCode.TypeIncompatibleReturn => "E2021"
+            case ErrorCode.TypeUnresolvedAssociatedType => "E2022"
+            case ErrorCode.TypeInvalidSelfType => "E2023"
+            case ErrorCode.TypeHigherRankedBound => "E2024"
+            case ErrorCode.TypePhantomTypeMismatch => "E2025"
             // Resolution
             case ErrorCode.ResolutionModuleNotFound => "E3001"
             case ErrorCode.ResolutionImportNotFound => "E3002"
@@ -1010,6 +1190,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.ResolutionPackageInitCycle => "E3018"
             case ErrorCode.ResolutionUndefinedCfgSymbol => "E3019"
             case ErrorCode.ResolutionVisibilityLeak => "E3020"
+            case ErrorCode.ResolutionConflictingImportAlias => "E3021"
+            case ErrorCode.ResolutionUnstableApi => "E3022"
+            case ErrorCode.ResolutionMissingFeatureFlag => "E3023"
+            case ErrorCode.ResolutionSymbolPrecedence => "E3024"
+            case ErrorCode.ResolutionOrphanedImpl => "E3025"
             // Codegen
             case ErrorCode.CodegenUnsupportedConstruct => "E4001"
             case ErrorCode.CodegenStackOverflowRisk => "E4002"
@@ -1031,6 +1216,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.CodegenLargeEhTable => "E4018"
             case ErrorCode.CodegenInvalidInlineAsm => "E4019"
             case ErrorCode.CodegenAlignmentUnsupported => "E4020"
+            case ErrorCode.CodegenUnsupportedSimd => "E4021"
+            case ErrorCode.CodegenDebugInfoFailed => "E4022"
+            case ErrorCode.CodegenSectionTooLarge => "E4023"
+            case ErrorCode.CodegenRelocUnsupported => "E4024"
+            case ErrorCode.CodegenProfileInstrumentFailed => "E4025"
             // Runtime
             case ErrorCode.RuntimeNullDereference => "E5001"
             case ErrorCode.RuntimeIndexOutOfBounds => "E5002"
@@ -1052,6 +1242,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.RuntimeNegativeIndex => "E5018"
             case ErrorCode.RuntimeInvalidSuspend => "E5019"
             case ErrorCode.RuntimeAlignmentFault => "E5020"
+            case ErrorCode.RuntimeLeakedResource => "E5021"
+            case ErrorCode.RuntimeContractViolation => "E5022"
+            case ErrorCode.RuntimeTimeoutExceeded => "E5023"
+            case ErrorCode.RuntimeStackCorruption => "E5024"
+            case ErrorCode.RuntimeUnknownError => "E5025"
             // System
             case ErrorCode.SystemInternalError => "E9001"
             case ErrorCode.SystemIOError => "E9002"
@@ -1073,6 +1268,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.SystemPluginVersionMismatch => "E9018"
             case ErrorCode.SystemInterrupted => "E9019"
             case ErrorCode.SystemUnknownInternal => "E9020"
+            case ErrorCode.SystemResourceLimit => "E9021"
+            case ErrorCode.SystemFeatureUnsupported => "E9022"
+            case ErrorCode.SystemFatalSignal => "E9023"
+            case ErrorCode.SystemUnrecoverableState => "E9024"
+            case ErrorCode.SystemShutdownRequested => "E9025"
             // 向后兼容别名
             case ErrorCode.ParserTypeMismatch => "E2001"
             case ErrorCode.ParserExprSyntaxError => "E0105"
