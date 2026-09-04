@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class ParserUnterminatedStringTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserUnterminatedString.code(), "E0001")
+        @Expect(ErrorCode.ParserUnterminatedString.code(), "E0101")
     }
 
     @TestCase func testReportMethod(): Unit {

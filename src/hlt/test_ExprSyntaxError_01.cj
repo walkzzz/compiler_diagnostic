@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class ParserExprSyntaxErrorTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserExprSyntaxError.code(), "E0003")
+        @Expect(ErrorCode.ParserExprSyntaxError.code(), "E0105")
     }
 
     @TestCase func testReportMethod(): Unit {

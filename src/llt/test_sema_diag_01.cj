@@ -18,7 +18,7 @@ class SemaDiag01Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = sema.reportTypeCheckFail(span: span, expectedType: "Int", actualType: "String", rootCause: "类型不兼容")
-        @Expect(diag.code.code(), "E1001")
+        @Expect(diag.code.code(), "E2001")
         @Expect(diag.related.size, 1)
     }
 }

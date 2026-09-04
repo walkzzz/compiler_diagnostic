@@ -18,7 +18,7 @@ class SemaDiag04Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = sema.reportVisibilityFail(span: span, memberName: "privateField", accessPath: "公共访问私有成员")
-        @Expect(diag.code.code(), "E1004")
+        @Expect(diag.code.code(), "E3004")
         @Expect(diag.message.contains("不可访问"), true)
     }
 }

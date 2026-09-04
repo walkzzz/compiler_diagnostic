@@ -31,7 +31,7 @@ class JSONOutputTest {
             span: span
         )
         let json = output.output(ArrayList<DiagnosticMessage>([diag]))
-        @Expect(json.contains("\"code\":\"E0001\""), true)
+        @Expect(json.contains("\"code\":\"E0101\""), true)
         @Expect(json.contains("\"severity\":\"error\""), true)
     }
 

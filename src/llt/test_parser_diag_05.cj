@@ -18,7 +18,7 @@ class ParserDiag05Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = parser.reportBracketMismatch(span: span)
-        @Expect(diag.code.code(), "E0005")
+        @Expect(diag.code.code(), "E0104")
         @Expect(diag.fix.isSome(), true)
     }
 }

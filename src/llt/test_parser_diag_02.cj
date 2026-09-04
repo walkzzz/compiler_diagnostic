@@ -18,7 +18,7 @@ class ParserDiag02Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = parser.reportTypeMismatch(span: span, expectedType: "Int", actualType: "String")
-        @Expect(diag.code.code(), "E0002")
+        @Expect(diag.code.code(), "E2001")
         @Expect(diag.message.contains("Int"), true)
         @Expect(diag.message.contains("String"), true)
     }

@@ -191,15 +191,18 @@ public class JSONDiagnosticOutput <: DiagnosticOutput {
         return sb.toString()
     }
 
+    /// LSP DiagnosticSeverity 映射：fatal/error -> 1（Error），warning -> 2，info -> 3，其他 -> 1
     private func severityToLsp(sev: String): Int64 {
-        if (sev == "error") {
+        if (sev == "fatal") {
+            return 1
+        } else if (sev == "error") {
             return 1
         } else if (sev == "warning") {
             return 2
         } else if (sev == "info") {
             return 3
         } else {
-            return 4
+            return 1
         }
     }
 

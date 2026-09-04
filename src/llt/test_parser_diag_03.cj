@@ -18,7 +18,7 @@ class ParserDiag03Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = parser.reportExprSyntaxError(span: span)
-        @Expect(diag.code.code(), "E0003")
+        @Expect(diag.code.code(), "E0105")
         @Expect(diag.message.contains("语法错误"), true)
     }
 }

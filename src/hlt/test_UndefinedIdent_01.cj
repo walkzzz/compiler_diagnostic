@@ -10,7 +10,7 @@ import std.collection.*
 @Test
 class ParserUndefinedIdentTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserUndefinedIdentifier.code(), "E0004")
+        @Expect(ErrorCode.ParserUndefinedIdentifier.code(), "E1001")
     }
 
     @TestCase func testReportMethod(): Unit {

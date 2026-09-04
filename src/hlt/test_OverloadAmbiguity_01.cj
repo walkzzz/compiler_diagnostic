@@ -10,7 +10,7 @@ import std.collection.*
 @Test
 class SemaOverloadAmbiguityTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaOverloadAmbiguity.code(), "E1003")
+        @Expect(ErrorCode.SemaOverloadAmbiguity.code(), "E2004")
     }
 
     @TestCase func testReportMethod(): Unit {

@@ -18,7 +18,7 @@ class ParserDiag01Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: SourceLoc(line: 10, column: 20))
         let diag = parser.reportUnterminatedString(span: span)
-        @Expect(diag.code.code(), "E0001")
+        @Expect(diag.code.code(), "E0101")
         @Expect(diag.message.contains("未终止"), true)
     }
 }

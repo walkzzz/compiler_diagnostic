@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class SemaVisibilityFailTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaVisibilityFail.code(), "E1004")
+        @Expect(ErrorCode.SemaVisibilityFail.code(), "E3004")
     }
 
     @TestCase func testReportMethod(): Unit {

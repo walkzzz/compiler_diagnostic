@@ -10,7 +10,7 @@ import compiler_diagnostic.diagnostics.*
 // 会误判 @Test 宏展开后的 register<SemaTypeCheckFailTest> 为 open 函数，触发 MANDATORY 阻断。
 class SemaTypeFailTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaTypeCheckFail.code(), "E1001")
+        @Expect(ErrorCode.SemaTypeCheckFail.code(), "E2001")
     }
 
     @TestCase func testReportMethod(): Unit {

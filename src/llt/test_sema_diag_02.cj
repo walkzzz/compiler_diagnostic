@@ -18,7 +18,7 @@ class SemaDiag02Test {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = sema.reportGenericInstantiateFail(span: span, genericName: "List<T>", constraintViolation: "类型约束不满足")
-        @Expect(diag.code.code(), "E1002")
+        @Expect(diag.code.code(), "E2006")
         @Expect(diag.message.contains("泛型实例化失败"), true)
     }
 }

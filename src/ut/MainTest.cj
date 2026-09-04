@@ -31,8 +31,8 @@ class MainTest {
 
     @TestCase func testGenerateSampleDiagnostics(): Unit {
         let diags = generateSampleDiagnostics()
-        @Expect(diags.size, 9)
-        @Expect(diags[0].code.code(), "E0001")
-        @Expect(diags[8].code.code(), "E1004")
+        @Expect(diags.size, 15)
+        @Expect(diags[0].code.code(), "E0101")
+        @Expect(diags[8].code.code(), "E3004")
     }
 }

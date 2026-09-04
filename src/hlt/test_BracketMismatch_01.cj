@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class ParserBracketMismatchTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserBracketMismatch.code(), "E0005")
+        @Expect(ErrorCode.ParserBracketMismatch.code(), "E0104")
     }
 
     @TestCase func testReportMethod(): Unit {

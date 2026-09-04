@@ -51,5 +51,40 @@ public func generateSampleDiagnostics(): List<DiagnosticMessage> {
     result.add(diag8)
     result.add(diag9)
 
+    // ===== 扩展样例：覆盖全部 8 大类（Lexer/Parser/Sema/Type/Resolution/Codegen/Runtime/System） =====
+    // 使用 fromCode 工厂 + 参数化模板，展示结构化诊断数据模型对全流水线的统一描述能力。
+
+    // Lexer 词法（E00xx）：参数化模板 {escape}
+    let locLexer = SourceLoc(line: 3, column: 10, file: "lexer_sample.cj")
+    let pLexer = HashMap<String, String>()
+    pLexer["escape"] = "\\x"
+    result.add(fromCode(ErrorCode.LexerInvalidEscapeSequence, Span(start: locLexer, end: locLexer), pLexer))
+
+    // Type 类型系统（E20xx）：参数化模板 {name}
+    let locType = SourceLoc(line: 5, column: 2, file: "type_sample.cj")
+    let pType = HashMap<String, String>()
+    pType["name"] = "value"
+    result.add(fromCode(ErrorCode.TypeInferenceFailed, Span(start: locType, end: locType), pType))
+
+    // Resolution 名称解析（E30xx）：参数化模板 {name}
+    let locRes = SourceLoc(line: 1, column: 1, file: "main_sample.cj")
+    let pRes = HashMap<String, String>()
+    pRes["name"] = "math"
+    result.add(fromCode(ErrorCode.ResolutionModuleNotFound, Span(start: locRes, end: locRes), pRes))
+
+    // Codegen 代码生成（E40xx）：参数化模板 {construct}
+    let locCg = SourceLoc(line: 8, column: 15, file: "codegen_sample.cj")
+    let pCg = HashMap<String, String>()
+    pCg["construct"] = "goto"
+    result.add(fromCode(ErrorCode.CodegenUnsupportedConstruct, Span(start: locCg, end: locCg), pCg))
+
+    // Runtime 运行时（E50xx）：Fatal 级，无参模板
+    let locRt = SourceLoc(line: 12, column: 4, file: "runtime_sample.cj")
+    result.add(fromCode(ErrorCode.RuntimeNullDereference, Span(start: locRt, end: locRt)))
+
+    // System 系统/内部（E90xx）：Fatal 级，无参模板
+    let locSys = SourceLoc(line: 0, column: 0, file: "internal_sample.cj")
+    result.add(fromCode(ErrorCode.SystemInternalError, Span(start: locSys, end: locSys)))
+
     return result
 }

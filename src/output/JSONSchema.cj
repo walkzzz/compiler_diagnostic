@@ -22,7 +22,7 @@ public class JSONSchema {
             "required": ["code", "message", "span", "severity"],
             "properties": {
               "code": { "type": "string" },
-              "severity": { "type": "string", "enum": ["error", "warning"] },
+              "severity": { "type": "string", "enum": ["fatal", "error", "warning"] },
               "message": { "type": "string" },
               "span": {
                 "type": "object",

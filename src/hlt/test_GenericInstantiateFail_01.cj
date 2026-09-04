@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class SemaGenericInstantiateFailTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaGenericInstantiateFail.code(), "E1002")
+        @Expect(ErrorCode.SemaGenericInstantiateFail.code(), "E2006")
     }
 
     @TestCase func testReportMethod(): Unit {

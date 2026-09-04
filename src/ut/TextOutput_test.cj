@@ -24,7 +24,7 @@ class TextOutputTest {
             span: span
         ).build()
         let result = output.output(ArrayList<DiagnosticMessage>([diag]))
-        @Expect(result.contains("[E0001]"), true)
+        @Expect(result.contains("[E0101]"), true)
         @Expect(result.contains("未终止的字符串字面量"), true)
     }
 
@@ -79,8 +79,8 @@ class TextOutputTest {
         let d1 = DiagnosticBuilder(code: ErrorCode.ParserUnterminatedString, message: "d1", span: span).build()
         let d2 = DiagnosticBuilder(code: ErrorCode.SemaTypeCheckFail, message: "d2", span: span).build()
         let result = output.output(ArrayList<DiagnosticMessage>([d1, d2]))
-        @Expect(result.contains("[E0001]"), true)
-        @Expect(result.contains("[E1001]"), true)
+        @Expect(result.contains("[E0101]"), true)
+        @Expect(result.contains("[E2001]"), true)
         @Expect(result.contains("d1"), true)
         @Expect(result.contains("d2"), true)
     }
@@ -108,7 +108,7 @@ class TextOutputTest {
             span: span
         ).build()
         let result = output.output(ArrayList<DiagnosticMessage>([diag]))
-        @Expect(result.contains("[E0003]"), true)
+        @Expect(result.contains("[E0105]"), true)
         @Expect(result.contains("负数位置"), true)
     }
 }
