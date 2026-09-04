@@ -49,10 +49,10 @@
 ## 三、待完成事项（用户执行）
 
 ### 必须完成
-- [ ] **创建 AtomGit 仓库**：登录 AtomGit，创建 `compiler-diagnostic` 仓库
-- [ ] **推送代码**：`git push` 到 AtomGit
+- [x] **创建 AtomGit 仓库**：https://gitcode.com/LOOYIABC/compiler-diagnostic.git （2026-09-04 已建）
+- [x] **推送代码**：`git push atomgit main` 已成功（Git Hooks PASSED，main 已同步）
 - [ ] **录制演示视频**：3-10 分钟，展示诊断输出和测试
-- [ ] **填写提交模板**：使用 `07-统一作品提交模板(解析).md`
+- [x] **填写提交模板**：`docs/14-作品提交模板.md` 已填（蒋本雄/13689047817/745244185@qq.com）+ 签字
 
 ### 建议完成
 - [ ] **同步到 cj-codelabs**：提交时勾选
@@ -71,14 +71,14 @@
 | README.OpenSource.md | ✅ |
 | ciTest.py | ✅（占位符） |
 | 演示视频 | ❌ 待完成 |
-| AtomGit 仓库 | ❌ 待创建 |
+| AtomGit 仓库 | ✅ https://gitcode.com/LOOYIABC/compiler-diagnostic.git |
 
 ---
 
 ## 五、下一步行动
 
 1. **立即执行**：
-   - 创建 AtomGit 仓库并推送代码
+   - ~~创建 AtomGit 仓库并推送代码~~ ✅ 已完成
    - 录制演示视频
 
 2. **提交前完成**：

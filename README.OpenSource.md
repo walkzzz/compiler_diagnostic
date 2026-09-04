@@ -25,7 +25,7 @@
 
 ## 仓库信息
 
-- **AtomGit 仓库**: （待创建）
+- **AtomGit 仓库**: https://gitcode.com/LOOYIABC/compiler-diagnostic.git （已创建并推送 main）
 - **cj-codelabs 同步**: （待提交时勾选）
 
 ## 依赖说明
