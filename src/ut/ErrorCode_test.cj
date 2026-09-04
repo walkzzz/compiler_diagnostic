@@ -4,35 +4,35 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.diagnostics.*
 
-/// 错误码体系测试（扩展后：8 大类共 80 个规范码 + 9 个向后兼容别名）
+/// 错误码体系测试（扩展后：8 大类共 120 个规范码（每类 15 个）+ 8 个向后兼容别名）
 @Test
 class ErrorCodeTest {
     /// 每类代表码的 code() 字符串（覆盖 Lexer/Parser/Sema/Type/Resolution/Codegen/Runtime/System 首尾）
     @TestCase func testCanonicalCodesByCategory(): Unit {
         // Lexer
         @Expect(ErrorCode.LexerUnterminatedString.code(), "E0001")
-        @Expect(ErrorCode.LexerInvalidUtf8Sequence.code(), "E0010")
+        @Expect(ErrorCode.LexerNestedCommentTooDeep.code(), "E0015")
         // Parser
         @Expect(ErrorCode.ParserUnterminatedString.code(), "E0101")
-        @Expect(ErrorCode.ParserUnexpectedEOF.code(), "E0110")
+        @Expect(ErrorCode.ParserIllegalTopLevelStatement.code(), "E0115")
         // Sema
         @Expect(ErrorCode.SemaUndefinedSymbol.code(), "E1001")
-        @Expect(ErrorCode.SemaDeprecatedUsage.code(), "E1010")
+        @Expect(ErrorCode.SemaUnreachableMatchArm.code(), "E1015")
         // Type
         @Expect(ErrorCode.TypeMismatch.code(), "E2001")
-        @Expect(ErrorCode.TypeIncompatibleVariance.code(), "E2010")
+        @Expect(ErrorCode.TypeCyclicInference.code(), "E2015")
         // Resolution
         @Expect(ErrorCode.ResolutionModuleNotFound.code(), "E3001")
-        @Expect(ErrorCode.ResolutionVersionMismatch.code(), "E3010")
+        @Expect(ErrorCode.ResolutionUncoveredCfgBranch.code(), "E3015")
         // Codegen
         @Expect(ErrorCode.CodegenUnsupportedConstruct.code(), "E4001")
-        @Expect(ErrorCode.CodegenEmissionInterrupted.code(), "E4010")
+        @Expect(ErrorCode.CodegenTargetFeatureUnsupported.code(), "E4015")
         // Runtime
         @Expect(ErrorCode.RuntimeNullDereference.code(), "E5001")
-        @Expect(ErrorCode.RuntimeUnwindAborted.code(), "E5010")
+        @Expect(ErrorCode.RuntimeFFICallFailed.code(), "E5015")
         // System
         @Expect(ErrorCode.SystemInternalError.code(), "E9001")
-        @Expect(ErrorCode.SystemUnknown.code(), "E9010")
+        @Expect(ErrorCode.SystemInternalAssertion.code(), "E9015")
     }
 
     /// 向后兼容别名映射到新码（旧 9 个变体名仍可编译，code() 指向规范码）
