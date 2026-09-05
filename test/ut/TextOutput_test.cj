@@ -48,7 +48,7 @@ class TextOutputTest {
         let span = Span(start: loc, end: loc)
         let rel = RelatedInfo(span: span, message: "关联位置")
         let diag = DiagnosticBuilder(
-            code: ErrorCode.SemaTypeCheckFail,
+            code: ErrorCode.TypeMismatch,
             message: "类型检查失败",
             span: span
         ).addRelated(rel).build()
@@ -62,7 +62,7 @@ class TextOutputTest {
         let span = Span(start: loc, end: loc)
         let cands: List<Candidate> = ArrayList<Candidate>([Candidate(name: "foo", kind: "variable"), Candidate(name: "bar", kind: "variable"), Candidate(name: "baz", kind: "function")])
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserUndefinedIdentifier,
+            code: ErrorCode.SemaUndefinedSymbol,
             message: "未定义标识符",
             span: span
         ).setCandidates(cands).build()
@@ -77,7 +77,7 @@ class TextOutputTest {
         let loc = SourceLoc(line: 1, column: 0)
         let span = Span(start: loc, end: loc)
         let d1 = DiagnosticBuilder(code: ErrorCode.ParserUnterminatedString, message: "d1", span: span).build()
-        let d2 = DiagnosticBuilder(code: ErrorCode.SemaTypeCheckFail, message: "d2", span: span).build()
+        let d2 = DiagnosticBuilder(code: ErrorCode.TypeMismatch, message: "d2", span: span).build()
         let result = output.output(ArrayList<DiagnosticMessage>([d1, d2]))
         @Expect(result.contains("[E0101]"), true)
         @Expect(result.contains("[E2001]"), true)
@@ -103,7 +103,7 @@ class TextOutputTest {
         let loc = SourceLoc(line: -1, column: -1)
         let span = Span(start: loc, end: loc)
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserExprSyntaxError,
+            code: ErrorCode.ParserInvalidExpression,
             message: "负数位置",
             span: span
         ).build()

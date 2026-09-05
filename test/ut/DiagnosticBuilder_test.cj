@@ -38,7 +38,7 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.SemaTypeCheckFail,
+            code: ErrorCode.TypeMismatch,
             message: "测试消息",
             span: span
         )
@@ -52,7 +52,7 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.ParserUndefinedIdentifier,
+            code: ErrorCode.SemaUndefinedSymbol,
             message: "测试消息",
             span: span
         )
@@ -65,7 +65,7 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.ParserExprSyntaxError,
+            code: ErrorCode.ParserInvalidExpression,
             message: "测试",
             span: span
         )

@@ -7,7 +7,7 @@
 1. **诊断字段结构化**：Parser / Sema 诊断包含错误码、位置信息（span）、严重程度、修复建议（fix）、关联诊断（related）与候选符号（candidates）
 2. **JSON 诊断输出**：符合 LSP（Language Server Protocol）规范的标准化 JSON 格式，可直接对接 IDE
 3. **性能基准框架**：内置 PerfBenchmark，验证新增诊断逻辑不引入性能退化
-4. **稳定错误码体系**：E0001–E0005（Parser）、E1001–E1004（Sema），便于回归测试
+4. **稳定错误码体系**：`E` + 2 位类别前缀 + 2 位序号，共 **40 类 / 1519 个**规范码（含 8 个向后兼容别名），覆盖 Lexer/Parser/Sema/Type/Resolution/Codegen/Runtime/System 全链路，0 孤儿、0 畸形；详见 `扩展后的错误码体系设计.md`
 
 ## 环境要求
 
@@ -42,7 +42,7 @@ cjpm run -- --diagnostic=lsp
 
 ### 测试（UT / HLT / LLT 三层）
 
-> 测试位于 `src/ut`、`src/hlt`、`src/llt` 子包（cjpm 仅扫描 `src/` 同目录测试）。
+> 测试位于顶层 `test/ut`、`test/hlt`、`test/llt` 子包（由 `cjpm.toml` 的 `test-dir = "test"` 配置，与 `src/` 生产代码物理隔离）。
 
 ```bash
 # 单元测试
@@ -66,17 +66,24 @@ cjlint -f src -o cjlint_report.json
 
 ### 错误码体系
 
-| 错误码 | 描述 | 模块 |
-|--------|------|------|
-| E0001 | 未终止的字符串字面量 | Parser |
-| E0002 | 类型不匹配 | Parser |
-| E0003 | 表达式语法错误 | Parser |
-| E0004 | 标识符未定义 | Parser |
-| E0005 | 括号不匹配 | Parser |
-| E1001 | 类型检查失败 | Sema |
-| E1002 | 泛型实例化失败 | Sema |
-| E1003 | 函数重载歧义 | Sema |
-| E1004 | 可见性检查失败 | Sema |
+诊断错误码采用 `E` + 2 位类别前缀 + 2 位序号 的统一格式（如 `E0101`、`E2001`），由 `ErrorCategory` 枚举驱动，全量 **1519 个**规范码分属 **40 个类别**，覆盖从词法/语法到语义/类型/解析/代码生成/运行时/系统的完整诊断链路。完整分类、码段与修复覆盖率见 [`扩展后的错误码体系设计.md`](扩展后的错误码体系设计.md)。
+
+代表性类别（部分）：
+
+| 前缀 | 类别 | 阶段 |
+|------|------|------|
+| E00 | Lexer 词法 | 编译前 |
+| E01 | Parser 语法 | 解析 |
+| E02 | Macro 宏 | 解析 |
+| E10 | Sema 语义 | 语义 |
+| E20 | Type 类型 | 语义 |
+| E30 | Resolution 名字解析 | 语义 |
+| E40 | Codegen 代码生成 | 后端 |
+| E50 | Runtime 运行时 | 运行 |
+| E60 | Lsp / IDE | 工具链 |
+| E90 | System 系统 | 运行 |
+
+任一诊断都携带稳定错误码、准确 span、severity 与可选 fix / rootCause / candidates，便于回归测试与 AI 归因。
 
 ### JSON 输出格式
 
@@ -133,12 +140,13 @@ compiler-diagnostic/
 │   ├── benchmark/                     # 性能基准
 │   │   ├── PerfBenchmark.cj
 │   │   └── BenchmarkReport.cj
-│   ├── ut/    (9 单元测试)
-│   ├── hlt/   (11 集成测试)
-│   └── llt/   (10 低级测试)
+├── test/                              # 测试包（与 src/ 物理隔离）
+│   ├── ut/    (单元测试)
+│   ├── hlt/   (高层集成测试)
+│   └── llt/   (端到端低级测试)
 ├── examples/                          # 示例
 │   ├── demo/main.cj
-│   └── error_samples/                 # 9 个错误样例（5 Parser + 4 Sema）
+│   └── error_samples/                 # 诊断错误样例（语法/语义负向用例）
 ├── docs/                              # 阶段报告与交付物
 └── LICENSE                            # Apache-2.0
 ```
@@ -150,13 +158,13 @@ compiler-diagnostic/
 | `cjpm build` | exit code 0 | ✅ |
 | 编译警告 | warning = 0（不使用 `-Woff all` 屏蔽） | ✅ |
 | 三层测试 | UT + HLT + LLT 全绿 | ✅ 80 用例全部通过（hlt 22 + llt 12 + ut 46） |
-| `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 324 项均为 SUGGESTIONS（非阻断，G.SEC.01 = 0） |
+| `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 最新扫描 MANDATORY=0；SUGGESTIONS 级 482 项（非阻断，多为命名/风格约定；G.PKG.01 通配导入受 1.1.3 命名导入限制） |
 
 > 注：`ci_test.cfg` 的 `compile_options` 已设为 `--test -Woff unused --dy-std`，仅抑制无害的“未用导入”类别，真实警告仍会暴露；当前工程零警告。
 
 ## 已知非阻断提示（cjlint SUGGESTIONS）
 
-cjlint 扫描 `src/` 共报告 324 条 `SUGGESTIONS`（非 MANDATORY，不阻断赛事门禁），主要类别：
+cjlint 最新扫描 `src/` 共报告 482 条 `SUGGESTIONS`（非 MANDATORY，不阻断赛事门禁），主要类别：
 
 - `G.PKG.01` 通配符导入（如 `import x.*`）—— 可读性建议
 - `G.NAM.01 / G.NAM.02 / G.NAM.03 / G.NAM.04` 命名与文件名风格建议

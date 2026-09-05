@@ -3,19 +3,19 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.diagnostics.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "SemaGenericInstantiateFailTest"
+// EXEC: cjpm test ut --filter "ResolutionPrivateAccessTest"
 // EXPECT: TOTAL:.*2
 @Test
-class SemaGenericInstantiateFailTest {
+class ResolutionPrivateAccessTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaGenericInstantiateFail.code(), "E2006")
+        @Expect(ErrorCode.ResolutionPrivateAccess.code(), "E3004")
     }
 
     @TestCase func testReportMethod(): Unit {
         let sema = SemaDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let diag = sema.reportGenericInstantiateFail(span: span, genericName: "List<T>", constraintViolation: "类型约束不满足")
-        @Expect(diag.code, ErrorCode.SemaGenericInstantiateFail)
+        let diag = sema.reportVisibilityFail(span: span, memberName: "privateField", accessPath: "公共访问私有成员")
+        @Expect(diag.code, ErrorCode.ResolutionPrivateAccess)
     }
 }

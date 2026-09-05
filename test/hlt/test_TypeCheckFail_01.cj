@@ -10,7 +10,7 @@ import compiler_diagnostic.diagnostics.*
 // 会误判 @Test 宏展开后的 register<SemaTypeCheckFailTest> 为 open 函数，触发 MANDATORY 阻断。
 class SemaTypeFailTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaTypeCheckFail.code(), "E2001")
+        @Expect(ErrorCode.TypeMismatch.code(), "E2001")
     }
 
     @TestCase func testReportMethod(): Unit {
@@ -18,7 +18,7 @@ class SemaTypeFailTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = sema.reportTypeCheckFail(span: span, expectedType: "Int", actualType: "String", rootCause: "类型不兼容")
-        @Expect(diag.code, ErrorCode.SemaTypeCheckFail)
+        @Expect(diag.code, ErrorCode.TypeMismatch)
         @Expect(diag.related.size, 1)
     }
 }

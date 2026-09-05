@@ -5,20 +5,20 @@ import compiler_diagnostic.diagnostics.*
 import std.collection.*
 import std.collection.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "SemaOverloadAmbiguityTest"
+// EXEC: cjpm test ut --filter "ParserUndefinedIdentTest"
 // EXPECT: TOTAL:.*2
 @Test
-class SemaOverloadAmbiguityTest {
+class ParserUndefinedIdentTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaOverloadAmbiguity.code(), "E2004")
+        @Expect(ErrorCode.SemaUndefinedSymbol.code(), "E1001")
     }
 
     @TestCase func testReportMethod(): Unit {
-        let sema = SemaDiagnostic()
+        let parser = ParserDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let diag = sema.reportOverloadAmbiguity(span: span, funcName: "foo", candidates: ArrayList<Candidate>([Candidate(name: "foo(Int)", kind: "function"), Candidate(name: "foo(String)", kind: "function")]))
-        @Expect(diag.code, ErrorCode.SemaOverloadAmbiguity)
+        let diag = parser.reportUndefinedIdentifier(span: span, identifier: "foo", candidates: ArrayList<Candidate>([Candidate(name: "Foo", kind: "type"), Candidate(name: "bar", kind: "function")]))
+        @Expect(diag.code, ErrorCode.SemaUndefinedSymbol)
         @Expect(diag.candidates.isSome(), true)
     }
 }

@@ -3,20 +3,19 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.diagnostics.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "ParserTypeMismatchTest"
+// EXEC: cjpm test ut --filter "ParserInvalidExpressionTest"
 // EXPECT: TOTAL:.*2
 @Test
-class ParserTypeMismatchTest {
+class ParserInvalidExpressionTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserTypeMismatch.code(), "E2001")
+        @Expect(ErrorCode.ParserInvalidExpression.code(), "E0105")
     }
 
     @TestCase func testReportMethod(): Unit {
         let parser = ParserDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
-        let diag = parser.reportTypeMismatch(span: span, expectedType: "Int", actualType: "String")
-        @Expect(diag.code, ErrorCode.ParserTypeMismatch)
-        @Expect(diag.message.contains("类型不匹配"), true)
+        let diag = parser.reportExprSyntaxError(span: span)
+        @Expect(diag.code, ErrorCode.ParserInvalidExpression)
     }
 }

@@ -1,0 +1,62 @@
+{
+  "name": "cangjie-diagnostic-adapter",
+  "displayName": "Cangjie Diagnostic Adapter (Generic Plugin Mode)",
+  "description": "将 compiler_diagnostic 的诊断输出映射为编辑器 Diagnostic / 快速修复，基于可编辑的 diagnostics-map.json（通用插件模式）",
+  "version": "1.2.0",
+  "publisher": "compiler-diagnostic",
+  "engines": { "vscode": "^1.75.0" },
+  "categories": ["Programming Languages", "Linters"],
+  "activationEvents": [
+    "onLanguage:cangjie",
+    "onCommand:cangjie.applyDiagnosticMap"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "cangjie",
+        "aliases": ["Cangjie", "cangjie"],
+        "extensions": [".cj"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "cangjie.applyDiagnosticMap",
+        "title": "Cangjie: 应用诊断映射（从 JSON 输出生成 Diagnostic）"
+      },
+      {
+        "command": "cangjie.openDiagnosticDoc",
+        "title": "Cangjie: 打开错误码文档"
+      }
+    ],
+    "configuration": {
+      "title": "Cangjie Diagnostics",
+      "properties": {
+        "cangjie.diagnostics.mapPath": {
+          "type": "string",
+          "default": "diagnostics-map.json",
+          "description": "诊断映射表路径（由 tools/gen_vscode_map.py 从 Diagnostics.cj 生成，覆盖全部码）"
+        },
+        "cangjie.diagnostics.severityOverride": {
+          "type": "object",
+          "default": {},
+          "description": "按错误码前缀覆盖严重级别，例如 { \"E90\": \"Warning\" }；通用插件模式下的本地微调手段"
+        },
+        "cangjie.diagnostics.autoApplyOnOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "监听 compiler_diagnostic 的任务输出并自动渲染 Diagnostic"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p ."
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.4.0"
+  }
+}

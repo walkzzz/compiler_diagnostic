@@ -88,3 +88,84 @@ public func generateSampleDiagnostics(): List<DiagnosticMessage> {
 
     return result
 }
+
+// ===== v1.2 子命令分发（run / diagnose） =====
+
+/// 子命令分发结果
+public enum Subcommand {
+    | Default
+    | Run(RunArgs)
+    | Diagnose(DiagnoseArgs)
+}
+
+/// run 子命令参数
+public struct RunArgs {
+    public var sourceFile: String
+    public var exportTrace: String
+    public init(sourceFile!: String, exportTrace!: String) {
+        this.sourceFile = sourceFile
+        this.exportTrace = exportTrace
+    }
+}
+
+/// diagnose 子命令参数
+public struct DiagnoseArgs {
+    public var tracePath: String
+    public init(tracePath!: String) {
+        this.tracePath = tracePath
+    }
+}
+
+/// 顶部分发：args[0]=="run"/"diagnose" 走子命令，否则 Default（保留旧行为）
+public func dispatchSubcommand(args: Array<String>): Subcommand {
+    if (args.size > 0) {
+        if (args[0] == "run") {
+            return Subcommand.Run(parseRunArgs(args))
+        } else if (args[0] == "diagnose") {
+            return Subcommand.Diagnose(parseDiagnoseArgs(args))
+        }
+    }
+    return Subcommand.Default
+}
+
+/// 解析 run 子命令剩余参数：位置源文件 + --export-trace <path>
+public func parseRunArgs(args: Array<String>): RunArgs {
+    var sourceFile = ""
+    var exportTrace = ""
+    var i = 1
+    while (i < args.size) {
+        if (args[i] == "--export-trace") {
+            if (i + 1 < args.size) {
+                exportTrace = args[i + 1]
+                i = i + 2
+            } else {
+                i = i + 1
+            }
+        } else {
+            if (sourceFile == "") {
+                sourceFile = args[i]
+            }
+            i = i + 1
+        }
+    }
+    return RunArgs(sourceFile: sourceFile, exportTrace: exportTrace)
+}
+
+/// 解析 diagnose 子命令：--trace <path>
+public func parseDiagnoseArgs(args: Array<String>): DiagnoseArgs {
+    var tracePath = ""
+    var i = 1
+    while (i < args.size) {
+        if (args[i] == "--trace") {
+            if (i + 1 < args.size) {
+                tracePath = args[i + 1]
+                i = i + 2
+            } else {
+                i = i + 1
+            }
+        } else {
+            i = i + 1
+        }
+    }
+    return DiagnoseArgs(tracePath: tracePath)
+}

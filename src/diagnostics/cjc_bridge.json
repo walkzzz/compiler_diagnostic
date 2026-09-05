@@ -1,0 +1,44 @@
+{
+  "description": "真实 cjc 诊断 → 本工程 ErrorCode 桥接表（C 方案，数据驱动）。与 src/diagnostics/cjc_bridge.cj 同源维护。",
+  "cjc_format": {
+    "line": "error: <message> ==> <file>:<line>:<col>:",
+    "snippet": "代码行 + ^~~~~~ 标记列",
+    "note": "note: <补充说明>",
+    "internal_code": "error[E667]: <message>（部分版本带内部码）"
+  },
+  "internal_codes": [
+    { "cjc": "E667", "target": "TypeMismatch", "semantics": "类型不匹配" },
+    { "cjc": "E75",  "target": "SemaUndefinedSymbol", "semantics": "未声明的标识符" },
+    { "cjc": "E673", "target": "SemaDuplicateImportItem", "semantics": "重复定义" },
+    { "cjc": "E488", "target": "ResolutionModuleNotFound", "semantics": "包/模块未找到" },
+    { "cjc": "E671", "target": "TypeInferenceFailed", "semantics": "无法推断类型" }
+  ],
+  "keyword_patterns": [
+    { "keyword": "unterminated string", "target": "ParserUnterminatedString" },
+    { "keyword": "unclosed string", "target": "ParserUnterminatedString" },
+    { "keyword": "mismatched bracket", "target": "ParserMismatchedBracket" },
+    { "keyword": "unexpected token", "target": "ParserInvalidExpression" },
+    { "keyword": "unexpected end of file", "target": "ParserUnexpectedToken" },
+    { "keyword": "duplicate import", "target": "ParserDuplicateImport" },
+    { "keyword": "undeclared identifier", "target": "SemaUndefinedSymbol" },
+    { "keyword": "cannot find", "target": "SemaUndefinedSymbol" },
+    { "keyword": "cannot infer", "target": "TypeInferenceFailed" },
+    { "keyword": "type inference", "target": "TypeInferenceFailed" },
+    { "keyword": "duplicate definition", "target": "SemaDuplicateImportItem" },
+    { "keyword": "redefinition", "target": "SemaDuplicateImportItem" },
+    { "keyword": "mismatched types", "target": "TypeMismatch" },
+    { "keyword": "type mismatch", "target": "TypeMismatch" },
+    { "keyword": "ambiguous", "target": "TypeAmbiguousOverload" },
+    { "keyword": "constraint violated", "target": "TypeConstraintViolation" },
+    { "keyword": "trait bound", "target": "TypeConstraintViolation" },
+    { "keyword": "private", "target": "ResolutionPrivateAccess" },
+    { "keyword": "module not found", "target": "ResolutionModuleNotFound" },
+    { "keyword": "import not found", "target": "ResolutionImportNotFound" },
+    { "keyword": "macro", "target": "MacroUndefinedIdentifier" },
+    { "keyword": "null pointer", "target": "RuntimeNullDereference" },
+    { "keyword": "null dereference", "target": "RuntimeNullDereference" },
+    { "keyword": "llvm verify", "target": "BackendLlvmVerifyFailed" },
+    { "keyword": "linker", "target": "CodegenLinkerFailed" }
+  ],
+  "fallback": "无法命中时 resolveCjc 返回 None，上层回退到原始 cjc 文本。"
+}

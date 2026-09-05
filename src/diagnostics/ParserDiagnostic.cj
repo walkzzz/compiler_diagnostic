@@ -15,7 +15,7 @@ public class ParserDiagnostic {
 
     public func reportTypeMismatch(span!: Span, expectedType!: String, actualType!: String): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserTypeMismatch,
+            code: ErrorCode.TypeMismatch,
             message: "类型不匹配：期望 " + expectedType + "，实际 " + actualType,
             span: span
         )
@@ -24,7 +24,7 @@ public class ParserDiagnostic {
 
     public func reportExprSyntaxError(span!: Span): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserExprSyntaxError,
+            code: ErrorCode.ParserInvalidExpression,
             message: "表达式语法错误",
             span: span
         )
@@ -33,7 +33,7 @@ public class ParserDiagnostic {
 
     public func reportUndefinedIdentifier(span!: Span, identifier!: String, candidates!: List<Candidate>): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserUndefinedIdentifier,
+            code: ErrorCode.SemaUndefinedSymbol,
             message: "未定义的标识符：" + identifier,
             span: span
         )
@@ -43,7 +43,7 @@ public class ParserDiagnostic {
 
     public func reportBracketMismatch(span!: Span): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserBracketMismatch,
+            code: ErrorCode.ParserMismatchedBracket,
             message: "括号不匹配",
             span: span
         )
