@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-"""从扩展后的 Diagnostics.cj 抽取全部 1527 个错误码的元数据，
+"""从扩展后的 Diagnostics.cj 抽取全部错误码与警告码的元数据，
 生成 vscode-extension/diagnostics-map.json（开发工具映射表）。
 该表是「VS Code 通用插件模式」的唯一数据源：插件据此把编译器诊断
-（含 code 字段）映射为编辑器 Diagnostic（severity / 快速修复 / 文档链接）。"""
+（含 code 字段）映射为编辑器 Diagnostic（severity / 快速修复 / 文档链接）。
+其中 codes 为错误码（severity 可为 Fatal/Error/Warning），warnings 为
+与错误码平行的警告码体系（severity 固定 Warning，可经 -Werror 升级）。"""
 import io
 import json
 import os
@@ -193,6 +195,88 @@ for code, inner in blocks:
 # 按 code 排序
 codes.sort(key=lambda x: x["code"])
 
+# ---- 警告码体系（与错误码平行）：WarningCode -> code 映射 + WARNING_META 条目 ----
+wc_enum_start = None
+for i, l in enumerate(lines):
+    if "public enum WarningCode {" in l:
+        wc_enum_start = i
+        break
+warn_var_to_code = {}
+if wc_enum_start is not None:
+    pat = re.compile(r'case WarningCode\.(\w+) => "(\w+)"')
+    for i in range(wc_enum_start, min(wc_enum_start + 4000, len(lines))):
+        mm = pat.search(lines[i])
+        if mm:
+            warn_var_to_code[mm.group(1)] = mm.group(2)
+        if "public static func all()" in lines[i]:
+            break
+
+def find_warning_blocks(text):
+    """匹配 m["W####"] = WarningMeta(...) 条目，返回 (code, 内部参数字符串)。"""
+    blocks = []
+    i = 0
+    n = len(text)
+    while i < n:
+        j = text.find('m["', i)
+        if j == -1:
+            break
+        km = re.match(r'm\["(W\d+)"\] = WarningMeta\(', text[j:j + 90])
+        if not km:
+            i = j + 2
+            continue
+        code = km.group(1)
+        k = text.find('WarningMeta(', j) + len('WarningMeta')
+        end = balanced(text, k)
+        blocks.append((code, text[k:end]))
+        i = end + 1
+    return blocks
+
+warn_blocks = find_warning_blocks(text)
+warnings = []
+for code, inner in warn_blocks:
+    cat = re.search(r'category:\s*ErrorCategory\.(\w+)', inner)
+    sev = re.search(r'severity:\s*Severity\.(\w+)', inner)
+    grp = re.search(r'group:\s*WarningGroup\.(\w+)', inner)
+    de = re.search(r'defaultEnabled:\s*(true|false)', inner)
+    sup = re.search(r'suppressible:\s*(true|false)', inner)
+    tpl = re.search(r'template:\s*"((?:[^"\\]|\\.)*)"', inner)
+    cat = cat.group(1) if cat else ""
+    sev = sev.group(1) if sev else "Warning"
+    grp = grp.group(1) if grp else ""
+    de = (de.group(1) == "true") if de else True
+    sup = (sup.group(1) == "true") if sup else True
+    tpl = tpl.group(1).replace('\\"', '"') if tpl else ""
+    fix = None
+    fixm = re.search(r'fix:\s*', inner)
+    if fixm:
+        fstart = fixm.end()
+        if inner[fstart:fstart + 4] == 'None':
+            fix = None
+        else:
+            p = inner.index('(', fstart)
+            fend = balanced(inner, p)
+            fix = inner[p:fend + 1].replace('\\"', '"')
+    var = None
+    for v, c in warn_var_to_code.items():
+        if c == code:
+            var = v
+            break
+    warnings.append({
+        "code": code,
+        "variant": var,
+        "category": cat,
+        "group": grp,
+        "defaultEnabled": de,
+        "suppressible": sup,
+        "severity": sev,
+        "lspSeverity": "Warning",
+        "editorSeverity": 2,
+        "actionable": False,
+        "template": tpl,
+        "fix": fix,
+    })
+warnings.sort(key=lambda x: x["code"])
+
 categories = {}
 for c in cat_enum:
     categories[c] = {
@@ -208,6 +292,7 @@ mapping = {
     "total": len(codes),
     "categories": categories,
     "codes": codes,
+    "warnings": warnings,
 }
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -216,4 +301,5 @@ with io.open(OUT, "w", encoding="utf-8") as f:
 
 print(f"[map] META 条目识别: {total_meta}（正则精确匹配 {len(codes)}）")
 print(f"[map] 类别数: {len(categories)}")
-print(f"[map] 已写入 {OUT}（total={len(codes)}）")
+print(f"[map] 警告码条目: {len(warnings)}")
+print(f"[map] 已写入 {OUT}（total={len(codes)}, warnings={len(warnings)}）")

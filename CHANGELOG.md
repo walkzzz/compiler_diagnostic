@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-05
+
+新增与错误码**完全平行**的警告码体系（基于《仓颉警告码体系（含诊断与修复建议）》）。
+
+### Added
+- 新增 **64 条命名子警告码**（14 大类），覆盖 Lexer/Paser/Macro/Sema/Type/Resolution/Codegen/Opt/Runtime/Build/Test/Doc/Fmt/System。
+- 新增 `WarningGroup` 枚举（8 组：Wdefault/Wall/Wextra/Wpedantic/Wperformance/Wsecurity/Wstyle/Wdeprecated）及 `label()`。
+- 新增 `WarningMeta` 结构体（与 `ErrorMeta` 平行，含 `group`/`defaultEnabled`/`suppressible` 字段，记录默认开启状态与可抑制性）。
+- 新增 `WarningCode` 枚举（64 变体）+ `code()`（4 位 `W####`：`W` + 2 位类别前缀 + 2 位子码，如 `W00-001`→`W0001`）+ `all()`。
+- 新增 `buildWarningMeta()` + 全局注册表 `WARNING_META` + 内部访问器 `getWarningMeta(code)`。
+- `WarningCode` 提供与 `ErrorCode` 平行的公开访问方法：`category()`/`severity()`/`template()`/`defaultFix()`/`group()`/`defaultEnabled()`/`suppressible()`/`description()`（返回类型均为 public，满足可见性规则）。
+- `tools/gen_vscode_map.py` 扩展为同时抽取警告码，向 `vscode-extension/diagnostics-map.json` 新增 `warnings` 数组（code/variant/category/group/defaultEnabled/suppressible/template/fix），现已含 **1543 错误码 + 64 警告码**。
+
+### Changed
+- 警告系统作为独立模块落地，**不改动既有 1543 条错误条目**（错误码与警告码共享 `ErrorCategory` 类别前缀、`Severity.Warning` 级别，但注册表与枚举互不耦合）。
+- 警告级别固定 `Severity.Warning`（不阻断编译），可由 `-Werror` 升级为错误；`fix` 形如 `@allow(warning=...)` 或 `cjpm.toml` warn 配置抑制。
+
 ## [1.1.0] - 2026-09-05
 
 错误码体系按《仓颉错误码体系（扩展版）》生产级落地（文档权威）。
@@ -89,6 +106,8 @@ CI 可靠性加固 + 安全风格消减（非阻断）。
 ### Fixed
 - JSON 输出数组越界缺陷（C001）。
 
-[Unreleased]: https://gitcode.com/LOOYIABC/compiler-diagnostic/compare/v1.0.0...HEAD
+[Unreleased]: https://gitcode.com/LOOYIABC/compiler-diagnostic/compare/v1.2.0...HEAD
+[1.2.0]: https://gitcode.com/LOOYIABC/compiler-diagnostic/compare/v1.1.0...v1.2.0
+[1.1.0]: https://gitcode.com/LOOYIABC/compiler-diagnostic/compare/v1.0.0...v1.1.0
 [1.0.0]: https://gitcode.com/LOOYIABC/compiler-diagnostic/releases/tag/v1.0.0
 [0.1.0]: https://gitcode.com/LOOYIABC/compiler-diagnostic/releases/tag/v0.1.0

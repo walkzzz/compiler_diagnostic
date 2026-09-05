@@ -400,6 +400,76 @@ struct ErrorMeta {
     }
 }
 
+/// 警告组（控制粒度：Wdefault/Wall/Wextra/Wpedantic/Wperformance/Wsecurity/Wstyle/Wdeprecated）
+public enum WarningGroup {
+    | Wdefault
+    | Wall
+    | Wextra
+    | Wpedantic
+    | Wperformance
+    | Wsecurity
+    | Wstyle
+    | Wdeprecated
+
+    /// 人类可读标签
+    public func label(): String {
+        match (this) {
+            case WarningGroup.Wdefault => "default"
+            case WarningGroup.Wall => "all"
+            case WarningGroup.Wextra => "extra"
+            case WarningGroup.Wpedantic => "pedantic"
+            case WarningGroup.Wperformance => "performance"
+            case WarningGroup.Wsecurity => "security"
+            case WarningGroup.Wstyle => "style"
+            case WarningGroup.Wdeprecated => "deprecated"
+        }
+    }
+}
+
+/// 警告码元数据（与 ErrorMeta 平行；警告不阻断编译，但可被 -Werror 升级为错误）
+struct WarningMeta {
+    let code: String
+    let category: ErrorCategory
+    let severity: Severity
+    let group: WarningGroup
+    /// 默认是否开启
+    let defaultEnabled: Bool
+    /// 是否可通过 @allow(warning=...) 抑制
+    let suppressible: Bool
+    let template: String
+    let fix: Option<FixSuggestion>
+    var notes: ArrayList<DiagnosticNote> = ArrayList<DiagnosticNote>()
+    var primarySpanRole: String = "primary"
+
+    public init(code!: String, category!: ErrorCategory, severity!: Severity, group!: WarningGroup,
+        defaultEnabled!: Bool, suppressible!: Bool, template!: String, fix!: Option<FixSuggestion>) {
+        this.code = code
+        this.category = category
+        this.severity = severity
+        this.group = group
+        this.defaultEnabled = defaultEnabled
+        this.suppressible = suppressible
+        this.template = template
+        this.fix = fix
+    }
+
+    public init(code!: String, category!: ErrorCategory, severity!: Severity, group!: WarningGroup,
+        defaultEnabled!: Bool, suppressible!: Bool, template!: String, fix!: Option<FixSuggestion>,
+        notes!: ArrayList<DiagnosticNote>, primarySpanRole!: String) {
+        this.code = code
+        this.category = category
+        this.severity = severity
+        this.group = group
+        this.defaultEnabled = defaultEnabled
+        this.suppressible = suppressible
+        this.template = template
+        this.fix = fix
+        this.notes = notes
+        this.primarySpanRole = primarySpanRole
+    }
+}
+
+
 /// 填充错误码元数据第 9 组（Assembler / Fmt / Debugger / Profiler），共 4 个类别、24 条。
 func buildMetaPart9(m: HashMap<String, ErrorMeta>) {
         m["E4301"] = ErrorMeta(code: "E4301", category: ErrorCategory.Assembler, severity: Severity.Error,
@@ -453,6 +523,84 @@ func buildMetaPart9(m: HashMap<String, ErrorMeta>) {
 }
 
 /// 全部错误码元数据表（key 为错误码字符串）
+/// 全部警告码元数据表（key 为警告码字符串）
+func buildWarningMeta(): Map<String, WarningMeta> {
+    let m = HashMap<String, WarningMeta>()
+    m["W0001"] = WarningMeta(code: "W0001", category: ErrorCategory.Lexer, severity: Severity.Warning, group: WarningGroup.Wpedantic, defaultEnabled: false, suppressible: true, template: "标识符包含非 ASCII 字符", fix: Some(FixSuggestion(description: "团队约定允许中文标识符则忽略；误输入的全角符号替换为半角；开源库建议使用 ASCII 标识符")))
+    m["W0002"] = WarningMeta(code: "W0002", category: ErrorCategory.Lexer, severity: Severity.Warning, group: WarningGroup.Wsecurity, defaultEnabled: true, suppressible: true, template: "标识符混合多种 Unicode 脚本（同形字风险）", fix: Some(FixSuggestion(description: "统一使用单一脚本（推荐纯 ASCII）；多语言标识符需团队审查，CI 中开启防恶意提交")))
+    m["W0003"] = WarningMeta(code: "W0003", category: ErrorCategory.Lexer, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: true, suppressible: true, template: "缩进混用制表符与空格", fix: Some(FixSuggestion(description: "运行 cjfmt 统一缩进；配置编辑器 4 空格缩进；.editorconfig 固定 indent_style=space")))
+    m["W0004"] = WarningMeta(code: "W0004", category: ErrorCategory.Lexer, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: true, suppressible: true, template: "源文件末尾缺少换行符", fix: Some(FixSuggestion(description: "配置编辑器保存时自动添加末尾换行，或运行 cjfmt 修复")))
+    m["W0005"] = WarningMeta(code: "W0005", category: ErrorCategory.Lexer, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "代码行末尾存在多余空白", fix: Some(FixSuggestion(description: "cjfmt 自动清理；编辑器保存钩子去除行尾空白")))
+    m["W0101"] = WarningMeta(code: "W0101", category: ErrorCategory.Parser, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: false, suppressible: true, template: "表达式存在不改变语义的多余括号", fix: Some(FixSuggestion(description: "移除多余括号；若仅为可读性可保留并抑制警告（团队约定优先）")))
+    m["W0102"] = WarningMeta(code: "W0102", category: ErrorCategory.Parser, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "语句末尾存在多余分号或独立空语句", fix: Some(FixSuggestion(description: "移除多余分号；仓颉以换行分隔语句，行尾分号通常多余")))
+    m["W0103"] = WarningMeta(code: "W0103", category: ErrorCategory.Parser, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "代码块为空（函数体/分支/循环）", fix: Some(FixSuggestion(description: "未完成则添加 TODO 并实现；有意为空则加注释；可删除的空分支直接删")))
+    m["W0104"] = WarningMeta(code: "W0104", category: ErrorCategory.Parser, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: false, template: "使用了未来版本将变为错误或改变语义的语法", fix: Some(FixSuggestion(description: "按警告中的 help 提示修改；此类警告不应长期抑制")))
+    m["W0201"] = WarningMeta(code: "W0201", category: ErrorCategory.Macro, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "宏展开结果未被使用", fix: Some(FixSuggestion(description: "若应使用返回值用 let _ = 显式丢弃；若宏不应有返回值检查宏定义")))
+    m["W0202"] = WarningMeta(code: "W0202", category: ErrorCategory.Macro, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "宏展开引入的标识符可能遮蔽调用处局部变量", fix: Some(FixSuggestion(description: "宏内使用 __ 前缀唯一标识符；使用卫生机制确保标识符不泄漏")))
+    m["W0203"] = WarningMeta(code: "W0203", category: ErrorCategory.Macro, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "过程宏主动发出的自定义警告", fix: Some(FixSuggestion(description: "按宏提供的 hint 信息修复")))
+    m["W1001"] = WarningMeta(code: "W1001", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "声明了局部变量但从未读取其值", fix: Some(FixSuggestion(description: "删除变量；有意忽略用 _ 前缀；漏用则补充使用逻辑")))
+    m["W1002"] = WarningMeta(code: "W1002", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "import 了包或模块但代码中未使用", fix: Some(FixSuggestion(description: "删除未使用的 import；再导出用 public import；cjc --fix unused-imports 批量清理")))
+    m["W1003"] = WarningMeta(code: "W1003", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "私有函数/方法从未被调用", fix: Some(FixSuggestion(description: "确认无用则删除；预留 API 设为 public 或 @allow(dead_code)")))
+    m["W1004"] = WarningMeta(code: "W1004", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "函数参数声明但函数体内未使用", fix: Some(FixSuggestion(description: "可删则移除；接口必需用 _ 前缀；未来会用加 TODO")))
+    m["W1005"] = WarningMeta(code: "W1005", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "存在永远不会被执行的代码", fix: Some(FixSuggestion(description: "确认无用则删除；调试代码移除；逻辑错误则修正控制流")))
+    m["W1006"] = WarningMeta(code: "W1006", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "对已知非空的值进行可空检查", fix: Some(FixSuggestion(description: "移除冗余的可空检查，直接使用值")))
+    m["W1007"] = WarningMeta(code: "W1007", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "条件表达式在编译期可确定为恒真或恒假", fix: Some(FixSuggestion(description: "恒真改为 while true；恒假删除分支；逻辑错误修正条件")))
+    m["W1008"] = WarningMeta(code: "W1008", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "内层作用域声明与外层同名的无关变量", fix: Some(FixSuggestion(description: "意外遮蔽则重命名；有意的链式变换可忽略")))
+    m["W1009"] = WarningMeta(code: "W1009", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "声明为可变（var）的变量从未被修改", fix: Some(FixSuggestion(description: "将 var 改为 let 表达不可变意图")))
+    m["W1010"] = WarningMeta(code: "W1010", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "if/else/match 分支为空", fix: Some(FixSuggestion(description: "未完成则添加实现或 TODO；有意为空加注释或反转条件去除空分支")))
+    m["W1011"] = WarningMeta(code: "W1011", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "函数尾表达式前存在多余的 return", fix: Some(FixSuggestion(description: "移除 return，使用尾表达式风格")))
+    m["W1012"] = WarningMeta(code: "W1012", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "私有 type 别名从未被使用", fix: Some(FixSuggestion(description: "删除或改为 public")))
+    m["W1013"] = WarningMeta(code: "W1013", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "结构体/类的私有字段从未被读取", fix: Some(FixSuggestion(description: "确认无用则删除；序列化需要加 @allow(dead_code)")))
+    m["W1014"] = WarningMeta(code: "W1014", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "私有枚举的某个变体从未被构造", fix: Some(FixSuggestion(description: "删除未使用变体或标注 @allow(dead_code)")))
+    m["W1015"] = WarningMeta(code: "W1015", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wdeprecated, defaultEnabled: true, suppressible: true, template: "使用了标记为 @deprecated 的项", fix: Some(FixSuggestion(description: "按推荐替代项迁移；评估弃用时间线制定计划；勿长期抑制")))
+    m["W1016"] = WarningMeta(code: "W1016", category: ErrorCategory.Sema, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "可变绑定（let mut/var）从未被修改", fix: Some(FixSuggestion(description: "移除 mut/var 改为不可变绑定")))
+    m["W2001"] = WarningMeta(code: "W2001", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "从高精度类型隐式转换到低精度类型可能丢失数据", fix: Some(FixSuggestion(description: "确认值在范围内用显式转换 Int32(x)；可能溢出加范围检查或用更高精度")))
+    m["W2002"] = WarningMeta(code: "W2002", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "有符号与无符号整数比较可能因隐式转换产生意外结果", fix: Some(FixSuggestion(description: "统一类型后比较；显式转换并确认值范围；使用安全比较函数")))
+    m["W2003"] = WarningMeta(code: "W2003", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "变量类型标注与推导类型完全一致（冗余）", fix: Some(FixSuggestion(description: "移除冗余标注；公开 API/复杂表达式/团队要求处保留")))
+    m["W2004"] = WarningMeta(code: "W2004", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wperformance, defaultEnabled: false, suppressible: true, template: "大尺寸对象按值传递导致大量内存拷贝", fix: Some(FixSuggestion(description: "改为按引用传递 &T；需所有权用移动语义；拆分大结构体或用堆分配")))
+    m["W2005"] = WarningMeta(code: "W2005", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wperformance, defaultEnabled: false, suppressible: true, template: "对值调用 .clone() 但该值之后不再使用（克隆多余）", fix: Some(FixSuggestion(description: "移除 .clone()，直接移动原值")))
+    m["W2006"] = WarningMeta(code: "W2006", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "编译器无法推导具体类型，回退到 Any", fix: Some(FixSuggestion(description: "添加显式类型标注")))
+    m["W2007"] = WarningMeta(code: "W2007", category: ErrorCategory.Type, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "可空类型在所有使用点都非空，可空性多余", fix: Some(FixSuggestion(description: "改为非可空类型，减少空检查开销")))
+    m["W3001"] = WarningMeta(code: "W3001", category: ErrorCategory.Resolution, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "使用 import foo.* 通配符导入可能引入名字冲突", fix: Some(FixSuggestion(description: "改为显式导入需要的项")))
+    m["W3002"] = WarningMeta(code: "W3002", category: ErrorCategory.Resolution, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "import 语句未按约定顺序排列（标准库→第三方→本地）", fix: Some(FixSuggestion(description: "运行 cjfmt 自动排序或手动调整")))
+    m["W3003"] = WarningMeta(code: "W3003", category: ErrorCategory.Resolution, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "public import 重导出了未被外部使用的项", fix: Some(FixSuggestion(description: "删除冗余的重导出")))
+    m["W4001"] = WarningMeta(code: "W4001", category: ErrorCategory.Codegen, severity: Severity.Warning, group: WarningGroup.Wperformance, defaultEnabled: false, suppressible: true, template: "函数栈帧超过阈值（默认 512 字节），增加栈溢出风险", fix: Some(FixSuggestion(description: "将大对象移到堆上（Box/new）；拆分为多个小函数；增大线程栈（最后手段）")))
+    m["W4002"] = WarningMeta(code: "W4002", category: ErrorCategory.Codegen, severity: Severity.Warning, group: WarningGroup.Wperformance, defaultEnabled: false, suppressible: true, template: "标记 @inline(always) 的函数无法被内联", fix: Some(FixSuggestion(description: "递归函数移除注解或改迭代；虚方法改静态分发或泛型；复杂函数考虑拆分")))
+    m["W4101"] = WarningMeta(code: "W4101", category: ErrorCategory.Opt, severity: Severity.Warning, group: WarningGroup.Wperformance, defaultEnabled: false, suppressible: true, template: "循环因数据依赖或别名问题无法自动向量化", fix: Some(FixSuggestion(description: "消除循环携带依赖；用 @noalias 消除内存别名；重构为可向量化形式；收益不大可忽略")))
+    m["W5001"] = WarningMeta(code: "W5001", category: ErrorCategory.Runtime, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "静态分析检测到打开的资源在所有路径上未被释放", fix: Some(FixSuggestion(description: "使用 defer 确保释放；使用 RAII 风格资源包装；使用 try-with-resources 模式")))
+    m["W5002"] = WarningMeta(code: "W5002", category: ErrorCategory.Runtime, severity: Severity.Warning, group: WarningGroup.Wsecurity, defaultEnabled: false, suppressible: true, template: "检测到多个协程/线程可能同时访问共享可变状态且无同步保护", fix: Some(FixSuggestion(description: "添加互斥锁 Mutex；使用原子类型；重构为消息传递模式；使用线程安全容器")))
+    m["W5003"] = WarningMeta(code: "W5003", category: ErrorCategory.Runtime, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "递归函数没有明显终止条件或终止条件不可达", fix: Some(FixSuggestion(description: "添加基础情况；确保参数向终止条件收敛；有意的无限递归改为迭代")))
+    m["W7001"] = WarningMeta(code: "W7001", category: ErrorCategory.Build, severity: Severity.Warning, group: WarningGroup.Wdeprecated, defaultEnabled: true, suppressible: true, template: "cjpm.toml 中使用了已弃用的配置字段", fix: Some(FixSuggestion(description: "按警告提示迁移到新配置字段")))
+    m["W7002"] = WarningMeta(code: "W7002", category: ErrorCategory.Build, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "依赖的包有新版本可用且超过维护周期或存在已知安全漏洞", fix: Some(FixSuggestion(description: "运行 cjpm update 升级；检查 CHANGELOG 兼容性；安全漏洞立即升级")))
+    m["W7003"] = WarningMeta(code: "W7003", category: ErrorCategory.Build, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "cjpm.toml 声明了依赖但代码从未 import", fix: Some(FixSuggestion(description: "删除未使用的依赖；运行时插件/动态加载依赖标记 runtime-only")))
+    m["W7004"] = WarningMeta(code: "W7004", category: ErrorCategory.Build, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: false, template: "检测到构建缓存与源码状态不一致（如手动修改构建产物）", fix: Some(FixSuggestion(description: "运行 cjpm clean 后重新构建")))
+    m["W7101"] = WarningMeta(code: "W7101", category: ErrorCategory.Test, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "测试函数没有任何断言调用，可能无法验证行为", fix: Some(FixSuggestion(description: "添加断言验证预期行为；烟雾测试加注释或 #smoke_test 标注")))
+    m["W7102"] = WarningMeta(code: "W7102", category: ErrorCategory.Test, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "测试被忽略标记且超过一定时间未修复", fix: Some(FixSuggestion(description: "修复并取消忽略；永远不适用则删除；添加忽略原因与跟踪 issue")))
+    m["W7103"] = WarningMeta(code: "W7103", category: ErrorCategory.Test, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "单个测试执行时间超过阈值（默认 10s）", fix: Some(FixSuggestion(description: "优化测试逻辑减少 IO/使用 mock；标记 #slow_test 移至单独套件；避免固定 sleep")))
+    m["W7104"] = WarningMeta(code: "W7104", category: ErrorCategory.Test, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: false, suppressible: true, template: "本次提交代码覆盖率低于基准线", fix: Some(FixSuggestion(description: "为新增代码补充测试用例")))
+    m["W7201"] = WarningMeta(code: "W7201", category: ErrorCategory.Doc, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: false, suppressible: true, template: "公开的函数/类型/模块缺少文档注释", fix: Some(FixSuggestion(description: "为公开 API 添加文档注释（功能/参数/返回值/示例）")))
+    m["W7202"] = WarningMeta(code: "W7202", category: ErrorCategory.Doc, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "文档注释 @param 列出的参数与函数签名不一致", fix: Some(FixSuggestion(description: "同步文档注释与函数签名")))
+    m["W7203"] = WarningMeta(code: "W7203", category: ErrorCategory.Doc, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "文档注释中的内部链接指向不存在的项", fix: Some(FixSuggestion(description: "修正链接目标或确认目标项公开性")))
+    m["W7204"] = WarningMeta(code: "W7204", category: ErrorCategory.Doc, severity: Severity.Warning, group: WarningGroup.Wextra, defaultEnabled: false, suppressible: true, template: "文档注释中的代码示例未被文档测试系统执行", fix: Some(FixSuggestion(description: "确保示例可编译运行或标注 no_run/ignore")))
+    m["W7301"] = WarningMeta(code: "W7301", category: ErrorCategory.Fmt, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "代码行长度超过配置最大宽度（默认 120）", fix: Some(FixSuggestion(description: "运行 cjfmt 自动换行；手动拆分长表达式；不可拆分内容行末标注 // cjfmt: ignore")))
+    m["W7302"] = WarningMeta(code: "W7302", category: ErrorCategory.Fmt, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: true, suppressible: true, template: "标识符不符合仓颉命名约定（变量/函数 snake_case、类型 CamelCase 等）", fix: Some(FixSuggestion(description: "重命名符合约定；外部 FFI 用 #rename 适配")))
+    m["W7303"] = WarningMeta(code: "W7303", category: ErrorCategory.Fmt, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "函数体行数超过阈值（默认 50 行）", fix: Some(FixSuggestion(description: "拆分为多个小函数各负单一职责；提取重复逻辑为辅助函数")))
+    m["W7304"] = WarningMeta(code: "W7304", category: ErrorCategory.Fmt, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "函数圈复杂度超过阈值（默认 15）", fix: Some(FixSuggestion(description: "提取分支逻辑为单独函数；使用早返回减少嵌套；用查表法替代长 match")))
+    m["W7305"] = WarningMeta(code: "W7305", category: ErrorCategory.Fmt, severity: Severity.Warning, group: WarningGroup.Wstyle, defaultEnabled: false, suppressible: true, template: "函数参数数量超过阈值（默认 7 个）", fix: Some(FixSuggestion(description: "相关参数封装为配置结构体；使用建造者模式；拆分为多个函数")))
+    m["W7306"] = WarningMeta(code: "W7306", category: ErrorCategory.Fmt, severity: Severity.Warning, group: WarningGroup.Wall, defaultEnabled: true, suppressible: true, template: "对非可空值使用了 ?. 或 ?? 等安全操作符（冗余）", fix: Some(FixSuggestion(description: "移除冗余安全操作符")))
+    m["W9001"] = WarningMeta(code: "W9001", category: ErrorCategory.System, severity: Severity.Warning, group: WarningGroup.Wdefault, defaultEnabled: true, suppressible: true, template: "读取环境变量失败，使用默认值", fix: Some(FixSuggestion(description: "默认值合理可忽略；应为必需则改为错误；文档说明环境变量作用与默认值")))
+    m["W9002"] = WarningMeta(code: "W9002", category: ErrorCategory.System, severity: Severity.Warning, group: WarningGroup.Wsecurity, defaultEnabled: false, suppressible: true, template: "创建文件使用了过宽权限（如 0777）", fix: Some(FixSuggestion(description: "收紧文件权限遵循最小权限；敏感文件用 0600")))
+    return m
+}
+
+let WARNING_META: Map<String, WarningMeta> = buildWarningMeta()
+
+/// 按警告码字符串查询元数据（内部访问器；对外通过 WarningCode 的访问方法暴露，保持 WarningMeta 为内部类型）
+func getWarningMeta(code: String): Option<WarningMeta> {
+    return WARNING_META.get(code)
+}
+
+
 let META: Map<String, ErrorMeta> = buildMeta()
 
 func buildMeta(): Map<String, ErrorMeta> {
@@ -470,6 +618,255 @@ func buildMeta(): Map<String, ErrorMeta> {
     buildMetaPart9(m)
     return m
 }
+
+/// 警告码（与 ErrorCode 平行；级别固定为 Severity.Warning，不阻断编译）
+public enum WarningCode {
+    | NonAsciiIdentifier
+    | MixedUnicodeScripts
+    | MixedIndentation
+    | NoNewLineAtEOF
+    | TrailingWhitespace
+    | RedundantParentheses
+    | RedundantSemicolon
+    | EmptyBlock
+    | FutureIncompatibleSyntax
+    | MacroResultUnused
+    | MacroHygieneRisk
+    | CustomWarning
+    | UnusedVariable
+    | UnusedImport
+    | UnusedFunction
+    | UnusedParameter
+    | UnreachableCode
+    | RedundantNullableCheck
+    | ConstantCondition
+    | NameShadowing
+    | VariableCanBeImmutable
+    | EmptyBranch
+    | RedundantReturn
+    | UnusedTypeAlias
+    | UnusedField
+    | UnusedEnumVariant
+    | DeprecatedUsed
+    | UnusedMutBinding
+    | ImplicitLossyConversion
+    | SignedUnsignedComparison
+    | RedundantTypeAnnotation
+    | LargeValuePassedByValue
+    | UnnecessaryClone
+    | TypeInferenceFallback
+    | UnnecessaryNullable
+    | WildcardImport
+    | ImportOrder
+    | RedundantReexport
+    | LargeStackFrame
+    | InlineFailed
+    | LoopNotVectorized
+    | PossibleResourceLeak
+    | PossibleRaceCondition
+    | InfiniteRecursion
+    | DeprecatedBuildConfig
+    | OutdatedDependency
+    | UnusedDependency
+    | BuildCacheInconsistent
+    | TestWithoutAssertion
+    | IgnoredTest
+    | SlowTest
+    | CoverageDrop
+    | MissingDocComment
+    | DocParamMismatch
+    | BrokenDocLink
+    | DocExampleNotTested
+    | LineTooLong
+    | NonConventionalNaming
+    | FunctionTooLong
+    | HighCyclomaticComplexity
+    | TooManyArguments
+    | UnusedSafeOperator
+    | EnvVarMissing
+    | InsecureFilePermission
+
+    /// 映射到 4 位警告码字符串（W + 2 位类别前缀 + 2 位子码）
+    public func code(): String {
+        match (this) {
+            case WarningCode.NonAsciiIdentifier => "W0001"
+            case WarningCode.MixedUnicodeScripts => "W0002"
+            case WarningCode.MixedIndentation => "W0003"
+            case WarningCode.NoNewLineAtEOF => "W0004"
+            case WarningCode.TrailingWhitespace => "W0005"
+            case WarningCode.RedundantParentheses => "W0101"
+            case WarningCode.RedundantSemicolon => "W0102"
+            case WarningCode.EmptyBlock => "W0103"
+            case WarningCode.FutureIncompatibleSyntax => "W0104"
+            case WarningCode.MacroResultUnused => "W0201"
+            case WarningCode.MacroHygieneRisk => "W0202"
+            case WarningCode.CustomWarning => "W0203"
+            case WarningCode.UnusedVariable => "W1001"
+            case WarningCode.UnusedImport => "W1002"
+            case WarningCode.UnusedFunction => "W1003"
+            case WarningCode.UnusedParameter => "W1004"
+            case WarningCode.UnreachableCode => "W1005"
+            case WarningCode.RedundantNullableCheck => "W1006"
+            case WarningCode.ConstantCondition => "W1007"
+            case WarningCode.NameShadowing => "W1008"
+            case WarningCode.VariableCanBeImmutable => "W1009"
+            case WarningCode.EmptyBranch => "W1010"
+            case WarningCode.RedundantReturn => "W1011"
+            case WarningCode.UnusedTypeAlias => "W1012"
+            case WarningCode.UnusedField => "W1013"
+            case WarningCode.UnusedEnumVariant => "W1014"
+            case WarningCode.DeprecatedUsed => "W1015"
+            case WarningCode.UnusedMutBinding => "W1016"
+            case WarningCode.ImplicitLossyConversion => "W2001"
+            case WarningCode.SignedUnsignedComparison => "W2002"
+            case WarningCode.RedundantTypeAnnotation => "W2003"
+            case WarningCode.LargeValuePassedByValue => "W2004"
+            case WarningCode.UnnecessaryClone => "W2005"
+            case WarningCode.TypeInferenceFallback => "W2006"
+            case WarningCode.UnnecessaryNullable => "W2007"
+            case WarningCode.WildcardImport => "W3001"
+            case WarningCode.ImportOrder => "W3002"
+            case WarningCode.RedundantReexport => "W3003"
+            case WarningCode.LargeStackFrame => "W4001"
+            case WarningCode.InlineFailed => "W4002"
+            case WarningCode.LoopNotVectorized => "W4101"
+            case WarningCode.PossibleResourceLeak => "W5001"
+            case WarningCode.PossibleRaceCondition => "W5002"
+            case WarningCode.InfiniteRecursion => "W5003"
+            case WarningCode.DeprecatedBuildConfig => "W7001"
+            case WarningCode.OutdatedDependency => "W7002"
+            case WarningCode.UnusedDependency => "W7003"
+            case WarningCode.BuildCacheInconsistent => "W7004"
+            case WarningCode.TestWithoutAssertion => "W7101"
+            case WarningCode.IgnoredTest => "W7102"
+            case WarningCode.SlowTest => "W7103"
+            case WarningCode.CoverageDrop => "W7104"
+            case WarningCode.MissingDocComment => "W7201"
+            case WarningCode.DocParamMismatch => "W7202"
+            case WarningCode.BrokenDocLink => "W7203"
+            case WarningCode.DocExampleNotTested => "W7204"
+            case WarningCode.LineTooLong => "W7301"
+            case WarningCode.NonConventionalNaming => "W7302"
+            case WarningCode.FunctionTooLong => "W7303"
+            case WarningCode.HighCyclomaticComplexity => "W7304"
+            case WarningCode.TooManyArguments => "W7305"
+            case WarningCode.UnusedSafeOperator => "W7306"
+            case WarningCode.EnvVarMissing => "W9001"
+            case WarningCode.InsecureFilePermission => "W9002"
+        }
+    }
+
+    /// 全部警告码枚举值
+    public static func all(): ArrayList<WarningCode> {
+        let list = ArrayList<WarningCode>()
+        list.add(WarningCode.NonAsciiIdentifier)
+        list.add(WarningCode.MixedUnicodeScripts)
+        list.add(WarningCode.MixedIndentation)
+        list.add(WarningCode.NoNewLineAtEOF)
+        list.add(WarningCode.TrailingWhitespace)
+        list.add(WarningCode.RedundantParentheses)
+        list.add(WarningCode.RedundantSemicolon)
+        list.add(WarningCode.EmptyBlock)
+        list.add(WarningCode.FutureIncompatibleSyntax)
+        list.add(WarningCode.MacroResultUnused)
+        list.add(WarningCode.MacroHygieneRisk)
+        list.add(WarningCode.CustomWarning)
+        list.add(WarningCode.UnusedVariable)
+        list.add(WarningCode.UnusedImport)
+        list.add(WarningCode.UnusedFunction)
+        list.add(WarningCode.UnusedParameter)
+        list.add(WarningCode.UnreachableCode)
+        list.add(WarningCode.RedundantNullableCheck)
+        list.add(WarningCode.ConstantCondition)
+        list.add(WarningCode.NameShadowing)
+        list.add(WarningCode.VariableCanBeImmutable)
+        list.add(WarningCode.EmptyBranch)
+        list.add(WarningCode.RedundantReturn)
+        list.add(WarningCode.UnusedTypeAlias)
+        list.add(WarningCode.UnusedField)
+        list.add(WarningCode.UnusedEnumVariant)
+        list.add(WarningCode.DeprecatedUsed)
+        list.add(WarningCode.UnusedMutBinding)
+        list.add(WarningCode.ImplicitLossyConversion)
+        list.add(WarningCode.SignedUnsignedComparison)
+        list.add(WarningCode.RedundantTypeAnnotation)
+        list.add(WarningCode.LargeValuePassedByValue)
+        list.add(WarningCode.UnnecessaryClone)
+        list.add(WarningCode.TypeInferenceFallback)
+        list.add(WarningCode.UnnecessaryNullable)
+        list.add(WarningCode.WildcardImport)
+        list.add(WarningCode.ImportOrder)
+        list.add(WarningCode.RedundantReexport)
+        list.add(WarningCode.LargeStackFrame)
+        list.add(WarningCode.InlineFailed)
+        list.add(WarningCode.LoopNotVectorized)
+        list.add(WarningCode.PossibleResourceLeak)
+        list.add(WarningCode.PossibleRaceCondition)
+        list.add(WarningCode.InfiniteRecursion)
+        list.add(WarningCode.DeprecatedBuildConfig)
+        list.add(WarningCode.OutdatedDependency)
+        list.add(WarningCode.UnusedDependency)
+        list.add(WarningCode.BuildCacheInconsistent)
+        list.add(WarningCode.TestWithoutAssertion)
+        list.add(WarningCode.IgnoredTest)
+        list.add(WarningCode.SlowTest)
+        list.add(WarningCode.CoverageDrop)
+        list.add(WarningCode.MissingDocComment)
+        list.add(WarningCode.DocParamMismatch)
+        list.add(WarningCode.BrokenDocLink)
+        list.add(WarningCode.DocExampleNotTested)
+        list.add(WarningCode.LineTooLong)
+        list.add(WarningCode.NonConventionalNaming)
+        list.add(WarningCode.FunctionTooLong)
+        list.add(WarningCode.HighCyclomaticComplexity)
+        list.add(WarningCode.TooManyArguments)
+        list.add(WarningCode.UnusedSafeOperator)
+        list.add(WarningCode.EnvVarMissing)
+        list.add(WarningCode.InsecureFilePermission)
+        return list
+    }
+
+    /// 所属类别
+    public func category(): ErrorCategory {
+        return getWarningMeta(this.code()).getOrThrow().category
+    }
+
+    /// 严重级别（固定为 Warning）
+    public func severity(): Severity {
+        return getWarningMeta(this.code()).getOrThrow().severity
+    }
+
+    /// 消息模板（支持 {key} 占位符）
+    public func template(): String {
+        return getWarningMeta(this.code()).getOrThrow().template
+    }
+
+    /// 默认修复建议
+    public func defaultFix(): Option<FixSuggestion> {
+        return getWarningMeta(this.code()).getOrThrow().fix
+    }
+
+    /// 所属警告组（Wdefault/Wall/Wextra/...）
+    public func group(): WarningGroup {
+        return getWarningMeta(this.code()).getOrThrow().group
+    }
+
+    /// 是否默认开启
+    public func defaultEnabled(): Bool {
+        return getWarningMeta(this.code()).getOrThrow().defaultEnabled
+    }
+
+    /// 是否可抑制（@allow(warning=...)）
+    public func suppressible(): Bool {
+        return getWarningMeta(this.code()).getOrThrow().suppressible
+    }
+
+    /// 人类可读描述（取消息模板）
+    public func description(): String {
+        return this.template()
+    }
+}
+
 
 /// 填充错误码元数据第 1 组（Lexer .. Resolution），共 5 个类别。
 func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
