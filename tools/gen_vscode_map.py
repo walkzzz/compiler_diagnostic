@@ -73,7 +73,12 @@ for i in range(code_start, min(code_start + 9000, len(lines))):
 
 # ---- META 条目（paren-aware 解析，兼容 5 参 / 7 参含 notes 的 ErrorMeta）----
 def balanced(text, start):
-    """text[start]=='(' 时返回匹配 ')' 的索引，否则返回 start。"""
+    """text[start]=='(' 时返回匹配 ')' 的索引，否则返回 start。
+
+    修正：跨字符串字面量（"..."，含 \\" 转义）与字符字面量（'...'，含 \\' 转义）
+    时不计数其中的括号，否则形如 `expected '(' after 'if'` 的消息会让括号匹配
+    一直扫描到文件末尾，导致解析被截断（仅识别到 54 条而非全量）。
+    """
     if start >= len(text) or text[start] != '(':
         return start
     depth = 0
@@ -81,6 +86,28 @@ def balanced(text, start):
     n = len(text)
     while i < n:
         c = text[i]
+        if c == '"':
+            i += 1
+            while i < n:
+                if text[i] == '\\':
+                    i += 2
+                    continue
+                if text[i] == '"':
+                    i += 1
+                    break
+                i += 1
+            continue
+        if c == "'":
+            i += 1
+            while i < n:
+                if text[i] == '\\':
+                    i += 2
+                    continue
+                if text[i] == "'":
+                    i += 1
+                    break
+                i += 1
+            continue
         if c == '(':
             depth += 1
         elif c == ')':

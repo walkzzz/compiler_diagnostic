@@ -19,11 +19,11 @@ import compiler_diagnostic.local_diagnostic_lib.MatchResult
 /// ErrorCode 映射表（复用既有码，不新增任何 ErrorCode）
 func errorCodeForPattern(id: String): ErrorCode {
     match (id) {
-        case "RT-ARRAY-OOB" => ErrorCode.RuntimeIndexOutOfBounds
+        case "RT-ARRAY-OOB" => ErrorCode.ArrayIndexOutOfBounds
         case "TP-TYPE-MISMATCH" => ErrorCode.TypeMismatch
-        case "RT-USE-AFTER-MOVE" => ErrorCode.RuntimeUseAfterMove
-        case "SE-NON-EXHAUSTIVE-MATCH" => ErrorCode.SemaNonExhaustiveMatch
-        case _ => ErrorCode.SystemInternalError
+        case "RT-USE-AFTER-MOVE" => ErrorCode.ConcurrentModification
+        case "SE-NON-EXHAUSTIVE-MATCH" => ErrorCode.AccessViolation
+        case _ => ErrorCode.FileNotFound
     }
 }
 
@@ -156,7 +156,7 @@ public class DiagnosticScheduler {
             ", message=" + excMsg + ", program=" + entry + ")"
         let span = Span(start: SourceLoc(line: 0, column: 0), end: SourceLoc(line: 0, column: 0))
         let msg = DiagnosticMessage(
-            code: ErrorCode.SystemInternalError,
+            code: ErrorCode.FileNotFound,
             message: fb,
             span: span,
             severity: "warning",

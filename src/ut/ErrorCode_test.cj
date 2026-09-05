@@ -10,39 +10,39 @@ class ErrorCodeTest {
     /// 每类代表码的 code() 字符串（覆盖 Lexer/Parser/Sema/Type/Resolution/Codegen/Runtime/System 首尾）
     @TestCase func testCanonicalCodesByCategory(): Unit {
         // Lexer
-        @Expect(ErrorCode.LexerUnterminatedString.code(), "E0001")
+        @Expect(ErrorCode.InvalidCharacter.code(), "E0001")
         @Expect(ErrorCode.LexerTruncatedMultibyte.code(), "E0029")
         // Parser
-        @Expect(ErrorCode.ParserUnterminatedString.code(), "E0101")
+        @Expect(ErrorCode.ExpectedToken.code(), "E0101")
         @Expect(ErrorCode.ParserOperatorPrecedenceAmbiguous.code(), "E0131")
         // Sema
-        @Expect(ErrorCode.SemaUndefinedSymbol.code(), "E1001")
+        @Expect(ErrorCode.UndefinedSymbol.code(), "E1001")
         @Expect(ErrorCode.SemaCyclicInitialization.code(), "E1032")
         // Type
         @Expect(ErrorCode.TypeMismatch.code(), "E2001")
         @Expect(ErrorCode.TypeLiteralAmbiguity.code(), "E2031")
         // Resolution
-        @Expect(ErrorCode.ResolutionModuleNotFound.code(), "E3001")
+        @Expect(ErrorCode.UnresolvedImport.code(), "E3001")
         @Expect(ErrorCode.ResolutionCfgExpressionError.code(), "E3030")
         // Codegen
-        @Expect(ErrorCode.CodegenUnsupportedConstruct.code(), "E4001")
+        @Expect(ErrorCode.InternalCompilerError.code(), "E4001")
         @Expect(ErrorCode.CodegenDebugFormatError.code(), "E4033")
         // Runtime
-        @Expect(ErrorCode.RuntimeNullDereference.code(), "E5001")
+        @Expect(ErrorCode.NullPointerDereference.code(), "E5001")
         @Expect(ErrorCode.RuntimeMemoryMapFailed.code(), "E5031")
         // System
-        @Expect(ErrorCode.SystemInternalError.code(), "E9001")
+        @Expect(ErrorCode.FileNotFound.code(), "E9001")
         @Expect(ErrorCode.SystemSandboxLimitExceeded.code(), "E9028")
     }
 
     /// 类别与严重级别映射（三级：Fatal > Error > Warning）
     @TestCase func testCategoryAndSeverity(): Unit {
         @Expect(ErrorCode.TypeMismatch.category(), ErrorCategory.Type)
-        @Expect(ErrorCode.LexerInvalidUtf8Sequence.category(), ErrorCategory.Lexer)
-        @Expect(ErrorCode.RuntimeNullDereference.severity(), Severity.Fatal)
-        @Expect(ErrorCode.SystemInternalError.severity(), Severity.Fatal)
-        @Expect(ErrorCode.LexerNumericOverflow.severity(), Severity.Warning)
-        @Expect(ErrorCode.SemaUnreachableCode.severity(), Severity.Warning)
+        @Expect(ErrorCode.TokenOverflow.category(), ErrorCategory.Lexer)
+        @Expect(ErrorCode.NullPointerDereference.severity(), Severity.Fatal)
+        @Expect(ErrorCode.FileNotFound.severity(), Severity.Fatal)
+        @Expect(ErrorCode.InvalidCharLiteral.severity(), Severity.Warning)
+        @Expect(ErrorCode.UnreachableCode.severity(), Severity.Warning)
         @Expect(ErrorCode.TypeMismatch.severity(), Severity.Error)
     }
 
@@ -57,7 +57,7 @@ class ErrorCodeTest {
         @Expect(d.message, "类型不匹配：期望 Int，实际 String")
         @Expect(d.severity, "error")
         @Expect(d.code.code(), "E2001")
-        let noneD = fromCode(ErrorCode.RuntimeNullDereference, span)
+        let noneD = fromCode(ErrorCode.NullPointerDereference, span)
         @Expect(noneD.severity, "fatal")
         @Expect(noneD.message, "空指针解引用")
     }

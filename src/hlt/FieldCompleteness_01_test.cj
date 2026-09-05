@@ -15,7 +15,7 @@ class JSONFieldCompletenessTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = diagnostic_builder_for_test(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "测试消息",
             span: span
         )
@@ -44,7 +44,7 @@ private func diagnostic_builder_for_test(code!: ErrorCode, message!: String, spa
 
 private func diagnostic_builder_with_fix_for_test(span!: Span): DiagnosticMessage {
     let builder = DiagnosticBuilder(
-        code: ErrorCode.ParserUnterminatedString,
+        code: ErrorCode.ExpectedToken,
         message: "测试",
         span: span
     )

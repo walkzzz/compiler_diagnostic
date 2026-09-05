@@ -191,6 +191,10 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
     | Xcompile
     | Wasm
     | Gpu
+    | Assembler
+    | Fmt
+    | Debugger
+    | Profiler
     public func codePrefix(): String {
         match (this) {
             case ErrorCategory.Macro => "E02"
@@ -200,8 +204,8 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
             case ErrorCategory.Generic => "E06"
             case ErrorCategory.Module => "E07"
             case ErrorCategory.Backend => "E11"
-            case ErrorCategory.Opt => "E12"
-            case ErrorCategory.Linker => "E13"
+            case ErrorCategory.Opt => "E41"
+            case ErrorCategory.Linker => "E42"
             case ErrorCategory.Abi => "E14"
             case ErrorCategory.Concurrency => "E51"
             case ErrorCategory.Mem => "E52"
@@ -209,19 +213,19 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
             case ErrorCategory.Lsp => "E60"
             case ErrorCategory.Incremental => "E61"
             case ErrorCategory.Pkg => "E62"
-            case ErrorCategory.Build => "E63"
+            case ErrorCategory.Build => "E70"
             case ErrorCategory.Debug => "E64"
             case ErrorCategory.Dist => "E65"
             case ErrorCategory.Plugin => "E66"
             case ErrorCategory.Tgt => "E67"
             case ErrorCategory.Simd => "E68"
             case ErrorCategory.Embed => "E69"
-            case ErrorCategory.Test => "E70"
-            case ErrorCategory.Doc => "E71"
-            case ErrorCategory.Lint => "E72"
-            case ErrorCategory.Sec => "E73"
-            case ErrorCategory.Conf => "E74"
-            case ErrorCategory.Telem => "E75"
+            case ErrorCategory.Test => "E71"
+            case ErrorCategory.Doc => "E72"
+            case ErrorCategory.Lint => "E83"
+            case ErrorCategory.Sec => "E80"
+            case ErrorCategory.Conf => "E81"
+            case ErrorCategory.Telem => "E82"
             case ErrorCategory.Xcompile => "E76"
             case ErrorCategory.Wasm => "E77"
             case ErrorCategory.Gpu => "E78"
@@ -234,6 +238,10 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
             case ErrorCategory.Codegen => "E40"
             case ErrorCategory.Runtime => "E50"
             case ErrorCategory.System => "E90"
+            case ErrorCategory.Assembler => "E43"
+            case ErrorCategory.Fmt => "E73"
+            case ErrorCategory.Debugger => "E74"
+            case ErrorCategory.Profiler => "E75"
         }
     }
 
@@ -273,6 +281,10 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
             case ErrorCategory.Wasm => "后端"
             case ErrorCategory.Gpu => "后端"
 
+            case ErrorCategory.Assembler => "后端"
+            case ErrorCategory.Fmt => "全阶段"
+            case ErrorCategory.Debugger => "全阶段"
+            case ErrorCategory.Profiler => "全阶段"
             case ErrorCategory.Lexer => "前端"
             case ErrorCategory.Parser => "前端"
             case ErrorCategory.Sema => "中端"
@@ -320,6 +332,10 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
             case ErrorCategory.Wasm => "WASM（WebAssembly）"
             case ErrorCategory.Gpu => "GPU（并行计算）"
 
+            case ErrorCategory.Assembler => "Assembler（汇编器）"
+            case ErrorCategory.Fmt => "Fmt（格式化）"
+            case ErrorCategory.Debugger => "Debugger（调试器）"
+            case ErrorCategory.Profiler => "Profiler（性能分析）"
             case ErrorCategory.Lexer => "Lexer（词法分析）"
             case ErrorCategory.Parser => "Parser（语法分析）"
             case ErrorCategory.Sema => "Sema（语义分析）"
@@ -384,6 +400,58 @@ struct ErrorMeta {
     }
 }
 
+/// 填充错误码元数据第 9 组（Assembler / Fmt / Debugger / Profiler），共 4 个类别、24 条。
+func buildMetaPart9(m: HashMap<String, ErrorMeta>) {
+        m["E4301"] = ErrorMeta(code: "E4301", category: ErrorCategory.Assembler, severity: Severity.Error,
+        template: "invalid instruction: 'mov x0, #0x100000000'", fix: Some(FixSuggestion(description: "非法汇编指令")))
+        m["E4302"] = ErrorMeta(code: "E4302", category: ErrorCategory.Assembler, severity: Severity.Error,
+        template: "invalid register name: 'x32'", fix: Some(FixSuggestion(description: "非法寄存器")))
+        m["E4303"] = ErrorMeta(code: "E4303", category: ErrorCategory.Assembler, severity: Severity.Error,
+        template: "failed to emit ELF object: <reason>", fix: Some(FixSuggestion(description: "目标文件格式错误")))
+        m["E4304"] = ErrorMeta(code: "E4304", category: ErrorCategory.Assembler, severity: Severity.Error,
+        template: "immediate too large for instruction encoding", fix: Some(FixSuggestion(description: "立即数溢出")))
+        m["E4305"] = ErrorMeta(code: "E4305", category: ErrorCategory.Assembler, severity: Severity.Error,
+        template: "assembler not found: please install clang or gcc", fix: Some(FixSuggestion(description: "汇编器未找到")))
+        m["E4306"] = ErrorMeta(code: "E4306", category: ErrorCategory.Assembler, severity: Severity.Error,
+        template: "invalid assembler directive: '.section'", fix: Some(FixSuggestion(description: "汇编伪指令错误")))
+        m["E7301"] = ErrorMeta(code: "E7301", category: ErrorCategory.Fmt, severity: Severity.Error,
+        template: "file is not formatted: run 'cjfmt' to fix", fix: Some(FixSuggestion(description: "格式检查未通过")))
+        m["E7302"] = ErrorMeta(code: "E7302", category: ErrorCategory.Fmt, severity: Severity.Error,
+        template: "invalid format config: unknown option 'tab_width'", fix: Some(FixSuggestion(description: "格式化配置错误")))
+        m["E7303"] = ErrorMeta(code: "E7303", category: ErrorCategory.Fmt, severity: Severity.Error,
+        template: "cannot format: file has syntax errors", fix: Some(FixSuggestion(description: "语法错误阻止格式化")))
+        m["E7304"] = ErrorMeta(code: "E7304", category: ErrorCategory.Fmt, severity: Severity.Error,
+        template: "cannot format macro-generated code", fix: Some(FixSuggestion(description: "不支持的语法构造")))
+        m["E7305"] = ErrorMeta(code: "E7305", category: ErrorCategory.Fmt, severity: Severity.Warning,
+        template: "line exceeds maximum width (120 chars)", fix: Some(FixSuggestion(description: "行超长（警告）")))
+        m["E7401"] = ErrorMeta(code: "E7401", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "no debug info found: compile with -g", fix: Some(FixSuggestion(description: "调试信息缺失")))
+        m["E7402"] = ErrorMeta(code: "E7402", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "failed to set breakpoint at main.cj:42", fix: Some(FixSuggestion(description: "断点错误")))
+        m["E7403"] = ErrorMeta(code: "E7403", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "DAP error: <message>", fix: Some(FixSuggestion(description: "调试协议错误")))
+        m["E7404"] = ErrorMeta(code: "E7404", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "cannot resolve variable 'x' in current frame", fix: Some(FixSuggestion(description: "变量解析失败")))
+        m["E7405"] = ErrorMeta(code: "E7405", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "step failed: no valid step target", fix: Some(FixSuggestion(description: "单步执行错误")))
+        m["E7406"] = ErrorMeta(code: "E7406", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "cannot evaluate expression in debug context", fix: Some(FixSuggestion(description: "表达式求值错误")))
+        m["E7407"] = ErrorMeta(code: "E7407", category: ErrorCategory.Debugger, severity: Severity.Error,
+        template: "failed to attach to process 12345", fix: Some(FixSuggestion(description: "调试器附加失败")))
+        m["E7501"] = ErrorMeta(code: "E7501", category: ErrorCategory.Profiler, severity: Severity.Error,
+        template: "failed to initialize profiler: <reason>", fix: Some(FixSuggestion(description: "性能分析初始化失败")))
+        m["E7502"] = ErrorMeta(code: "E7502", category: ErrorCategory.Profiler, severity: Severity.Error,
+        template: "sampling failed: perf_event_open returned -1", fix: Some(FixSuggestion(description: "采样错误")))
+        m["E7503"] = ErrorMeta(code: "E7503", category: ErrorCategory.Profiler, severity: Severity.Error,
+        template: "corrupted profile data", fix: Some(FixSuggestion(description: "性能数据错误")))
+        m["E7504"] = ErrorMeta(code: "E7504", category: ErrorCategory.Profiler, severity: Severity.Error,
+        template: "failed to instrument binary for PGO", fix: Some(FixSuggestion(description: "PGO 插桩错误")))
+        m["E7505"] = ErrorMeta(code: "E7505", category: ErrorCategory.Profiler, severity: Severity.Error,
+        template: "failed to merge PGO profiles: incompatible versions", fix: Some(FixSuggestion(description: "PGO 配置合并错误")))
+        m["E7506"] = ErrorMeta(code: "E7506", category: ErrorCategory.Profiler, severity: Severity.Error,
+        template: "profiling not supported on architecture 'riscv64'", fix: Some(FixSuggestion(description: "不支持的架构")))
+}
+
 /// 全部错误码元数据表（key 为错误码字符串）
 let META: Map<String, ErrorMeta> = buildMeta()
 
@@ -399,31 +467,32 @@ func buildMeta(): Map<String, ErrorMeta> {
     buildMetaPart6(m)
     buildMetaPart7(m)
     buildMetaPart8(m)
+    buildMetaPart9(m)
     return m
 }
 
 /// 填充错误码元数据第 1 组（Lexer .. Resolution），共 5 个类别。
 func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
-    m["E0001"] = ErrorMeta(code: "E0001", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "字符串字面量未闭合，缺少结束引号", fix: Some(FixSuggestion(description: "添加结束引号", replacement: "\"")))
-    m["E0002"] = ErrorMeta(code: "E0002", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "块注释未闭合，缺少 */", fix: Some(FixSuggestion(description: "补充 */", replacement: "*/")))
-    m["E0003"] = ErrorMeta(code: "E0003", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "非法转义字符：{escape}", fix: Some(FixSuggestion(description: "使用合法转义序列或原始字符串")))
-    m["E0004"] = ErrorMeta(code: "E0004", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "数字字面量格式错误：{literal}", fix: Some(FixSuggestion(description: "检查进制前缀或小数格式")))
-    m["E0005"] = ErrorMeta(code: "E0005", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "遇到无法识别的字符：{char}", fix: Some(FixSuggestion(description: "删除非法字符或检查文件编码")))
-    m["E0006"] = ErrorMeta(code: "E0006", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "标识符包含非法字符：{name}", fix: Some(FixSuggestion(description: "重命名标识符")))
-    m["E0007"] = ErrorMeta(code: "E0007", category: ErrorCategory.Lexer, severity: Severity.Warning,
-        template: "数字字面量超出类型范围：{literal}", fix: Some(FixSuggestion(description: "改用更大类型或添加字面量后缀")))
-    m["E0008"] = ErrorMeta(code: "E0008", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "字符字面量未闭合，缺少单引号", fix: Some(FixSuggestion(description: "添加单引号", replacement: "'")))
-    m["E0009"] = ErrorMeta(code: "E0009", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "空字符字面量", fix: Some(FixSuggestion(description: "填入字符或使用转义")))
-    m["E0010"] = ErrorMeta(code: "E0010", category: ErrorCategory.Lexer, severity: Severity.Error,
-        template: "源文件含非法 UTF-8 序列", fix: Some(FixSuggestion(description: "修正文件编码为 UTF-8")))
+        m["E0001"] = ErrorMeta(code: "E0001", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "invalid character '＠' in source file", fix: Some(FixSuggestion(description: "源文件中出现非法字符")))
+        m["E0002"] = ErrorMeta(code: "E0002", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "invalid unicode scalar value", fix: Some(FixSuggestion(description: "非法 Unicode 标量值")))
+        m["E0003"] = ErrorMeta(code: "E0003", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "unterminated string literal", fix: Some(FixSuggestion(description: "字符串未闭合")))
+        m["E0004"] = ErrorMeta(code: "E0004", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "unterminated block comment", fix: Some(FixSuggestion(description: "块注释未闭合")))
+        m["E0005"] = ErrorMeta(code: "E0005", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "invalid number literal: '0xG123'", fix: Some(FixSuggestion(description: "数字字面量格式错误")))
+        m["E0006"] = ErrorMeta(code: "E0006", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "invalid escape sequence: '\\q'", fix: Some(FixSuggestion(description: "非法转义序列")))
+        m["E0007"] = ErrorMeta(code: "E0007", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "invalid character literal: ''（空字符字面量）", fix: Some(FixSuggestion(description: "字符字面量错误")))
+        m["E0008"] = ErrorMeta(code: "E0008", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "source file is not valid UTF-8", fix: Some(FixSuggestion(description: "文件编码错误（非 UTF-8）")))
+        m["E0009"] = ErrorMeta(code: "E0009", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "invalid raw string delimiter", fix: Some(FixSuggestion(description: "原始字符串定界符错误")))
+        m["E0010"] = ErrorMeta(code: "E0010", category: ErrorCategory.Lexer, severity: Severity.Error,
+        template: "token exceeds maximum length", fix: Some(FixSuggestion(description: "Token 长度超限")))
     m["E0011"] = ErrorMeta(code: "E0011", category: ErrorCategory.Lexer, severity: Severity.Error,
         template: "非法的数字字面量后缀：{suffix}", fix: Some(FixSuggestion(description: "检查字面量后缀拼写")))
     m["E0012"] = ErrorMeta(code: "E0012", category: ErrorCategory.Lexer, severity: Severity.Error,
@@ -463,30 +532,30 @@ func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
     m["E0029"] = ErrorMeta(code: "E0029", category: ErrorCategory.Lexer, severity: Severity.Error,
         template: "多字节字符被截断（无效 UTF-8 续字节）", fix: None)
     // ---------------- Parser 语法分析（E01xx） ----------------
-    m["E0101"] = ErrorMeta(code: "E0101", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "字符串字面量未闭合", fix: Some(FixSuggestion(description: "添加结束引号", replacement: "\"")))
-    m["E0102"] = ErrorMeta(code: "E0102", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "遇到非预期 Token：{token}", fix: Some(FixSuggestion(description: "检查缺失或多余的符号")))
-    m["E0103"] = ErrorMeta(code: "E0103", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "缺少分号", fix: Some(FixSuggestion(description: "在语句末尾补充分号", replacement: ";")))
-    m["E0104"] = ErrorMeta(code: "E0104", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "括号不匹配", fix: Some(FixSuggestion(description: "补全或删除多余的括号")))
-    m["E0105"] = ErrorMeta(code: "E0105", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "表达式语法不合法", fix: Some(FixSuggestion(description: "修正运算符或操作数")))
-    m["E0106"] = ErrorMeta(code: "E0106", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "缺少冒号", fix: Some(FixSuggestion(description: "补充冒号", replacement: ":")))
-    m["E0107"] = ErrorMeta(code: "E0107", category: ErrorCategory.Parser, severity: Severity.Warning,
-        template: "重复修饰符：{modifier}", fix: Some(FixSuggestion(description: "删除重复的修饰符")))
-    m["E0108"] = ErrorMeta(code: "E0108", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "声明语法错误", fix: Some(FixSuggestion(description: "修正声明格式")))
-    m["E0109"] = ErrorMeta(code: "E0109", category: ErrorCategory.Parser, severity: Severity.Warning,
-        template: "不允许的尾随逗号", fix: Some(FixSuggestion(description: "删除多余的逗号")))
-    m["E0110"] = ErrorMeta(code: "E0110", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "文件意外结束", fix: Some(FixSuggestion(description: "补全未闭合的结构")))
-    m["E0111"] = ErrorMeta(code: "E0111", category: ErrorCategory.Parser, severity: Severity.Error,
-        template: "运算符缺少操作数", fix: Some(FixSuggestion(description: "补充缺失的操作数")))
-    m["E0112"] = ErrorMeta(code: "E0112", category: ErrorCategory.Parser, severity: Severity.Warning,
-        template: "修饰符顺序非法", fix: Some(FixSuggestion(description: "按规范顺序调整修饰符")))
+        m["E0101"] = ErrorMeta(code: "E0101", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "expected '(' after 'if', found 'input'", fix: Some(FixSuggestion(description: "缺少预期语法符号")))
+        m["E0102"] = ErrorMeta(code: "E0102", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "unexpected token '}' in top-level", fix: Some(FixSuggestion(description: "出现意外 Token")))
+        m["E0103"] = ErrorMeta(code: "E0103", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "expected expression after '..', found '<'", fix: Some(FixSuggestion(description: "缺少表达式")))
+        m["E0104"] = ErrorMeta(code: "E0104", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "expected identifier, found keyword 'let'", fix: Some(FixSuggestion(description: "缺少标识符")))
+        m["E0105"] = ErrorMeta(code: "E0105", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "expected type after ':'", fix: Some(FixSuggestion(description: "缺少类型标注")))
+        m["E0106"] = ErrorMeta(code: "E0106", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "expected ',' or '<NL>', found '['", fix: Some(FixSuggestion(description: "缺少语句分隔符")))
+        m["E0107"] = ErrorMeta(code: "E0107", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "invalid attribute syntax: '@!'", fix: Some(FixSuggestion(description: "注解/属性语法错误")))
+        m["E0108"] = ErrorMeta(code: "E0108", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "invalid pattern in match arm", fix: Some(FixSuggestion(description: "模式匹配语法错误")))
+        m["E0109"] = ErrorMeta(code: "E0109", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "unclosed '('", fix: Some(FixSuggestion(description: "分隔符未闭合")))
+        m["E0110"] = ErrorMeta(code: "E0110", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "duplicate modifier 'public'", fix: Some(FixSuggestion(description: "重复修饰符")))
+        m["E0111"] = ErrorMeta(code: "E0111", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "'private' not allowed here", fix: Some(FixSuggestion(description: "可见性修饰符位置错误")))
+        m["E0112"] = ErrorMeta(code: "E0112", category: ErrorCategory.Parser, severity: Severity.Error,
+        template: "trailing comma not allowed in this context", fix: Some(FixSuggestion(description: "多余尾随逗号（不允许的上下文）")))
     m["E0113"] = ErrorMeta(code: "E0113", category: ErrorCategory.Parser, severity: Severity.Error,
         template: "重复的导入声明：{name}", fix: Some(FixSuggestion(description: "删除重复导入")))
     m["E0114"] = ErrorMeta(code: "E0114", category: ErrorCategory.Parser, severity: Severity.Warning,
@@ -526,38 +595,36 @@ func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
     m["E0131"] = ErrorMeta(code: "E0131", category: ErrorCategory.Parser, severity: Severity.Warning,
         template: "运算符优先级/结合性可能产生歧义", fix: Some(FixSuggestion(description: "使用括号显式分组")))
     // ---------------- Sema 语义分析（E10xx） ----------------
-    m["E1001"] = ErrorMeta(code: "E1001", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "使用了未定义的符号：{name}", fix: Some(FixSuggestion(description: "检查拼写或补充定义")),
-        notes: ArrayList<DiagnosticNote>([DiagnosticNote(message: "在作用域内未找到该符号的声明，请确认拼写或导入", spanRole: "declaredHere")]),
-        primarySpanRole: "useSite")
+        m["E1001"] = ErrorMeta(code: "E1001", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "undefined reference to 'foo'", fix: Some(FixSuggestion(description: "使用未定义符号")))
     m["E1002"] = ErrorMeta(code: "E1002", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "符号重复声明：{name}", fix: Some(FixSuggestion(description: "重命名或删除重复声明")))
-    m["E1003"] = ErrorMeta(code: "E1003", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "函数实参数量不匹配：期望 {expected}，实际 {actual}", fix: Some(FixSuggestion(description: "调整调用处的参数数量")))
-    m["E1004"] = ErrorMeta(code: "E1004", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "对不可变变量赋值：{name}", fix: Some(FixSuggestion(description: "改为可变声明或移除赋值")))
-    m["E1005"] = ErrorMeta(code: "E1005", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "声明前使用：{name}", fix: Some(FixSuggestion(description: "调整声明顺序")))
-    m["E1006"] = ErrorMeta(code: "E1006", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "break/continue 出现在循环外", fix: Some(FixSuggestion(description: "移入循环或删除")))
-    m["E1007"] = ErrorMeta(code: "E1007", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "函数缺少返回语句", fix: Some(FixSuggestion(description: "补充 return 或更改返回类型")))
-    m["E1008"] = ErrorMeta(code: "E1008", category: ErrorCategory.Sema, severity: Severity.Warning,
-        template: "不可达代码", fix: Some(FixSuggestion(description: "删除死代码")))
-    m["E1009"] = ErrorMeta(code: "E1009", category: ErrorCategory.Sema, severity: Severity.Warning,
-        template: "变量遮蔽外层作用域：{name}", fix: Some(FixSuggestion(description: "重命名以提升可读性")))
-    m["E1010"] = ErrorMeta(code: "E1010", category: ErrorCategory.Sema, severity: Severity.Warning,
-        template: "使用了已废弃的 API：{name}", fix: Some(FixSuggestion(description: "迁移至推荐的 API")))
-    m["E1011"] = ErrorMeta(code: "E1011", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "常量未初始化：{name}", fix: Some(FixSuggestion(description: "为常量提供初始值")))
-    m["E1012"] = ErrorMeta(code: "E1012", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "导入项重复定义：{name}", fix: Some(FixSuggestion(description: "使用别名或全限定名")))
-    m["E1013"] = ErrorMeta(code: "E1013", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "非法的递归调用：{name}", fix: Some(FixSuggestion(description: "重构为迭代或尾递归")))
-    m["E1014"] = ErrorMeta(code: "E1014", category: ErrorCategory.Sema, severity: Severity.Error,
-        template: "match 表达式未覆盖全部分支", fix: Some(FixSuggestion(description: "补充缺失分支或使用通配臂")))
-    m["E1015"] = ErrorMeta(code: "E1015", category: ErrorCategory.Sema, severity: Severity.Warning,
-        template: "不可达的 match 分支", fix: Some(FixSuggestion(description: "删除不可达分支")))
+        template: "'x' is already declared in this scope", fix: Some(FixSuggestion(description: "重复声明")))
+        m["E1003"] = ErrorMeta(code: "E1003", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "cannot assign to immutable variable 'x'", fix: Some(FixSuggestion(description: "对不可变变量赋值")))
+        m["E1004"] = ErrorMeta(code: "E1004", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "use of moved value: 'x'", fix: Some(FixSuggestion(description: "使用已移动的值")))
+        m["E1005"] = ErrorMeta(code: "E1005", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "cannot borrow 'x' as mutable because it is also borrowed as immutable", fix: Some(FixSuggestion(description: "借用冲突")))
+        m["E1006"] = ErrorMeta(code: "E1006", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "'x' does not live long enough", fix: Some(FixSuggestion(description: "生命周期错误")))
+        m["E1007"] = ErrorMeta(code: "E1007", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "use of possibly uninitialized variable 'x'", fix: Some(FixSuggestion(description: "使用未初始化变量")))
+        m["E1008"] = ErrorMeta(code: "E1008", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "unreachable statement", fix: Some(FixSuggestion(description: "不可达代码")))
+        m["E1009"] = ErrorMeta(code: "E1009", category: ErrorCategory.Sema, severity: Severity.Warning,
+        template: "unused variable: 'x'", fix: Some(FixSuggestion(description: "未使用变量（警告）")))
+        m["E1010"] = ErrorMeta(code: "E1010", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "missing return in function expected to return Int", fix: Some(FixSuggestion(description: "缺少返回值")))
+        m["E1011"] = ErrorMeta(code: "E1011", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "'self' used outside of instance method", fix: Some(FixSuggestion(description: "self 使用错误")))
+        m["E1012"] = ErrorMeta(code: "E1012", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "cannot instantiate abstract class 'Shape'", fix: Some(FixSuggestion(description: "实例化抽象类型")))
+        m["E1013"] = ErrorMeta(code: "E1013", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "method 'draw' overrides nothing", fix: Some(FixSuggestion(description: "重写不匹配")))
+        m["E1014"] = ErrorMeta(code: "E1014", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "'private_func' is private", fix: Some(FixSuggestion(description: "访问权限违规")))
+        m["E1015"] = ErrorMeta(code: "E1015", category: ErrorCategory.Sema, severity: Severity.Error,
+        template: "attempt to divide by zero in const context", fix: Some(FixSuggestion(description: "常量求值错误")))
     m["E1016"] = ErrorMeta(code: "E1016", category: ErrorCategory.Sema, severity: Severity.Error,
         template: "泛型实例类型推导失败：{name}", fix: Some(FixSuggestion(description: "显式指定泛型实参")))
     m["E1017"] = ErrorMeta(code: "E1017", category: ErrorCategory.Sema, severity: Severity.Error,
@@ -593,34 +660,32 @@ func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
     m["E1032"] = ErrorMeta(code: "E1032", category: ErrorCategory.Sema, severity: Severity.Error,
         template: "递归初始化循环：{name}", fix: Some(FixSuggestion(description: "拆分初始化依赖")))
     // ---------------- Type 类型系统（E20xx） ----------------
-    m["E2001"] = ErrorMeta(code: "E2001", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "类型不匹配：期望 {expected}，实际 {actual}", fix: Some(FixSuggestion(description: "强制转换或修正变量类型")),
-        notes: ArrayList<DiagnosticNote>([DiagnosticNote(message: "期望类型的来源位置", spanRole: "expectedHere"), DiagnosticNote(message: "实际表达式的位置", spanRole: "actualHere")]),
-        primarySpanRole: "actualHere")
+        m["E2001"] = ErrorMeta(code: "E2001", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "mismatched types: expected Int, found String", fix: Some(FixSuggestion(description: "类型不匹配")))
     m["E2002"] = ErrorMeta(code: "E2002", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "无法推断类型：{name}", fix: Some(FixSuggestion(description: "显式标注类型")))
-    m["E2003"] = ErrorMeta(code: "E2003", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "非法类型转换：{from} → {to}", fix: Some(FixSuggestion(description: "检查转换兼容性")))
-    m["E2004"] = ErrorMeta(code: "E2004", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "重载调用歧义：{name}", fix: Some(FixSuggestion(description: "显式指定参数类型")))
-    m["E2005"] = ErrorMeta(code: "E2005", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "缺少泛型实参：{name}", fix: Some(FixSuggestion(description: "补充类型参数")))
-    m["E2006"] = ErrorMeta(code: "E2006", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "泛型约束不满足：{name}", fix: Some(FixSuggestion(description: "修正类型参数或放宽约束")))
-    m["E2007"] = ErrorMeta(code: "E2007", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "递归类型别名无大小：{name}", fix: Some(FixSuggestion(description: "引入间接层（指针/盒类型）")))
-    m["E2008"] = ErrorMeta(code: "E2008", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "栈上放置不定长类型：{name}", fix: Some(FixSuggestion(description: "改用指针或动态分配")))
-    m["E2009"] = ErrorMeta(code: "E2009", category: ErrorCategory.Type, severity: Severity.Warning,
-        template: "隐式转换可能丢失精度：{from} → {to}", fix: Some(FixSuggestion(description: "显式转换并确认")))
-    m["E2010"] = ErrorMeta(code: "E2010", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "型变不兼容（协变/逆变）：{name}", fix: Some(FixSuggestion(description: "修正泛型声明")))
-    m["E2011"] = ErrorMeta(code: "E2011", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "型变标注位置非法：{name}", fix: Some(FixSuggestion(description: "在允许的协变/逆变位置标注")))
-    m["E2012"] = ErrorMeta(code: "E2012", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "where 约束不满足：{name}", fix: Some(FixSuggestion(description: "修正类型参数以满足约束")))
-    m["E2013"] = ErrorMeta(code: "E2013", category: ErrorCategory.Type, severity: Severity.Error,
-        template: "闭包类型不匹配：期望 {expected}，实际 {actual}", fix: Some(FixSuggestion(description: "调整闭包签名")))
+        template: "type annotations needed: cannot infer type for 'x'", fix: Some(FixSuggestion(description: "类型推导失败")))
+        m["E2003"] = ErrorMeta(code: "E2003", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "type 'Foo' does not satisfy constraint 'Comparable'", fix: Some(FixSuggestion(description: "泛型约束不满足")))
+        m["E2004"] = ErrorMeta(code: "E2004", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "ambiguous type: multiple impls match", fix: Some(FixSuggestion(description: "类型歧义")))
+        m["E2005"] = ErrorMeta(code: "E2005", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "cannot cast from 'String' to 'Int'", fix: Some(FixSuggestion(description: "非法类型转换")))
+        m["E2006"] = ErrorMeta(code: "E2006", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "missing type parameter for generic type 'Array'", fix: Some(FixSuggestion(description: "缺少类型参数")))
+        m["E2007"] = ErrorMeta(code: "E2007", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "too many type parameters: expected 1, got 2", fix: Some(FixSuggestion(description: "多余类型参数")))
+        m["E2008"] = ErrorMeta(code: "E2008", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "recursive type 'Node' has no indirection", fix: Some(FixSuggestion(description: "递归类型无间接层")))
+        m["E2009"] = ErrorMeta(code: "E2009", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "type parameter is invariant but used covariantly", fix: Some(FixSuggestion(description: "型变不兼容")))
+        m["E2010"] = ErrorMeta(code: "E2010", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "conflicting associated type bindings for 'Item'", fix: Some(FixSuggestion(description: "关联类型冲突")))
+        m["E2011"] = ErrorMeta(code: "E2011", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "value of optional type 'Int?' must be unwrapped", fix: Some(FixSuggestion(description: "空安全违规")))
+        m["E2012"] = ErrorMeta(code: "E2012", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "cyclic type alias: 'A' -> 'B' -> 'A'", fix: Some(FixSuggestion(description: "类型别名错误")))
+        m["E2013"] = ErrorMeta(code: "E2013", category: ErrorCategory.Type, severity: Severity.Error,
+        template: "trait 'Foo' is not object-safe", fix: Some(FixSuggestion(description: "特征对象错误")))
     m["E2014"] = ErrorMeta(code: "E2014", category: ErrorCategory.Type, severity: Severity.Error,
         template: "借用冲突：{name}", fix: Some(FixSuggestion(description: "调整可变/不可变借用范围")))
     m["E2015"] = ErrorMeta(code: "E2015", category: ErrorCategory.Type, severity: Severity.Error,
@@ -658,32 +723,30 @@ func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
     m["E2031"] = ErrorMeta(code: "E2031", category: ErrorCategory.Type, severity: Severity.Error,
         template: "字面量类型歧义：{name}", fix: Some(FixSuggestion(description: "显式标注字面量类型")))
     // ---------------- Resolution 名称解析（E30xx） ----------------
-    m["E3001"] = ErrorMeta(code: "E3001", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "模块未找到：{name}", fix: Some(FixSuggestion(description: "检查模块路径或依赖配置")))
-    m["E3002"] = ErrorMeta(code: "E3002", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "导入项不存在：{name}", fix: Some(FixSuggestion(description: "修正导入名称")))
-    m["E3003"] = ErrorMeta(code: "E3003", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "导入名称冲突：{name}", fix: Some(FixSuggestion(description: "使用全限定名或别名")))
-    m["E3004"] = ErrorMeta(code: "E3004", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "访问私有成员：{name}", fix: Some(FixSuggestion(description: "调整可见性或提供访问接口")),
-        notes: ArrayList<DiagnosticNote>([DiagnosticNote(message: "该成员在此处声明为私有", spanRole: "declaredHere")]),
-        primarySpanRole: "useSite")
+        m["E3001"] = ErrorMeta(code: "E3001", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "unresolved import 'std.collections.HashMap'", fix: Some(FixSuggestion(description: "导入解析失败")))
+        m["E3002"] = ErrorMeta(code: "E3002", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "'HashMap' is ambiguous: imported from both 'std' and 'ext'", fix: Some(FixSuggestion(description: "导入歧义")))
+        m["E3003"] = ErrorMeta(code: "E3003", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "'internal_func' is private and cannot be imported", fix: Some(FixSuggestion(description: "导入私有项")))
+        m["E3004"] = ErrorMeta(code: "E3004", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "ambiguous method call: multiple overloads match", fix: Some(FixSuggestion(description: "重载决议歧义")))
     m["E3005"] = ErrorMeta(code: "E3005", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "路径无法解析：{path}", fix: Some(FixSuggestion(description: "检查模块层级")))
-    m["E3006"] = ErrorMeta(code: "E3006", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "循环导入", fix: Some(FixSuggestion(description: "重构依赖关系")))
-    m["E3007"] = ErrorMeta(code: "E3007", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "未实现必需的接口/特征：{name}", fix: Some(FixSuggestion(description: "补全方法实现")))
-    m["E3008"] = ErrorMeta(code: "E3008", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "super 调用非法", fix: Some(FixSuggestion(description: "检查继承关系")))
-    m["E3009"] = ErrorMeta(code: "E3009", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "顶层名称冲突：{name}", fix: Some(FixSuggestion(description: "重命名或使用命名空间")))
-    m["E3010"] = ErrorMeta(code: "E3010", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "依赖版本不兼容：{name}", fix: Some(FixSuggestion(description: "升级或降级依赖版本")))
-    m["E3011"] = ErrorMeta(code: "E3011", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "宏展开失败：{name}", fix: Some(FixSuggestion(description: "检查宏定义与参数")))
-    m["E3012"] = ErrorMeta(code: "E3012", category: ErrorCategory.Resolution, severity: Severity.Error,
-        template: "类型别名解析循环：{name}", fix: Some(FixSuggestion(description: "打断循环引用")))
+        template: "no method 'foo' with arguments (Int, String)", fix: Some(FixSuggestion(description: "无匹配重载")))
+        m["E3006"] = ErrorMeta(code: "E3006", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "circular import detected: A -> B -> A", fix: Some(FixSuggestion(description: "循环导入")))
+        m["E3007"] = ErrorMeta(code: "E3007", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "package 'json' not found", fix: Some(FixSuggestion(description: "包未找到")))
+        m["E3008"] = ErrorMeta(code: "E3008", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "the package name in src is wrong, the right name should be 'filesize'", fix: Some(FixSuggestion(description: "包名不匹配")))
+        m["E3009"] = ErrorMeta(code: "E3009", category: ErrorCategory.Resolution, severity: Severity.Warning,
+        template: "'x' shadows existing binding", fix: Some(FixSuggestion(description: "名字遮蔽（警告/错误）")))
+        m["E3010"] = ErrorMeta(code: "E3010", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "no item 'Bar' in module 'Foo'", fix: Some(FixSuggestion(description: "限定路径错误")))
+        m["E3011"] = ErrorMeta(code: "E3011", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "conflicting re-exports for 'Symbol'", fix: Some(FixSuggestion(description: "再导出冲突")))
+        m["E3012"] = ErrorMeta(code: "E3012", category: ErrorCategory.Resolution, severity: Severity.Error,
+        template: "package 'foo' requires 'bar' v1.2, but v2.0 is selected", fix: Some(FixSuggestion(description: "依赖版本冲突")))
     m["E3013"] = ErrorMeta(code: "E3013", category: ErrorCategory.Resolution, severity: Severity.Error,
         template: "导出符号缺失：{name}", fix: Some(FixSuggestion(description: "在源模块中导出该符号")))
     m["E3014"] = ErrorMeta(code: "E3014", category: ErrorCategory.Resolution, severity: Severity.Error,
@@ -725,26 +788,26 @@ func buildMetaPart1(m: HashMap<String, ErrorMeta>) {
 
 /// 填充错误码元数据第 2 组（Codegen .. Trait），共 5 个类别。
 func buildMetaPart2(m: HashMap<String, ErrorMeta>) {
-    m["E4001"] = ErrorMeta(code: "E4001", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "不支持的语言结构：{construct}", fix: Some(FixSuggestion(description: "改写为支持的写法")))
-    m["E4002"] = ErrorMeta(code: "E4002", category: ErrorCategory.Codegen, severity: Severity.Warning,
-        template: "检测到栈溢出风险", fix: Some(FixSuggestion(description: "改为迭代或增加栈大小")))
-    m["E4003"] = ErrorMeta(code: "E4003", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "内部函数调用非法：{name}", fix: Some(FixSuggestion(description: "检查内置函数参数")))
-    m["E4004"] = ErrorMeta(code: "E4004", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "链接符号冲突：{name}", fix: Some(FixSuggestion(description: "检查重复定义或 extern 声明")))
-    m["E4005"] = ErrorMeta(code: "E4005", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "ABI 不兼容", fix: Some(FixSuggestion(description: "对齐调用约定")))
-    m["E4006"] = ErrorMeta(code: "E4006", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "优化阶段内部失败", fix: Some(FixSuggestion(description: "降低优化级别后重试")))
-    m["E4007"] = ErrorMeta(code: "E4007", category: ErrorCategory.Codegen, severity: Severity.Warning,
-        template: "未初始化使用：{name}", fix: Some(FixSuggestion(description: "显式初始化")))
-    m["E4008"] = ErrorMeta(code: "E4008", category: ErrorCategory.Codegen, severity: Severity.Warning,
-        template: "常量过大超出目标限制：{name}", fix: Some(FixSuggestion(description: "拆分常量或动态加载")))
-    m["E4009"] = ErrorMeta(code: "E4009", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "目标平台不支持：{target}", fix: Some(FixSuggestion(description: "切换目标或使用条件编译")))
-    m["E4010"] = ErrorMeta(code: "E4010", category: ErrorCategory.Codegen, severity: Severity.Error,
-        template: "代码发射被中断", fix: Some(FixSuggestion(description: "检查磁盘空间或权限")))
+        m["E4001"] = ErrorMeta(code: "E4001", category: ErrorCategory.Codegen, severity: Severity.Fatal,
+        template: "Internal Compiler Error, Error Code: 13", fix: Some(FixSuggestion(description: "编译器内部错误（ICE）")))
+        m["E4002"] = ErrorMeta(code: "E4002", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "feature 'coroutines' not supported on target platform", fix: Some(FixSuggestion(description: "不支持的代码生成特性")))
+        m["E4003"] = ErrorMeta(code: "E4003", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "invalid IR: <detail>", fix: Some(FixSuggestion(description: "中间表示校验失败")))
+        m["E4004"] = ErrorMeta(code: "E4004", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "function signature not compatible with C ABI", fix: Some(FixSuggestion(description: "ABI 不兼容")))
+        m["E4005"] = ErrorMeta(code: "E4005", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "stack frame size exceeds limit (1MB)", fix: Some(FixSuggestion(description: "栈帧大小超限")))
+        m["E4006"] = ErrorMeta(code: "E4006", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "target 'wasm32-unknown-unknown' not supported", fix: Some(FixSuggestion(description: "目标平台不支持")))
+        m["E4007"] = ErrorMeta(code: "E4007", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "failed to generate debug info: <reason>", fix: Some(FixSuggestion(description: "调试信息生成失败")))
+        m["E4008"] = ErrorMeta(code: "E4008", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "failed to generate exception handling table", fix: Some(FixSuggestion(description: "异常处理帧生成错误")))
+        m["E4009"] = ErrorMeta(code: "E4009", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "vtable layout mismatch for type 'Foo'", fix: Some(FixSuggestion(description: "虚函数表生成错误")))
+        m["E4010"] = ErrorMeta(code: "E4010", category: ErrorCategory.Codegen, severity: Severity.Error,
+        template: "failed to lower closure capture: <detail>", fix: Some(FixSuggestion(description: "闭包捕获代码生成错误")))
     m["E4011"] = ErrorMeta(code: "E4011", category: ErrorCategory.Codegen, severity: Severity.Error,
         template: "寄存器分配失败", fix: Some(FixSuggestion(description: "减少局部变量或降低优化级别")))
     m["E4012"] = ErrorMeta(code: "E4012", category: ErrorCategory.Codegen, severity: Severity.Warning,
@@ -792,38 +855,36 @@ func buildMetaPart2(m: HashMap<String, ErrorMeta>) {
     m["E4033"] = ErrorMeta(code: "E4033", category: ErrorCategory.Codegen, severity: Severity.Warning,
         template: "调试信息格式（DWARF）生成异常：{name}", fix: None)
     // ---------------- Runtime 运行时（E50xx） ----------------
-    m["E5001"] = ErrorMeta(code: "E5001", category: ErrorCategory.Runtime, severity: Severity.Fatal,
-        template: "空指针解引用", fix: Some(FixSuggestion(description: "增加空值检查")),
-        notes: ArrayList<DiagnosticNote>([DiagnosticNote(message: "可能为 null 的赋值位置", spanRole: "nullAssignedHere")]),
-        primarySpanRole: "derefSite")
-    m["E5002"] = ErrorMeta(code: "E5002", category: ErrorCategory.Runtime, severity: Severity.Fatal,
-        template: "数组越界：索引 {index}", fix: Some(FixSuggestion(description: "检查索引范围")))
-    m["E5003"] = ErrorMeta(code: "E5003", category: ErrorCategory.Runtime, severity: Severity.Fatal,
-        template: "除零错误", fix: Some(FixSuggestion(description: "增加除数检查")))
-    m["E5004"] = ErrorMeta(code: "E5004", category: ErrorCategory.Runtime, severity: Severity.Fatal,
-        template: "运行时栈溢出", fix: Some(FixSuggestion(description: "改为迭代或优化递归")))
-    m["E5005"] = ErrorMeta(code: "E5005", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "整数溢出：{name}", fix: Some(FixSuggestion(description: "使用溢出检查或更大的整数类型")))
-    m["E5006"] = ErrorMeta(code: "E5006", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "运行时类型转换失败：{name}", fix: Some(FixSuggestion(description: "增加类型判断")))
-    m["E5007"] = ErrorMeta(code: "E5007", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "资源耗尽（内存/句柄）", fix: Some(FixSuggestion(description: "释放资源或增加配额")))
-    m["E5008"] = ErrorMeta(code: "E5008", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "检测到死锁", fix: Some(FixSuggestion(description: "调整锁顺序或设置超时")))
-    m["E5009"] = ErrorMeta(code: "E5009", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "断言失败：{message}", fix: Some(FixSuggestion(description: "检查不变量是否成立")))
-    m["E5010"] = ErrorMeta(code: "E5010", category: ErrorCategory.Runtime, severity: Severity.Fatal,
-        template: "异常展开被中止", fix: Some(FixSuggestion(description: "检查析构函数中的异常")))
-    m["E5011"] = ErrorMeta(code: "E5011", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "移动后使用：{name}", fix: Some(FixSuggestion(description: "在移动前复制或重新获取所有权")))
-    m["E5012"] = ErrorMeta(code: "E5012", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "检测到数据竞争：{name}", fix: Some(FixSuggestion(description: "使用同步原语保护共享状态")))
-    m["E5013"] = ErrorMeta(code: "E5013", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "缓冲区溢出：{name}", fix: Some(FixSuggestion(description: "检查边界与长度")))
-    m["E5014"] = ErrorMeta(code: "E5014", category: ErrorCategory.Runtime, severity: Severity.Fatal,
-        template: "检测到无限递归", fix: Some(FixSuggestion(description: "添加终止条件")))
-    m["E5015"] = ErrorMeta(code: "E5015", category: ErrorCategory.Runtime, severity: Severity.Error,
-        template: "平台调用（FFI）失败：{name}", fix: Some(FixSuggestion(description: "检查原生函数签名与参数")))
+        m["E5001"] = ErrorMeta(code: "E5001", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: attempt to dereference null pointer", fix: Some(FixSuggestion(description: "空指针解引用")))
+    m["E5002"] = ErrorMeta(code: "E5002", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: index out of bounds: 5 (len 3)", fix: Some(FixSuggestion(description: "数组越界")))
+        m["E5003"] = ErrorMeta(code: "E5003", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: attempt to divide by zero", fix: Some(FixSuggestion(description: "除零错误")))
+        m["E5004"] = ErrorMeta(code: "E5004", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: integer overflow", fix: Some(FixSuggestion(description: "整数溢出")))
+        m["E5005"] = ErrorMeta(code: "E5005", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: called Option.unwrap() on None value", fix: Some(FixSuggestion(description: "对 None 解包")))
+        m["E5006"] = ErrorMeta(code: "E5006", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: entered unreachable code", fix: Some(FixSuggestion(description: "执行到不可达代码")))
+        m["E5007"] = ErrorMeta(code: "E5007", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "fatal: stack overflow", fix: Some(FixSuggestion(description: "栈溢出")))
+        m["E5008"] = ErrorMeta(code: "E5008", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "fatal: out of memory (allocation failed: 1GB)", fix: Some(FixSuggestion(description: "内存不足")))
+        m["E5009"] = ErrorMeta(code: "E5009", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "fatal: uncaught exception: <type>: <message>", fix: Some(FixSuggestion(description: "未捕获异常")))
+        m["E5010"] = ErrorMeta(code: "E5010", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: invalid cast from 'Foo' to 'Bar'", fix: Some(FixSuggestion(description: "运行时类型转换失败")))
+        m["E5011"] = ErrorMeta(code: "E5011", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "panic: collection modified during iteration", fix: Some(FixSuggestion(description: "并发修改冲突")))
+        m["E5012"] = ErrorMeta(code: "E5012", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "fatal: deadlock detected", fix: Some(FixSuggestion(description: "死锁检测")))
+        m["E5013"] = ErrorMeta(code: "E5013", category: ErrorCategory.Runtime, severity: Severity.Warning,
+        template: "warning: goroutine leak detected", fix: Some(FixSuggestion(description: "协程泄漏（警告）")))
+        m["E5014"] = ErrorMeta(code: "E5014", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "error in finalizer for object: <detail>", fix: Some(FixSuggestion(description: "终结器错误")))
+        m["E5015"] = ErrorMeta(code: "E5015", category: ErrorCategory.Runtime, severity: Severity.Error,
+        template: "fatal: GC invariant violated", fix: Some(FixSuggestion(description: "垃圾回收错误")))
     m["E5016"] = ErrorMeta(code: "E5016", category: ErrorCategory.Runtime, severity: Severity.Fatal,
         template: "析构函数中抛出异常", fix: None)
     m["E5017"] = ErrorMeta(code: "E5017", category: ErrorCategory.Runtime, severity: Severity.Error,
@@ -857,30 +918,30 @@ func buildMetaPart2(m: HashMap<String, ErrorMeta>) {
     m["E5031"] = ErrorMeta(code: "E5031", category: ErrorCategory.Runtime, severity: Severity.Error,
         template: "内存映射（mmap）失败：{name}", fix: Some(FixSuggestion(description: "检查映射大小与权限")))
     // ---------------- System 系统/内部（E90xx） ----------------
-    m["E9001"] = ErrorMeta(code: "E9001", category: ErrorCategory.System, severity: Severity.Fatal,
-        template: "编译器内部错误（ICE）", fix: None)
-    m["E9002"] = ErrorMeta(code: "E9002", category: ErrorCategory.System, severity: Severity.Error,
-        template: "文件读写失败：{path}", fix: Some(FixSuggestion(description: "检查路径/权限/磁盘空间")))
-    m["E9003"] = ErrorMeta(code: "E9003", category: ErrorCategory.System, severity: Severity.Fatal,
-        template: "编译器内存不足", fix: None)
-    m["E9004"] = ErrorMeta(code: "E9004", category: ErrorCategory.System, severity: Severity.Error,
-        template: "编译超时", fix: Some(FixSuggestion(description: "简化代码或增加超时阈值")))
-    m["E9005"] = ErrorMeta(code: "E9005", category: ErrorCategory.System, severity: Severity.Error,
-        template: "配置参数非法：{key}", fix: Some(FixSuggestion(description: "修正编译配置")))
-    m["E9006"] = ErrorMeta(code: "E9006", category: ErrorCategory.System, severity: Severity.Error,
-        template: "插件加载失败：{name}", fix: Some(FixSuggestion(description: "检查插件版本与依赖")))
-    m["E9007"] = ErrorMeta(code: "E9007", category: ErrorCategory.System, severity: Severity.Error,
-        template: "缓存损坏", fix: Some(FixSuggestion(description: "清理缓存后重试")))
-    m["E9008"] = ErrorMeta(code: "E9008", category: ErrorCategory.System, severity: Severity.Error,
-        template: "网络操作失败：{message}", fix: Some(FixSuggestion(description: "检查网络或镜像源")))
-    m["E9009"] = ErrorMeta(code: "E9009", category: ErrorCategory.System, severity: Severity.Error,
-        template: "权限不足：{path}", fix: Some(FixSuggestion(description: "调整文件权限")))
-    m["E9010"] = ErrorMeta(code: "E9010", category: ErrorCategory.System, severity: Severity.Fatal,
-        template: "未分类系统错误", fix: None)
-    m["E9011"] = ErrorMeta(code: "E9011", category: ErrorCategory.System, severity: Severity.Error,
-        template: "并发编译数超过限制", fix: Some(FixSuggestion(description: "降低并行任务数")))
-    m["E9012"] = ErrorMeta(code: "E9012", category: ErrorCategory.System, severity: Severity.Error,
-        template: "诊断序列化失败", fix: Some(FixSuggestion(description: "检查输出通道权限")))
+        m["E9001"] = ErrorMeta(code: "E9001", category: ErrorCategory.System, severity: Severity.Error,
+        template: "No such file or directory (os error 2)", fix: Some(FixSuggestion(description: "文件不存在")))
+        m["E9002"] = ErrorMeta(code: "E9002", category: ErrorCategory.System, severity: Severity.Error,
+        template: "Permission denied (os error 13)", fix: Some(FixSuggestion(description: "权限不足")))
+        m["E9003"] = ErrorMeta(code: "E9003", category: ErrorCategory.System, severity: Severity.Error,
+        template: "File exists (os error 17)", fix: Some(FixSuggestion(description: "文件已存在")))
+        m["E9004"] = ErrorMeta(code: "E9004", category: ErrorCategory.System, severity: Severity.Error,
+        template: "IO error: <detail>", fix: Some(FixSuggestion(description: "通用 IO 错误")))
+        m["E9005"] = ErrorMeta(code: "E9005", category: ErrorCategory.System, severity: Severity.Error,
+        template: "environment variable 'CANGJIE_HOME' not set", fix: Some(FixSuggestion(description: "环境变量错误")))
+        m["E9006"] = ErrorMeta(code: "E9006", category: ErrorCategory.System, severity: Severity.Error,
+        template: "failed to spawn process 'cjc': <reason>", fix: Some(FixSuggestion(description: "进程创建失败")))
+        m["E9007"] = ErrorMeta(code: "E9007", category: ErrorCategory.System, severity: Severity.Error,
+        template: "failed to install signal handler", fix: Some(FixSuggestion(description: "信号处理错误")))
+        m["E9008"] = ErrorMeta(code: "E9008", category: ErrorCategory.System, severity: Severity.Error,
+        template: "failed to get system time", fix: Some(FixSuggestion(description: "时间/时钟错误")))
+        m["E9009"] = ErrorMeta(code: "E9009", category: ErrorCategory.System, severity: Severity.Error,
+        template: "failed to initialize network subsystem", fix: Some(FixSuggestion(description: "网络初始化错误")))
+        m["E9010"] = ErrorMeta(code: "E9010", category: ErrorCategory.System, severity: Severity.Error,
+        template: "too many open files (os error 24)", fix: Some(FixSuggestion(description: "资源限制超限")))
+        m["E9011"] = ErrorMeta(code: "E9011", category: ErrorCategory.System, severity: Severity.Error,
+        template: "invalid path: contains null byte", fix: Some(FixSuggestion(description: "路径非法")))
+        m["E9012"] = ErrorMeta(code: "E9012", category: ErrorCategory.System, severity: Severity.Error,
+        template: "failed to create symlink: <reason>", fix: Some(FixSuggestion(description: "符号链接错误")))
     m["E9013"] = ErrorMeta(code: "E9013", category: ErrorCategory.System, severity: Severity.Error,
         template: "编译器版本不兼容：{version}", fix: Some(FixSuggestion(description: "升级或锁定兼容版本")))
     m["E9014"] = ErrorMeta(code: "E9014", category: ErrorCategory.System, severity: Severity.Error,
@@ -913,26 +974,26 @@ func buildMetaPart2(m: HashMap<String, ErrorMeta>) {
         template: "远程/分布式编译失败：{message}", fix: Some(FixSuggestion(description: "检查远程节点与网络")))
     m["E9028"] = ErrorMeta(code: "E9028", category: ErrorCategory.System, severity: Severity.Error,
         template: "沙箱/容器资源限制触发：{name}", fix: Some(FixSuggestion(description: "放宽容器资源配额")))
-    m["E0201"] = ErrorMeta(code: "E0201", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏展开时标识符未定义：{name}", fix: Some(FixSuggestion(description: "检查宏参数与导入")))
-    m["E0202"] = ErrorMeta(code: "E0202", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏实参数量不匹配：期望 {expected} 个，得到 {got} 个", fix: Some(FixSuggestion(description: "核对宏调用实参")))
-    m["E0203"] = ErrorMeta(code: "E0203", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏递归展开未终止（可能的无限展开）", fix: Some(FixSuggestion(description: "为宏增加展开边界条件")))
-    m["E0204"] = ErrorMeta(code: "E0204", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏卫生性冲突：捕获了调用方的标识符 {name}", fix: Some(FixSuggestion(description: "重命名宏内绑定")))
-    m["E0205"] = ErrorMeta(code: "E0205", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏输入不是合法的 token 树", fix: Some(FixSuggestion(description: "检查宏输入语法")))
-    m["E0206"] = ErrorMeta(code: "E0206", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "未找到宏定义：{name}", fix: Some(FixSuggestion(description: "导入或定义该宏")))
-    m["E0207"] = ErrorMeta(code: "E0207", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏 {name} 被重复定义", fix: Some(FixSuggestion(description: "删除重复定义")))
-    m["E0208"] = ErrorMeta(code: "E0208", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "宏片段类型不匹配（expr/stmt/ty/item）", fix: Some(FixSuggestion(description: "使用正确的片段说明符")))
-    m["E0209"] = ErrorMeta(code: "E0209", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "同一元变量在宏规则中被重复绑定：{name}", fix: Some(FixSuggestion(description: "重命名元变量")))
-    m["E0210"] = ErrorMeta(code: "E0210", category: ErrorCategory.Macro, severity: Severity.Error,
-        template: "没有任何宏规则匹配输入", fix: Some(FixSuggestion(description: "调整输入或新增宏规则")))
+        m["E0201"] = ErrorMeta(code: "E0201", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "cannot find macro 'derive' in this scope", fix: Some(FixSuggestion(description: "宏未找到")))
+        m["E0202"] = ErrorMeta(code: "E0202", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "macro expansion failed: <reason>", fix: Some(FixSuggestion(description: "宏展开失败")))
+        m["E0203"] = ErrorMeta(code: "E0203", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "macro recursion limit exceeded (256)", fix: Some(FixSuggestion(description: "宏递归深度超限")))
+        m["E0204"] = ErrorMeta(code: "E0204", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "invalid argument for macro: expected 2 args, got 1", fix: Some(FixSuggestion(description: "宏参数错误")))
+        m["E0205"] = ErrorMeta(code: "E0205", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "proc-macro panicked: <message>", fix: Some(FixSuggestion(description: "过程宏运行时 panic")))
+        m["E0206"] = ErrorMeta(code: "E0206", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "failed to compile proc-macro crate", fix: Some(FixSuggestion(description: "过程宏编译错误")))
+        m["E0207"] = ErrorMeta(code: "E0207", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "<user-defined error message>", fix: Some(FixSuggestion(description: "用户自定义报错（diagReport ERROR）")))
+        m["E0208"] = ErrorMeta(code: "E0208", category: ErrorCategory.Macro, severity: Severity.Warning,
+        template: "<user-defined warning message>", fix: Some(FixSuggestion(description: "用户自定义警告（diagReport WARNING）")))
+        m["E0209"] = ErrorMeta(code: "E0209", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "macro introduces identifier 'x' that shadows local", fix: Some(FixSuggestion(description: "宏卫生违规")))
+        m["E0210"] = ErrorMeta(code: "E0210", category: ErrorCategory.Macro, severity: Severity.Error,
+        template: "cannot evaluate expression at compile time", fix: Some(FixSuggestion(description: "编译期求值错误")))
     m["E0211"] = ErrorMeta(code: "E0211", category: ErrorCategory.Macro, severity: Severity.Error,
         template: "宏使用了保留的元变量名：{name}", fix: Some(FixSuggestion(description: "改用非保留名")))
     m["E0212"] = ErrorMeta(code: "E0212", category: ErrorCategory.Macro, severity: Severity.Error,
@@ -1483,167 +1544,167 @@ func buildMetaPart3(m: HashMap<String, ErrorMeta>) {
 
 /// 填充错误码元数据第 4 组（Opt .. Mem），共 5 个类别。
 func buildMetaPart4(m: HashMap<String, ErrorMeta>) {
-    m["E1201"] = ErrorMeta(code: "E1201", category: ErrorCategory.Opt, severity: Severity.Error,
-        template: "优化 pass {pass} 执行失败", fix: Some(FixSuggestion(description: "禁用该 pass 或报告工具链 bug")))
-    m["E1202"] = ErrorMeta(code: "E1202", category: ErrorCategory.Opt, severity: Severity.Error,
-        template: "优化器在 pass {pass} 崩溃", fix: Some(FixSuggestion(description: "升级工具链或绕过该 pass")))
-    m["E1203"] = ErrorMeta(code: "E1203", category: ErrorCategory.Opt, severity: Severity.Error,
-        template: "优化后的 IR 与前置约束冲突", fix: Some(FixSuggestion(description: "检查优化合法性")))
-    m["E1204"] = ErrorMeta(code: "E1204", category: ErrorCategory.Opt, severity: Severity.Warning,
-        template: "循环展开失败", fix: Some(FixSuggestion(description: "调整循环边界或禁用展开")))
-    m["E1205"] = ErrorMeta(code: "E1205", category: ErrorCategory.Opt, severity: Severity.Warning,
-        template: "向量化失败", fix: Some(FixSuggestion(description: "改用手写标量循环")))
-    m["E1206"] = ErrorMeta(code: "E1206", category: ErrorCategory.Opt, severity: Severity.Warning,
-        template: "函数内联失败：{reason}", fix: Some(FixSuggestion(description: "调整内联阈值")))
-    m["E1207"] = ErrorMeta(code: "E1207", category: ErrorCategory.Opt, severity: Severity.Warning,
-        template: "内联递归过深", fix: Some(FixSuggestion(description: "限制内联深度")))
-    m["E1208"] = ErrorMeta(code: "E1208", category: ErrorCategory.Opt, severity: Severity.Warning,
-        template: "死代码未被移除（可能的 bug）", fix: Some(FixSuggestion(description: "检查优化级别")))
-    m["E1209"] = ErrorMeta(code: "E1209", category: ErrorCategory.Opt, severity: Severity.Error,
+        m["E4101"] = ErrorMeta(code: "E4101", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "optimization pass 'inline' failed: <reason>", fix: Some(FixSuggestion(description: "优化 Pass 执行失败")))
+        m["E4102"] = ErrorMeta(code: "E4102", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "optimization timed out after 300s", fix: Some(FixSuggestion(description: "优化超时")))
+        m["E4103"] = ErrorMeta(code: "E4103", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "invalid optimization level: '-O5'", fix: Some(FixSuggestion(description: "非法优化级别")))
+        m["E4104"] = ErrorMeta(code: "E4104", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "LTO failed: mismatched module formats", fix: Some(FixSuggestion(description: "链接时优化错误")))
+        m["E4105"] = ErrorMeta(code: "E4105", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "invalid PGO profile data", fix: Some(FixSuggestion(description: "PGO 配置文件错误")))
+        m["E4106"] = ErrorMeta(code: "E4106", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "cannot inline function: recursive call detected", fix: Some(FixSuggestion(description: "内联失败")))
+        m["E4107"] = ErrorMeta(code: "E4107", category: ErrorCategory.Opt, severity: Severity.Error,
+        template: "DCE pass left dangling references", fix: Some(FixSuggestion(description: "死代码消除后状态不一致")))
+        m["E4108"] = ErrorMeta(code: "E4108", category: ErrorCategory.Opt, severity: Severity.Warning,
+        template: "loop not vectorized: data dependency", fix: Some(FixSuggestion(description: "向量化失败（降级为警告）")))
+    m["E4109"] = ErrorMeta(code: "E4109", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "常量传播溢出", fix: Some(FixSuggestion(description: "降低常量规模")))
-    m["E1210"] = ErrorMeta(code: "E1210", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4110"] = ErrorMeta(code: "E4110", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "全局值编号（GVN）冲突", fix: Some(FixSuggestion(description: "检查表达式等价性")))
-    m["E1211"] = ErrorMeta(code: "E1211", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4111"] = ErrorMeta(code: "E4111", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "稀疏条件常量传播失败", fix: Some(FixSuggestion(description: "简化控制流")))
-    m["E1212"] = ErrorMeta(code: "E1212", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4112"] = ErrorMeta(code: "E4112", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "内存到寄存器提升失败", fix: Some(FixSuggestion(description: "检查内存访问模式")))
-    m["E1213"] = ErrorMeta(code: "E1213", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4113"] = ErrorMeta(code: "E4113", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "循环不变量外提失败", fix: Some(FixSuggestion(description: "调整循环结构")))
-    m["E1214"] = ErrorMeta(code: "E1214", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4114"] = ErrorMeta(code: "E4114", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "尾块复制失败", fix: Some(FixSuggestion(description: "调整控制流")))
-    m["E1215"] = ErrorMeta(code: "E1215", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4115"] = ErrorMeta(code: "E4115", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "窥孔优化失败", fix: Some(FixSuggestion(description: "检查指令序列")))
-    m["E1216"] = ErrorMeta(code: "E1216", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4116"] = ErrorMeta(code: "E4116", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "强度削减产生非法序列", fix: Some(FixSuggestion(description: "检查运算等价性")))
-    m["E1217"] = ErrorMeta(code: "E1217", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4117"] = ErrorMeta(code: "E4117", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "别名分析失败", fix: Some(FixSuggestion(description: "放宽别名假设")))
-    m["E1218"] = ErrorMeta(code: "E1218", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4118"] = ErrorMeta(code: "E4118", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "优化级别非法：{level}", fix: Some(FixSuggestion(description: "使用合法优化级别")))
-    m["E1219"] = ErrorMeta(code: "E1219", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4119"] = ErrorMeta(code: "E4119", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "优化尺寸（Os/Oz）与速度冲突", fix: Some(FixSuggestion(description: "统一优化目标")))
-    m["E1220"] = ErrorMeta(code: "E1220", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4120"] = ErrorMeta(code: "E4120", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "优化使用的性能画像不匹配", fix: Some(FixSuggestion(description: "重新采集画像")))
-    m["E1221"] = ErrorMeta(code: "E1221", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4121"] = ErrorMeta(code: "E4121", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "优化破坏了 IR 合法性", fix: Some(FixSuggestion(description: "报告工具链 bug")))
-    m["E1222"] = ErrorMeta(code: "E1222", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4122"] = ErrorMeta(code: "E4122", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "循环旋转失败", fix: Some(FixSuggestion(description: "调整循环条件")))
-    m["E1223"] = ErrorMeta(code: "E1223", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4123"] = ErrorMeta(code: "E4123", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "全局优化失败", fix: Some(FixSuggestion(description: "检查全局变量初始化")))
-    m["E1224"] = ErrorMeta(code: "E1224", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4124"] = ErrorMeta(code: "E4124", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "过程间常量传播失败", fix: Some(FixSuggestion(description: "简化调用图")))
-    m["E1225"] = ErrorMeta(code: "E1225", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4125"] = ErrorMeta(code: "E4125", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "参数提升优化失败", fix: Some(FixSuggestion(description: "检查参数类型")))
-    m["E1226"] = ErrorMeta(code: "E1226", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4126"] = ErrorMeta(code: "E4126", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "结构体返回优化失败", fix: Some(FixSuggestion(description: "调整返回类型")))
-    m["E1227"] = ErrorMeta(code: "E1227", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4127"] = ErrorMeta(code: "E4127", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "尾调用优化失败", fix: Some(FixSuggestion(description: "检查尾调用形态")))
-    m["E1228"] = ErrorMeta(code: "E1228", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4128"] = ErrorMeta(code: "E4128", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "SLP 向量化失败", fix: Some(FixSuggestion(description: "放宽向量化条件")))
-    m["E1229"] = ErrorMeta(code: "E1229", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4129"] = ErrorMeta(code: "E4129", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "循环版本化失败", fix: Some(FixSuggestion(description: "禁用循环版本化")))
-    m["E1230"] = ErrorMeta(code: "E1230", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4130"] = ErrorMeta(code: "E4130", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "部分内联失败", fix: Some(FixSuggestion(description: "关闭部分内联")))
-    m["E1231"] = ErrorMeta(code: "E1231", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4131"] = ErrorMeta(code: "E4131", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "冷热代码分离失败", fix: Some(FixSuggestion(description: "关闭该优化")))
-    m["E1232"] = ErrorMeta(code: "E1232", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4132"] = ErrorMeta(code: "E4132", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "函数合并优化失败", fix: Some(FixSuggestion(description: "检查函数签名等价")))
-    m["E1233"] = ErrorMeta(code: "E1233", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4133"] = ErrorMeta(code: "E4133", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "负载消除（load elim）冲突", fix: Some(FixSuggestion(description: "检查内存模型")))
-    m["E1234"] = ErrorMeta(code: "E1234", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4134"] = ErrorMeta(code: "E4134", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "循环外提（unswitch）失败", fix: Some(FixSuggestion(description: "调整条件")))
-    m["E1235"] = ErrorMeta(code: "E1235", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4135"] = ErrorMeta(code: "E4135", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "表达式重结合失败", fix: Some(FixSuggestion(description: "检查结合律合法性")))
-    m["E1236"] = ErrorMeta(code: "E1236", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4136"] = ErrorMeta(code: "E4136", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "循环惯用法识别失败", fix: Some(FixSuggestion(description: "关闭惯用法优化")))
-    m["E1237"] = ErrorMeta(code: "E1237", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4137"] = ErrorMeta(code: "E4137", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "控制流图简化失败", fix: Some(FixSuggestion(description: "检查异常边")))
-    m["E1238"] = ErrorMeta(code: "E1238", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4138"] = ErrorMeta(code: "E4138", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "归纳变量优化失败", fix: Some(FixSuggestion(description: "调整循环变量")))
-    m["E1239"] = ErrorMeta(code: "E1239", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4139"] = ErrorMeta(code: "E4139", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "除/余优化产生未定义行为", fix: Some(FixSuggestion(description: "检查除零")))
-    m["E1240"] = ErrorMeta(code: "E1240", category: ErrorCategory.Opt, severity: Severity.Error,
+    m["E4140"] = ErrorMeta(code: "E4140", category: ErrorCategory.Opt, severity: Severity.Error,
         template: "移位优化溢出", fix: Some(FixSuggestion(description: "检查移位量")))
-    m["E1241"] = ErrorMeta(code: "E1241", category: ErrorCategory.Opt, severity: Severity.Warning,
+    m["E4141"] = ErrorMeta(code: "E4141", category: ErrorCategory.Opt, severity: Severity.Warning,
         template: "浮点重结合改变语义", fix: Some(FixSuggestion(description: "关闭浮点重结合")))
-    m["E1301"] = ErrorMeta(code: "E1301", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "未找到链接器（linker）", fix: Some(FixSuggestion(description: "安装或配置链接器路径")))
-    m["E1302"] = ErrorMeta(code: "E1302", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "链接器调用失败：{reason}", fix: Some(FixSuggestion(description: "检查链接命令与参数")))
-    m["E1303"] = ErrorMeta(code: "E1303", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "链接时未定义符号：{symbol}", fix: Some(FixSuggestion(description: "补充该符号的定义或依赖")))
-    m["E1304"] = ErrorMeta(code: "E1304", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "链接时符号重复定义：{symbol}", fix: Some(FixSuggestion(description: "移除重复定义")))
-    m["E1305"] = ErrorMeta(code: "E1305", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "链接库 {lib} 未找到", fix: Some(FixSuggestion(description: "检查库路径（-L）")))
-    m["E1306"] = ErrorMeta(code: "E1306", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "链接库版本不兼容：{lib}", fix: Some(FixSuggestion(description: "升级或降级依赖库")))
-    m["E1307"] = ErrorMeta(code: "E1307", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "缺少入口符号（如 main）", fix: Some(FixSuggestion(description: "提供入口函数")))
-    m["E1308"] = ErrorMeta(code: "E1308", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "重定位溢出（地址超出范围）", fix: Some(FixSuggestion(description: "使用大地址模型")))
-    m["E1309"] = ErrorMeta(code: "E1309", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "目标架构与库架构不匹配", fix: Some(FixSuggestion(description: "使用匹配架构的库")))
-    m["E1310"] = ErrorMeta(code: "E1310", category: ErrorCategory.Linker, severity: Severity.Error,
-        template: "链接对象 ABI 不兼容", fix: Some(FixSuggestion(description: "统一编译 ABI")))
-    m["E1311"] = ErrorMeta(code: "E1311", category: ErrorCategory.Linker, severity: Severity.Error,
+        m["E4201"] = ErrorMeta(code: "E4201", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "undefined reference to 'cangjie_main'", fix: Some(FixSuggestion(description: "未定义符号")))
+        m["E4202"] = ErrorMeta(code: "E4202", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "multiple definition of 'foo'", fix: Some(FixSuggestion(description: "符号多重定义")))
+        m["E4203"] = ErrorMeta(code: "E4203", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "cannot find -lcangjie_rt", fix: Some(FixSuggestion(description: "库未找到")))
+        m["E4204"] = ErrorMeta(code: "E4204", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "cannot find crtbeginS.o", fix: Some(FixSuggestion(description: "CRT 文件缺失")))
+        m["E4205"] = ErrorMeta(code: "E4205", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "invalid linker script: <detail>", fix: Some(FixSuggestion(description: "链接脚本错误")))
+        m["E4206"] = ErrorMeta(code: "E4206", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "section '.text' exceeds maximum size", fix: Some(FixSuggestion(description: "段大小溢出")))
+        m["E4207"] = ErrorMeta(code: "E4207", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "incompatible object file format", fix: Some(FixSuggestion(description: "目标文件不兼容")))
+        m["E4208"] = ErrorMeta(code: "E4208", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "relocation truncated to fit: R_X86_64_32", fix: Some(FixSuggestion(description: "重定位错误")))
+        m["E4209"] = ErrorMeta(code: "E4209", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "linker 'ld.lld' not found in PATH", fix: Some(FixSuggestion(description: "链接器未找到")))
+        m["E4210"] = ErrorMeta(code: "E4210", category: ErrorCategory.Linker, severity: Severity.Error,
+        template: "weak symbol 'foo' overridden by strong definition", fix: Some(FixSuggestion(description: "弱符号冲突")))
+    m["E4211"] = ErrorMeta(code: "E4211", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接脚本（linker script）错误", fix: Some(FixSuggestion(description: "修正链接脚本")))
-    m["E1312"] = ErrorMeta(code: "E1312", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4212"] = ErrorMeta(code: "E4212", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "静态/动态链接方式冲突", fix: Some(FixSuggestion(description: "统一链接方式")))
-    m["E1313"] = ErrorMeta(code: "E1313", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4213"] = ErrorMeta(code: "E4213", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "标准库链接失败", fix: Some(FixSuggestion(description: "检查标准库路径")))
-    m["E1314"] = ErrorMeta(code: "E1314", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4214"] = ErrorMeta(code: "E4214", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "运行时库缺失", fix: Some(FixSuggestion(description: "配置运行时库")))
-    m["E1315"] = ErrorMeta(code: "E1315", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4215"] = ErrorMeta(code: "E4215", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接器内存耗尽", fix: Some(FixSuggestion(description: "减少链接单元或增量链接")))
-    m["E1316"] = ErrorMeta(code: "E1316", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4216"] = ErrorMeta(code: "E4216", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接超时", fix: Some(FixSuggestion(description: "减少链接规模或增加超时")))
-    m["E1317"] = ErrorMeta(code: "E1317", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4217"] = ErrorMeta(code: "E4217", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "线程局部变量链接失败", fix: Some(FixSuggestion(description: "检查 TLS 模型")))
-    m["E1318"] = ErrorMeta(code: "E1318", category: ErrorCategory.Linker, severity: Severity.Warning,
+    m["E4218"] = ErrorMeta(code: "E4218", category: ErrorCategory.Linker, severity: Severity.Warning,
         template: "弱符号未解析到实现", fix: Some(FixSuggestion(description: "提供弱符号定义")))
-    m["E1319"] = ErrorMeta(code: "E1319", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4219"] = ErrorMeta(code: "E4219", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "导出符号缺失：{symbol}", fix: Some(FixSuggestion(description: "显式导出符号")))
-    m["E1320"] = ErrorMeta(code: "E1320", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4220"] = ErrorMeta(code: "E4220", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "导入库（import lib）缺失", fix: Some(FixSuggestion(description: "提供导入库")))
-    m["E1321"] = ErrorMeta(code: "E1321", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4221"] = ErrorMeta(code: "E4221", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "COMDAT 段冲突", fix: Some(FixSuggestion(description: "统一 comdat 选择")))
-    m["E1322"] = ErrorMeta(code: "E1322", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4222"] = ErrorMeta(code: "E4222", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接顺序错误导致符号未解析", fix: Some(FixSuggestion(description: "调整库顺序")))
-    m["E1323"] = ErrorMeta(code: "E1323", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4223"] = ErrorMeta(code: "E4223", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "bitcode 链接失败", fix: Some(FixSuggestion(description: "改用对象文件链接")))
-    m["E1324"] = ErrorMeta(code: "E1324", category: ErrorCategory.Linker, severity: Severity.Warning,
+    m["E4224"] = ErrorMeta(code: "E4224", category: ErrorCategory.Linker, severity: Severity.Warning,
         template: "链接时优化（LTO）失败", fix: Some(FixSuggestion(description: "禁用 LTO")))
-    m["E1325"] = ErrorMeta(code: "E1325", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4225"] = ErrorMeta(code: "E4225", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接脚本含未知命令", fix: Some(FixSuggestion(description: "修正脚本语法")))
-    m["E1326"] = ErrorMeta(code: "E1326", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4226"] = ErrorMeta(code: "E4226", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "动态库 {lib} 运行时缺失", fix: Some(FixSuggestion(description: "安装运行依赖")))
-    m["E1327"] = ErrorMeta(code: "E1327", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4227"] = ErrorMeta(code: "E4227", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "rpath 配置非法", fix: Some(FixSuggestion(description: "修正 rpath")))
-    m["E1328"] = ErrorMeta(code: "E1328", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4228"] = ErrorMeta(code: "E4228", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "符号可见性导致未链接", fix: Some(FixSuggestion(description: "调整符号可见性")))
-    m["E1329"] = ErrorMeta(code: "E1329", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4229"] = ErrorMeta(code: "E4229", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接对象语言（C/C++）不匹配", fix: Some(FixSuggestion(description: "统一语言前端")))
-    m["E1330"] = ErrorMeta(code: "E1330", category: ErrorCategory.Linker, severity: Severity.Warning,
+    m["E4230"] = ErrorMeta(code: "E4230", category: ErrorCategory.Linker, severity: Severity.Warning,
         template: "垃圾段回收（gc-sections）失败", fix: Some(FixSuggestion(description: "关闭 gc-sections")))
-    m["E1331"] = ErrorMeta(code: "E1331", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4231"] = ErrorMeta(code: "E4231", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接器内存映射失败", fix: Some(FixSuggestion(description: "减小链接规模")))
-    m["E1332"] = ErrorMeta(code: "E1332", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4232"] = ErrorMeta(code: "E4232", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接消毒剂运行时失败", fix: Some(FixSuggestion(description: "配置 sanitizer 运行时")))
-    m["E1333"] = ErrorMeta(code: "E1333", category: ErrorCategory.Linker, severity: Severity.Warning,
+    m["E4233"] = ErrorMeta(code: "E4233", category: ErrorCategory.Linker, severity: Severity.Warning,
         template: "死符号剥离失败", fix: Some(FixSuggestion(description: "关闭死剥离")))
-    m["E1334"] = ErrorMeta(code: "E1334", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4234"] = ErrorMeta(code: "E4234", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接器插件错误", fix: Some(FixSuggestion(description: "移除或更新插件")))
-    m["E1335"] = ErrorMeta(code: "E1335", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4235"] = ErrorMeta(code: "E4235", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "C 运行时启动文件缺失", fix: Some(FixSuggestion(description: "安装工具链 C 运行时")))
-    m["E1336"] = ErrorMeta(code: "E1336", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4236"] = ErrorMeta(code: "E4236", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接器版本过旧不支持特性", fix: Some(FixSuggestion(description: "升级链接器")))
-    m["E1337"] = ErrorMeta(code: "E1337", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4237"] = ErrorMeta(code: "E4237", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "名称修饰（mangling）冲突", fix: Some(FixSuggestion(description: "统一修饰方案")))
-    m["E1338"] = ErrorMeta(code: "E1338", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4238"] = ErrorMeta(code: "E4238", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "目标不支持位置无关可执行（PIE）", fix: Some(FixSuggestion(description: "禁用 PIE")))
-    m["E1339"] = ErrorMeta(code: "E1339", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4239"] = ErrorMeta(code: "E4239", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "链接指定的栈大小非法", fix: Some(FixSuggestion(description: "使用合法栈大小")))
-    m["E1340"] = ErrorMeta(code: "E1340", category: ErrorCategory.Linker, severity: Severity.Error,
+    m["E4240"] = ErrorMeta(code: "E4240", category: ErrorCategory.Linker, severity: Severity.Error,
         template: "展开库（unwind lib）缺失", fix: Some(FixSuggestion(description: "配置展开库")))
     m["E1401"] = ErrorMeta(code: "E1401", category: ErrorCategory.Abi, severity: Severity.Error,
         template: "FFI 函数签名与 C 侧不匹配", fix: Some(FixSuggestion(description: "核对 C 侧声明")))
@@ -1975,30 +2036,30 @@ func buildMetaPart5(m: HashMap<String, ErrorMeta>) {
         template: "用户命名空间创建失败", fix: Some(FixSuggestion(description: "检查命名空间支持")))
     m["E5341"] = ErrorMeta(code: "E5341", category: ErrorCategory.Os, severity: Severity.Error,
         template: "不支持的文件系统类型", fix: Some(FixSuggestion(description: "使用受支持文件系统")))
-    m["E6001"] = ErrorMeta(code: "E6001", category: ErrorCategory.Lsp, severity: Severity.Error,
-        template: "LSP 请求非法：{method}", fix: Some(FixSuggestion(description: "检查客户端请求格式")))
-    m["E6002"] = ErrorMeta(code: "E6002", category: ErrorCategory.Lsp, severity: Severity.Error,
-        template: "LSP 文档未找到：{uri}", fix: Some(FixSuggestion(description: "重新打开文档")))
-    m["E6003"] = ErrorMeta(code: "E6003", category: ErrorCategory.Lsp, severity: Severity.Error,
-        template: "LSP 位置超出文档范围", fix: Some(FixSuggestion(description: "检查行/列范围")))
-    m["E6004"] = ErrorMeta(code: "E6004", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "客户端不支持该能力：{cap}", fix: Some(FixSuggestion(description: "升级客户端")))
-    m["E6005"] = ErrorMeta(code: "E6005", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "诊断结果过期（文档已变更）", fix: Some(FixSuggestion(description: "重新触发分析")))
-    m["E6006"] = ErrorMeta(code: "E6006", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "语义高亮（semantic tokens）生成失败", fix: Some(FixSuggestion(description: "检查语法树")))
-    m["E6007"] = ErrorMeta(code: "E6007", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "补全（completion）生成失败", fix: Some(FixSuggestion(description: "检查上下文")))
-    m["E6008"] = ErrorMeta(code: "E6008", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "悬停（hover）信息生成失败", fix: Some(FixSuggestion(description: "检查符号解析")))
-    m["E6009"] = ErrorMeta(code: "E6009", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "跳转定义目标未找到", fix: Some(FixSuggestion(description: "确认符号已定义")))
-    m["E6010"] = ErrorMeta(code: "E6010", category: ErrorCategory.Lsp, severity: Severity.Warning,
-        template: "引用查找失败", fix: Some(FixSuggestion(description: "检查索引")))
-    m["E6011"] = ErrorMeta(code: "E6011", category: ErrorCategory.Lsp, severity: Severity.Error,
-        template: "重命名（rename）失败：{name}", fix: Some(FixSuggestion(description: "检查跨文件引用")))
-    m["E6012"] = ErrorMeta(code: "E6012", category: ErrorCategory.Lsp, severity: Severity.Error,
-        template: "格式化（formatting）失败", fix: Some(FixSuggestion(description: "检查语法合法性")))
+        m["E6001"] = ErrorMeta(code: "E6001", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "failed to initialize language server: <reason>", fix: Some(FixSuggestion(description: "LSP 服务器初始化失败")))
+        m["E6002"] = ErrorMeta(code: "E6002", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "document version mismatch", fix: Some(FixSuggestion(description: "文档同步错误")))
+        m["E6003"] = ErrorMeta(code: "E6003", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "failed to compute completions: <reason>", fix: Some(FixSuggestion(description: "代码补全错误")))
+        m["E6004"] = ErrorMeta(code: "E6004", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "failed to resolve hover info", fix: Some(FixSuggestion(description: "悬停信息错误")))
+        m["E6005"] = ErrorMeta(code: "E6005", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "no definition found for 'foo'", fix: Some(FixSuggestion(description: "跳转定义失败")))
+        m["E6006"] = ErrorMeta(code: "E6006", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "failed to find references: index not ready", fix: Some(FixSuggestion(description: "查找引用失败")))
+        m["E6007"] = ErrorMeta(code: "E6007", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "cannot rename: symbol is imported from external package", fix: Some(FixSuggestion(description: "重命名错误")))
+        m["E6008"] = ErrorMeta(code: "E6008", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "multi-line raw string highlight incorrect", fix: Some(FixSuggestion(description: "语法高亮错误")))
+        m["E6009"] = ErrorMeta(code: "E6009", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "failed to provide code action: <reason>", fix: Some(FixSuggestion(description: "代码操作错误")))
+        m["E6010"] = ErrorMeta(code: "E6010", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "failed to compute inlay hints", fix: Some(FixSuggestion(description: "内联提示错误")))
+        m["E6011"] = ErrorMeta(code: "E6011", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "semantic tokens request failed", fix: Some(FixSuggestion(description: "语义 Token 错误")))
+        m["E6012"] = ErrorMeta(code: "E6012", category: ErrorCategory.Lsp, severity: Severity.Error,
+        template: "formatting failed: file has syntax errors", fix: Some(FixSuggestion(description: "LSP 格式化错误")))
     m["E6013"] = ErrorMeta(code: "E6013", category: ErrorCategory.Lsp, severity: Severity.Warning,
         template: "快速修复（code action）生成失败", fix: Some(FixSuggestion(description: "检查可用修复")))
     m["E6014"] = ErrorMeta(code: "E6014", category: ErrorCategory.Lsp, severity: Severity.Warning,
@@ -2217,85 +2278,85 @@ func buildMetaPart5(m: HashMap<String, ErrorMeta>) {
         template: "同一包被多次引入", fix: Some(FixSuggestion(description: "统一依赖来源")))
     m["E6241"] = ErrorMeta(code: "E6241", category: ErrorCategory.Pkg, severity: Severity.Error,
         template: "目标特定 manifest 解析失败", fix: Some(FixSuggestion(description: "检查目标字段")))
-    m["E6301"] = ErrorMeta(code: "E6301", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "构建脚本异常终止", fix: Some(FixSuggestion(description: "修复构建脚本")))
-    m["E6302"] = ErrorMeta(code: "E6302", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "构建目标未定义：{target}", fix: Some(FixSuggestion(description: "检查构建配置")))
-    m["E6303"] = ErrorMeta(code: "E6303", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "构建配置（profile）未知：{profile}", fix: Some(FixSuggestion(description: "使用合法 profile")))
-    m["E6304"] = ErrorMeta(code: "E6304", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "产物（artifact）未生成：{name}", fix: Some(FixSuggestion(description: "检查构建步骤")))
-    m["E6305"] = ErrorMeta(code: "E6305", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "编译步骤失败", fix: Some(FixSuggestion(description: "查看编译错误")))
-    m["E6306"] = ErrorMeta(code: "E6306", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "链接步骤失败", fix: Some(FixSuggestion(description: "查看链接错误")))
-    m["E6307"] = ErrorMeta(code: "E6307", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "自定义目标（custom target）执行失败", fix: Some(FixSuggestion(description: "检查目标脚本")))
-    m["E6308"] = ErrorMeta(code: "E6308", category: ErrorCategory.Build, severity: Severity.Warning,
-        template: "构建缓存失效", fix: Some(FixSuggestion(description: "清理构建缓存")))
-    m["E6309"] = ErrorMeta(code: "E6309", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "并行构建死锁", fix: Some(FixSuggestion(description: "减少并行度")))
-    m["E6310"] = ErrorMeta(code: "E6310", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "作业服务器（jobserver）不可用", fix: Some(FixSuggestion(description: "禁用 jobserver")))
-    m["E6311"] = ErrorMeta(code: "E6311", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "输出目录被占用", fix: Some(FixSuggestion(description: "释放目录锁")))
-    m["E6312"] = ErrorMeta(code: "E6312", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "无写入输出目录权限", fix: Some(FixSuggestion(description: "修正输出目录权限")))
-    m["E6313"] = ErrorMeta(code: "E6313", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "构建磁盘空间不足", fix: Some(FixSuggestion(description: "清理或扩容")))
-    m["E6314"] = ErrorMeta(code: "E6314", category: ErrorCategory.Build, severity: Severity.Error,
-        template: "构建超时", fix: Some(FixSuggestion(description: "增大超时或减少规模")))
-    m["E6315"] = ErrorMeta(code: "E6315", category: ErrorCategory.Build, severity: Severity.Warning,
-        template: "增量构建被禁用导致慢", fix: Some(FixSuggestion(description: "启用增量")))
-    m["E6316"] = ErrorMeta(code: "E6316", category: ErrorCategory.Build, severity: Severity.Error,
+        m["E7001"] = ErrorMeta(code: "E7001", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "the file 'cjpm.toml' does not exist", fix: Some(FixSuggestion(description: "项目清单缺失")))
+        m["E7002"] = ErrorMeta(code: "E7002", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "failed to parse cjpm.toml: invalid TOML at line 5", fix: Some(FixSuggestion(description: "清单解析错误")))
+        m["E7003"] = ErrorMeta(code: "E7003", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "dependency 'json' version '^1.0' not found in registry", fix: Some(FixSuggestion(description: "依赖未找到")))
+        m["E7004"] = ErrorMeta(code: "E7004", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "dependency conflict: 'foo' requires 'bar' 1.x, 'baz' requires 'bar' 2.x", fix: Some(FixSuggestion(description: "依赖冲突")))
+        m["E7005"] = ErrorMeta(code: "E7005", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "cjpm build failed", fix: Some(FixSuggestion(description: "构建失败")))
+        m["E7006"] = ErrorMeta(code: "E7006", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "cannot find available compiler in $PATH", fix: Some(FixSuggestion(description: "编译器未找到")))
+        m["E7007"] = ErrorMeta(code: "E7007", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "invalid package name: '123-foo'", fix: Some(FixSuggestion(description: "包名非法")))
+        m["E7008"] = ErrorMeta(code: "E7008", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "package name in cjpm.toml does not match directory name", fix: Some(FixSuggestion(description: "包名与目录不匹配")))
+        m["E7009"] = ErrorMeta(code: "E7009", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "failed to obtain package import information, please execute cjc --scan-dependency", fix: Some(FixSuggestion(description: "源码扫描失败")))
+        m["E7010"] = ErrorMeta(code: "E7010", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "failed to write build artifact: permission denied", fix: Some(FixSuggestion(description: "产物输出错误")))
+        m["E7011"] = ErrorMeta(code: "E7011", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "build cache corrupted, run 'cjpm clean'", fix: Some(FixSuggestion(description: "构建缓存损坏")))
+        m["E7012"] = ErrorMeta(code: "E7012", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "failed to fetch package: connection timeout", fix: Some(FixSuggestion(description: "网络错误（拉取依赖）")))
+        m["E7013"] = ErrorMeta(code: "E7013", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "checksum mismatch for package 'foo-1.2.3'", fix: Some(FixSuggestion(description: "校验和不匹配")))
+        m["E7014"] = ErrorMeta(code: "E7014", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "target platform 'windows-arm64' not supported by dependency 'foo'", fix: Some(FixSuggestion(description: "不支持的构建平台")))
+        m["E7015"] = ErrorMeta(code: "E7015", category: ErrorCategory.Build, severity: Severity.Error,
+        template: "build script 'build.cj' failed with exit code 1", fix: Some(FixSuggestion(description: "构建脚本错误")))
+    m["E7016"] = ErrorMeta(code: "E7016", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建需特性开关未开启", fix: Some(FixSuggestion(description: "开启特性")))
-    m["E6317"] = ErrorMeta(code: "E6317", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7017"] = ErrorMeta(code: "E7017", category: ErrorCategory.Build, severity: Severity.Error,
         template: "交叉编译工具链缺失", fix: Some(FixSuggestion(description: "安装目标工具链")))
-    m["E6318"] = ErrorMeta(code: "E6318", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7018"] = ErrorMeta(code: "E7018", category: ErrorCategory.Build, severity: Severity.Error,
         template: "系统根（sysroot）缺失", fix: Some(FixSuggestion(description: "配置 sysroot")))
-    m["E6319"] = ErrorMeta(code: "E6319", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7019"] = ErrorMeta(code: "E7019", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建所需环境变量缺失：{var}", fix: Some(FixSuggestion(description: "设置环境变量")))
-    m["E6320"] = ErrorMeta(code: "E6320", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7020"] = ErrorMeta(code: "E7020", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建脚本读取了禁止的环境变量", fix: Some(FixSuggestion(description: "移除敏感环境依赖")))
-    m["E6321"] = ErrorMeta(code: "E6321", category: ErrorCategory.Build, severity: Severity.Warning,
+    m["E7021"] = ErrorMeta(code: "E7021", category: ErrorCategory.Build, severity: Severity.Warning,
         template: "构建指纹不匹配触发重编", fix: Some(FixSuggestion(description: "保持输入稳定")))
-    m["E6322"] = ErrorMeta(code: "E6322", category: ErrorCategory.Build, severity: Severity.Warning,
+    m["E7022"] = ErrorMeta(code: "E7022", category: ErrorCategory.Build, severity: Severity.Warning,
         template: "依赖信息（depinfo）过期", fix: Some(FixSuggestion(description: "重新生成")))
-    m["E6323"] = ErrorMeta(code: "E6323", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7023"] = ErrorMeta(code: "E7023", category: ErrorCategory.Build, severity: Severity.Error,
         template: "目标三元组非法：{triple}", fix: Some(FixSuggestion(description: "检查三元组")))
-    m["E6324"] = ErrorMeta(code: "E6324", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7024"] = ErrorMeta(code: "E7024", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建计划（build plan）生成失败", fix: Some(FixSuggestion(description: "检查依赖图")))
-    m["E6325"] = ErrorMeta(code: "E6325", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7025"] = ErrorMeta(code: "E7025", category: ErrorCategory.Build, severity: Severity.Error,
         template: "后处理（post-build）步骤失败", fix: Some(FixSuggestion(description: "检查后处理脚本")))
-    m["E6326"] = ErrorMeta(code: "E6326", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7026"] = ErrorMeta(code: "E7026", category: ErrorCategory.Build, severity: Severity.Error,
         template: "测试执行框架失败", fix: Some(FixSuggestion(description: "检查测试配置")))
-    m["E6327"] = ErrorMeta(code: "E6327", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7027"] = ErrorMeta(code: "E7027", category: ErrorCategory.Build, severity: Severity.Error,
         template: "基准测试框架失败", fix: Some(FixSuggestion(description: "检查基准配置")))
-    m["E6328"] = ErrorMeta(code: "E6328", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7028"] = ErrorMeta(code: "E7028", category: ErrorCategory.Build, severity: Severity.Error,
         template: "文档构建失败", fix: Some(FixSuggestion(description: "检查文档注释")))
-    m["E6329"] = ErrorMeta(code: "E6329", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7029"] = ErrorMeta(code: "E7029", category: ErrorCategory.Build, severity: Severity.Error,
         template: "示例（example）构建失败", fix: Some(FixSuggestion(description: "检查示例代码")))
-    m["E6330"] = ErrorMeta(code: "E6330", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7030"] = ErrorMeta(code: "E7030", category: ErrorCategory.Build, severity: Severity.Error,
         template: "工具链下载失败", fix: Some(FixSuggestion(description: "检查网络/镜像")))
-    m["E6331"] = ErrorMeta(code: "E6331", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7031"] = ErrorMeta(code: "E7031", category: ErrorCategory.Build, severity: Severity.Error,
         template: "自定义编译标志冲突", fix: Some(FixSuggestion(description: "统一编译标志")))
-    m["E6332"] = ErrorMeta(code: "E6332", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7032"] = ErrorMeta(code: "E7032", category: ErrorCategory.Build, severity: Severity.Error,
         template: "条件编译 cfg 未定义：{key}", fix: Some(FixSuggestion(description: "定义该 cfg")))
-    m["E6333"] = ErrorMeta(code: "E6333", category: ErrorCategory.Build, severity: Severity.Warning,
+    m["E7033"] = ErrorMeta(code: "E7033", category: ErrorCategory.Build, severity: Severity.Warning,
         template: "构建脚本被重复触发重编", fix: Some(FixSuggestion(description: "稳定构建脚本输入")))
-    m["E6334"] = ErrorMeta(code: "E6334", category: ErrorCategory.Build, severity: Severity.Warning,
+    m["E7034"] = ErrorMeta(code: "E7034", category: ErrorCategory.Build, severity: Severity.Warning,
         template: "构建锁竞争", fix: Some(FixSuggestion(description: "减少并发写入")))
-    m["E6335"] = ErrorMeta(code: "E6335", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7035"] = ErrorMeta(code: "E7035", category: ErrorCategory.Build, severity: Severity.Error,
         template: "仅在特定目标失败的构建", fix: Some(FixSuggestion(description: "检查目标条件")))
-    m["E6336"] = ErrorMeta(code: "E6336", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7036"] = ErrorMeta(code: "E7036", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建进程内存耗尽", fix: Some(FixSuggestion(description: "减少并行或拆分")))
-    m["E6337"] = ErrorMeta(code: "E6337", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7037"] = ErrorMeta(code: "E7037", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建被信号中断", fix: Some(FixSuggestion(description: "重新构建")))
-    m["E6338"] = ErrorMeta(code: "E6338", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7038"] = ErrorMeta(code: "E7038", category: ErrorCategory.Build, severity: Severity.Error,
         template: "临时目录不可写", fix: Some(FixSuggestion(description: "修正临时目录权限")))
-    m["E6339"] = ErrorMeta(code: "E6339", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7039"] = ErrorMeta(code: "E7039", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建钩子（hook）执行失败", fix: Some(FixSuggestion(description: "检查钩子脚本")))
-    m["E6340"] = ErrorMeta(code: "E6340", category: ErrorCategory.Build, severity: Severity.Error,
+    m["E7040"] = ErrorMeta(code: "E7040", category: ErrorCategory.Build, severity: Severity.Error,
         template: "构建动作不支持：{action}", fix: Some(FixSuggestion(description: "使用受支持动作")))
 }
 
@@ -2775,481 +2836,481 @@ func buildMetaPart7(m: HashMap<String, ErrorMeta>) {
         template: "目标硬件无 FPU 触发软浮点异常", fix: Some(FixSuggestion(description: "启用软浮点")))
     m["E6940"] = ErrorMeta(code: "E6940", category: ErrorCategory.Embed, severity: Severity.Fatal,
         template: "CGO 回调生命周期短于 C 侧", fix: Some(FixSuggestion(description: "延长回调所有权")))
-    m["E7001"] = ErrorMeta(code: "E7001", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试代码编译失败", fix: Some(FixSuggestion(description: "修复测试代码")))
-    m["E7002"] = ErrorMeta(code: "E7002", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试可执行文件未生成", fix: Some(FixSuggestion(description: "检查测试构建")))
-    m["E7003"] = ErrorMeta(code: "E7003", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试用例超时", fix: Some(FixSuggestion(description: "优化用例或增大超时")))
-    m["E7004"] = ErrorMeta(code: "E7004", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试中出现 panic", fix: Some(FixSuggestion(description: "修复被测逻辑")))
-    m["E7005"] = ErrorMeta(code: "E7005", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "断言失败：{msg}", fix: Some(FixSuggestion(description: "检查预期与实际")))
-    m["E7006"] = ErrorMeta(code: "E7006", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试夹具（fixture）初始化失败", fix: Some(FixSuggestion(description: "检查夹具逻辑")))
-    m["E7007"] = ErrorMeta(code: "E7007", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试清理（teardown）失败", fix: Some(FixSuggestion(description: "检查清理逻辑")))
-    m["E7008"] = ErrorMeta(code: "E7008", category: ErrorCategory.Test, severity: Severity.Warning,
-        template: "测试过滤器未匹配任何用例", fix: Some(FixSuggestion(description: "检查过滤表达式")))
-    m["E7009"] = ErrorMeta(code: "E7009", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试用例名重复：{name}", fix: Some(FixSuggestion(description: "重命名用例")))
-    m["E7010"] = ErrorMeta(code: "E7010", category: ErrorCategory.Test, severity: Severity.Error,
-        template: "测试依赖顺序错误", fix: Some(FixSuggestion(description: "显式声明依赖")))
-    m["E7011"] = ErrorMeta(code: "E7011", category: ErrorCategory.Test, severity: Severity.Warning,
+        m["E7101"] = ErrorMeta(code: "E7101", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "assertion failed: expected 42, got 41", fix: Some(FixSuggestion(description: "断言失败")))
+        m["E7102"] = ErrorMeta(code: "E7102", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "test 'test_foo' panicked: <message>", fix: Some(FixSuggestion(description: "测试 panic")))
+        m["E7103"] = ErrorMeta(code: "E7103", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "test 'test_bar' timed out after 60s", fix: Some(FixSuggestion(description: "测试超时")))
+        m["E7104"] = ErrorMeta(code: "E7104", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "no tests found in package", fix: Some(FixSuggestion(description: "未找到测试")))
+        m["E7105"] = ErrorMeta(code: "E7105", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "failed to generate coverage report: <reason>", fix: Some(FixSuggestion(description: "覆盖率错误")))
+        m["E7106"] = ErrorMeta(code: "E7106", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "benchmark failed: unstable timing", fix: Some(FixSuggestion(description: "基准测试错误")))
+        m["E7107"] = ErrorMeta(code: "E7107", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "no tests match filter 'foo::*'", fix: Some(FixSuggestion(description: "测试过滤错误")))
+        m["E7108"] = ErrorMeta(code: "E7108", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "test setup failed: <reason>", fix: Some(FixSuggestion(description: "测试前后置错误")))
+        m["E7109"] = ErrorMeta(code: "E7109", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "parallel test conflict: shared resource 'db'", fix: Some(FixSuggestion(description: "并行测试冲突")))
+        m["E7110"] = ErrorMeta(code: "E7110", category: ErrorCategory.Test, severity: Severity.Error,
+        template: "test expected panic but completed normally", fix: Some(FixSuggestion(description: "预期 panic 但未发生")))
+    m["E7111"] = ErrorMeta(code: "E7111", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "测试泄漏资源", fix: Some(FixSuggestion(description: "在 teardown 释放")))
-    m["E7012"] = ErrorMeta(code: "E7012", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7112"] = ErrorMeta(code: "E7112", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "测试用例被忽略（ignore）", fix: Some(FixSuggestion(description: "检查忽略条件")))
-    m["E7013"] = ErrorMeta(code: "E7013", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7113"] = ErrorMeta(code: "E7113", category: ErrorCategory.Test, severity: Severity.Error,
         template: "期望 panic 但未发生", fix: Some(FixSuggestion(description: "修正预期")))
-    m["E7014"] = ErrorMeta(code: "E7014", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7114"] = ErrorMeta(code: "E7114", category: ErrorCategory.Test, severity: Severity.Error,
         template: "未期望的 panic 发生", fix: Some(FixSuggestion(description: "修复被测代码")))
-    m["E7015"] = ErrorMeta(code: "E7015", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7115"] = ErrorMeta(code: "E7115", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "测试不稳定（flaky）", fix: Some(FixSuggestion(description: "消除时序依赖")))
-    m["E7016"] = ErrorMeta(code: "E7016", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7116"] = ErrorMeta(code: "E7116", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试框架崩溃", fix: Some(FixSuggestion(description: "升级测试框架")))
-    m["E7017"] = ErrorMeta(code: "E7017", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7117"] = ErrorMeta(code: "E7117", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "测试输出捕获失败", fix: Some(FixSuggestion(description: "检查输出重定向")))
-    m["E7018"] = ErrorMeta(code: "E7018", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7118"] = ErrorMeta(code: "E7118", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试所需环境变量缺失", fix: Some(FixSuggestion(description: "设置环境变量")))
-    m["E7019"] = ErrorMeta(code: "E7019", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7119"] = ErrorMeta(code: "E7119", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试数据文件缺失：{path}", fix: Some(FixSuggestion(description: "补充测试数据")))
-    m["E7020"] = ErrorMeta(code: "E7020", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7120"] = ErrorMeta(code: "E7120", category: ErrorCategory.Test, severity: Severity.Error,
         template: "Mock 对象行为不匹配", fix: Some(FixSuggestion(description: "修正 mock 设定")))
-    m["E7021"] = ErrorMeta(code: "E7021", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7121"] = ErrorMeta(code: "E7121", category: ErrorCategory.Test, severity: Severity.Error,
         template: "并发测试竞态", fix: Some(FixSuggestion(description: "使用同步原语")))
-    m["E7022"] = ErrorMeta(code: "E7022", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7122"] = ErrorMeta(code: "E7122", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试内部死锁", fix: Some(FixSuggestion(description: "检查加锁顺序")))
-    m["E7023"] = ErrorMeta(code: "E7023", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7123"] = ErrorMeta(code: "E7123", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试触发泄漏检测", fix: Some(FixSuggestion(description: "释放测试资源")))
-    m["E7024"] = ErrorMeta(code: "E7024", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7124"] = ErrorMeta(code: "E7124", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "覆盖率采集失败", fix: Some(FixSuggestion(description: "检查插桩")))
-    m["E7025"] = ErrorMeta(code: "E7025", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7125"] = ErrorMeta(code: "E7125", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试报告生成失败", fix: Some(FixSuggestion(description: "检查报告路径")))
-    m["E7026"] = ErrorMeta(code: "E7026", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7126"] = ErrorMeta(code: "E7126", category: ErrorCategory.Test, severity: Severity.Error,
         template: "并行测试共享状态冲突", fix: Some(FixSuggestion(description: "隔离测试状态")))
-    m["E7027"] = ErrorMeta(code: "E7027", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7127"] = ErrorMeta(code: "E7127", category: ErrorCategory.Test, severity: Severity.Error,
         template: "全局前置（before-all）失败", fix: Some(FixSuggestion(description: "检查前置逻辑")))
-    m["E7028"] = ErrorMeta(code: "E7028", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7128"] = ErrorMeta(code: "E7128", category: ErrorCategory.Test, severity: Severity.Error,
         template: "全局后置（after-all）失败", fix: Some(FixSuggestion(description: "检查后置逻辑")))
-    m["E7029"] = ErrorMeta(code: "E7029", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7129"] = ErrorMeta(code: "E7129", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "测试跳过条件误触发", fix: Some(FixSuggestion(description: "检查跳过逻辑")))
-    m["E7030"] = ErrorMeta(code: "E7030", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7130"] = ErrorMeta(code: "E7130", category: ErrorCategory.Test, severity: Severity.Error,
         template: "参数化测试参数不匹配", fix: Some(FixSuggestion(description: "检查参数集")))
-    m["E7031"] = ErrorMeta(code: "E7031", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7131"] = ErrorMeta(code: "E7131", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试超时配置非法", fix: Some(FixSuggestion(description: "使用合法超时")))
-    m["E7032"] = ErrorMeta(code: "E7032", category: ErrorCategory.Test, severity: Severity.Fatal,
+    m["E7132"] = ErrorMeta(code: "E7132", category: ErrorCategory.Test, severity: Severity.Fatal,
         template: "测试进程崩溃", fix: Some(FixSuggestion(description: "检查被测代码")))
-    m["E7033"] = ErrorMeta(code: "E7033", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7133"] = ErrorMeta(code: "E7133", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试收到意外信号", fix: Some(FixSuggestion(description: "检查信号处理")))
-    m["E7034"] = ErrorMeta(code: "E7034", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7134"] = ErrorMeta(code: "E7134", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试超过内存限制", fix: Some(FixSuggestion(description: "减少内存使用")))
-    m["E7035"] = ErrorMeta(code: "E7035", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7135"] = ErrorMeta(code: "E7135", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试间未隔离导致相互影响", fix: Some(FixSuggestion(description: "隔离测试环境")))
-    m["E7036"] = ErrorMeta(code: "E7036", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7136"] = ErrorMeta(code: "E7136", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "随机测试种子未固定导致不稳定", fix: Some(FixSuggestion(description: "固定随机种子")))
-    m["E7037"] = ErrorMeta(code: "E7037", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7137"] = ErrorMeta(code: "E7137", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试辅助模块导入失败", fix: Some(FixSuggestion(description: "检查测试路径")))
-    m["E7038"] = ErrorMeta(code: "E7038", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7138"] = ErrorMeta(code: "E7138", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "未知测试属性（attr）", fix: Some(FixSuggestion(description: "移除无效属性")))
-    m["E7039"] = ErrorMeta(code: "E7039", category: ErrorCategory.Test, severity: Severity.Warning,
+    m["E7139"] = ErrorMeta(code: "E7139", category: ErrorCategory.Test, severity: Severity.Warning,
         template: "同一用例被执行两次", fix: Some(FixSuggestion(description: "检查测试发现逻辑")))
-    m["E7040"] = ErrorMeta(code: "E7040", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7140"] = ErrorMeta(code: "E7140", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试汇总信息丢失", fix: Some(FixSuggestion(description: "检查输出通道")))
-    m["E7041"] = ErrorMeta(code: "E7041", category: ErrorCategory.Test, severity: Severity.Error,
+    m["E7141"] = ErrorMeta(code: "E7141", category: ErrorCategory.Test, severity: Severity.Error,
         template: "测试挂起（hang）", fix: Some(FixSuggestion(description: "检查阻塞调用")))
-    m["E7101"] = ErrorMeta(code: "E7101", category: ErrorCategory.Doc, severity: Severity.Warning,
-        template: "文档存在断链：{url}", fix: Some(FixSuggestion(description: "修正链接地址")))
-    m["E7102"] = ErrorMeta(code: "E7102", category: ErrorCategory.Doc, severity: Severity.Warning,
-        template: "文档引用的条目不存在：{name}", fix: Some(FixSuggestion(description: "补充条目或修正引用")))
-    m["E7103"] = ErrorMeta(code: "E7103", category: ErrorCategory.Doc, severity: Severity.Error,
-        template: "文档代码块（rust/cangjie）执行失败", fix: Some(FixSuggestion(description: "修正示例代码")))
-    m["E7104"] = ErrorMeta(code: "E7104", category: ErrorCategory.Doc, severity: Severity.Error,
-        template: "文档测试（doctest）失败", fix: Some(FixSuggestion(description: "修正文档示例")))
-    m["E7105"] = ErrorMeta(code: "E7105", category: ErrorCategory.Doc, severity: Severity.Error,
-        template: "文档示例 panic", fix: Some(FixSuggestion(description: "修正示例逻辑")))
-    m["E7106"] = ErrorMeta(code: "E7106", category: ErrorCategory.Doc, severity: Severity.Error,
-        template: "文档示例编译失败", fix: Some(FixSuggestion(description: "修复示例代码")))
-    m["E7107"] = ErrorMeta(code: "E7107", category: ErrorCategory.Doc, severity: Severity.Warning,
-        template: "文档属性非法", fix: Some(FixSuggestion(description: "修正文档属性")))
-    m["E7108"] = ErrorMeta(code: "E7108", category: ErrorCategory.Doc, severity: Severity.Warning,
+        m["E7201"] = ErrorMeta(code: "E7201", category: ErrorCategory.Doc, severity: Severity.Error,
+        template: "failed to parse doc comment: invalid markdown", fix: Some(FixSuggestion(description: "文档注释解析错误")))
+        m["E7202"] = ErrorMeta(code: "E7202", category: ErrorCategory.Doc, severity: Severity.Error,
+        template: "broken doc link: 'std::collections::HashMaps'", fix: Some(FixSuggestion(description: "文档链接失效")))
+        m["E7203"] = ErrorMeta(code: "E7203", category: ErrorCategory.Doc, severity: Severity.Warning,
+        template: "public function 'foo' missing doc comment", fix: Some(FixSuggestion(description: "缺少文档注释（警告）")))
+        m["E7204"] = ErrorMeta(code: "E7204", category: ErrorCategory.Doc, severity: Severity.Error,
+        template: "doc example failed to compile: <error>", fix: Some(FixSuggestion(description: "文档示例代码编译失败")))
+        m["E7205"] = ErrorMeta(code: "E7205", category: ErrorCategory.Doc, severity: Severity.Error,
+        template: "failed to write documentation: <reason>", fix: Some(FixSuggestion(description: "文档输出错误")))
+        m["E7206"] = ErrorMeta(code: "E7206", category: ErrorCategory.Doc, severity: Severity.Error,
+        template: "invalid #[doc] attribute: <detail>", fix: Some(FixSuggestion(description: "文档属性错误")))
+        m["E7207"] = ErrorMeta(code: "E7207", category: ErrorCategory.Doc, severity: Severity.Error,
+        template: "cannot resolve cross-reference to 'Bar'", fix: Some(FixSuggestion(description: "交叉引用错误")))
+    m["E7208"] = ErrorMeta(code: "E7208", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档模块引用循环", fix: Some(FixSuggestion(description: "打破文档循环")))
-    m["E7109"] = ErrorMeta(code: "E7109", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7209"] = ErrorMeta(code: "E7209", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档泄露了私有项", fix: Some(FixSuggestion(description: "调整可见性或 #[doc(hidden)]")))
-    m["E7110"] = ErrorMeta(code: "E7110", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7210"] = ErrorMeta(code: "E7210", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档 HTML 转义失败", fix: Some(FixSuggestion(description: "检查特殊字符")))
-    m["E7111"] = ErrorMeta(code: "E7111", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7211"] = ErrorMeta(code: "E7211", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档缺少摘要（summary）", fix: Some(FixSuggestion(description: "补充条目首句")))
-    m["E7112"] = ErrorMeta(code: "E7112", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7212"] = ErrorMeta(code: "E7212", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档内部链接（intra-doc）失效", fix: Some(FixSuggestion(description: "修正内部路径")))
-    m["E7113"] = ErrorMeta(code: "E7113", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7213"] = ErrorMeta(code: "E7213", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档别名冲突", fix: Some(FixSuggestion(description: "统一文档别名")))
-    m["E7114"] = ErrorMeta(code: "E7114", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7214"] = ErrorMeta(code: "E7214", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档搜索索引生成失败", fix: Some(FixSuggestion(description: "检查文档结构")))
-    m["E7115"] = ErrorMeta(code: "E7115", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7215"] = ErrorMeta(code: "E7215", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档主题渲染失败", fix: Some(FixSuggestion(description: "使用默认主题")))
-    m["E7116"] = ErrorMeta(code: "E7116", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7216"] = ErrorMeta(code: "E7216", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档资源（图片/JS）缺失", fix: Some(FixSuggestion(description: "补充资源文件")))
-    m["E7117"] = ErrorMeta(code: "E7117", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7217"] = ErrorMeta(code: "E7217", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档注释过长", fix: Some(FixSuggestion(description: "精简文档")))
-    m["E7118"] = ErrorMeta(code: "E7118", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7218"] = ErrorMeta(code: "E7218", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档路径含非 ASCII 字符", fix: Some(FixSuggestion(description: "使用 ASCII 路径")))
-    m["E7119"] = ErrorMeta(code: "E7119", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7219"] = ErrorMeta(code: "E7219", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档版本与代码不一致", fix: Some(FixSuggestion(description: "同步文档版本")))
-    m["E7120"] = ErrorMeta(code: "E7120", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7220"] = ErrorMeta(code: "E7220", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档示例已过时", fix: Some(FixSuggestion(description: "更新示例")))
-    m["E7121"] = ErrorMeta(code: "E7121", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7221"] = ErrorMeta(code: "E7221", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档 Markdown 语法非法", fix: Some(FixSuggestion(description: "修正 Markdown")))
-    m["E7122"] = ErrorMeta(code: "E7122", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7222"] = ErrorMeta(code: "E7222", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档表格格式错误", fix: Some(FixSuggestion(description: "修正表格")))
-    m["E7123"] = ErrorMeta(code: "E7123", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7223"] = ErrorMeta(code: "E7223", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档代码块语言未知", fix: Some(FixSuggestion(description: "指定已知语言")))
-    m["E7124"] = ErrorMeta(code: "E7124", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7224"] = ErrorMeta(code: "E7224", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档重定向循环", fix: Some(FixSuggestion(description: "修正重定向")))
-    m["E7125"] = ErrorMeta(code: "E7125", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7225"] = ErrorMeta(code: "E7225", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "跨 crate 文档链接失效", fix: Some(FixSuggestion(description: "检查外部文档")))
-    m["E7126"] = ErrorMeta(code: "E7126", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7226"] = ErrorMeta(code: "E7226", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档特性未开启导致缺失", fix: Some(FixSuggestion(description: "开启文档特性")))
-    m["E7127"] = ErrorMeta(code: "E7127", category: ErrorCategory.Doc, severity: Severity.Error,
+    m["E7227"] = ErrorMeta(code: "E7227", category: ErrorCategory.Doc, severity: Severity.Error,
         template: "文档 JSON 输出生成失败", fix: Some(FixSuggestion(description: "检查文档结构")))
-    m["E7128"] = ErrorMeta(code: "E7128", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7228"] = ErrorMeta(code: "E7228", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档测试编译超时", fix: Some(FixSuggestion(description: "简化示例")))
-    m["E7129"] = ErrorMeta(code: "E7129", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7229"] = ErrorMeta(code: "E7229", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档引用了隐藏项", fix: Some(FixSuggestion(description: "取消隐藏或移除引用")))
-    m["E7130"] = ErrorMeta(code: "E7130", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7230"] = ErrorMeta(code: "E7230", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "文档锚点（anchor）重复", fix: Some(FixSuggestion(description: "修正标题层级")))
-    m["E7131"] = ErrorMeta(code: "E7131", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7231"] = ErrorMeta(code: "E7231", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "宏文档生成异常", fix: Some(FixSuggestion(description: "检查宏文档注释")))
-    m["E7132"] = ErrorMeta(code: "E7132", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7232"] = ErrorMeta(code: "E7232", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "trait 实现的文档缺失", fix: Some(FixSuggestion(description: "补充 impl 文档")))
-    m["E7133"] = ErrorMeta(code: "E7133", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7233"] = ErrorMeta(code: "E7233", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "泛型参数文档未渲染", fix: Some(FixSuggestion(description: "检查泛型标注")))
-    m["E7134"] = ErrorMeta(code: "E7134", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7234"] = ErrorMeta(code: "E7234", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "cfg 过滤导致文档缺失", fix: Some(FixSuggestion(description: "检查 cfg 条件")))
-    m["E7135"] = ErrorMeta(code: "E7135", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7235"] = ErrorMeta(code: "E7235", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "平台特定文档缺失", fix: Some(FixSuggestion(description: "补充平台文档")))
-    m["E7136"] = ErrorMeta(code: "E7136", category: ErrorCategory.Doc, severity: Severity.Error,
+    m["E7236"] = ErrorMeta(code: "E7236", category: ErrorCategory.Doc, severity: Severity.Error,
         template: "文档 include! 文件失败", fix: Some(FixSuggestion(description: "检查包含路径")))
-    m["E7137"] = ErrorMeta(code: "E7137", category: ErrorCategory.Doc, severity: Severity.Warning,
+    m["E7237"] = ErrorMeta(code: "E7237", category: ErrorCategory.Doc, severity: Severity.Warning,
         template: "教学文档（rust-by-example 类）链接失效", fix: Some(FixSuggestion(description: "修正链接")))
-    m["E7201"] = ErrorMeta(code: "E7201", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8301"] = ErrorMeta(code: "E8301", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "变量 {name} 未使用", fix: Some(FixSuggestion(description: "删除或前缀 _")))
-    m["E7202"] = ErrorMeta(code: "E7202", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8302"] = ErrorMeta(code: "E8302", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "导入 {name} 未使用", fix: Some(FixSuggestion(description: "移除未使用导入")))
-    m["E7203"] = ErrorMeta(code: "E7203", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8303"] = ErrorMeta(code: "E8303", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "函数 {name} 未使用", fix: Some(FixSuggestion(description: "删除或 pub 导出")))
-    m["E7204"] = ErrorMeta(code: "E7204", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8304"] = ErrorMeta(code: "E8304", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "死代码（不可达）", fix: Some(FixSuggestion(description: "移除死代码")))
-    m["E7205"] = ErrorMeta(code: "E7205", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8305"] = ErrorMeta(code: "E8305", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "使用了已废弃 API：{name}", fix: Some(FixSuggestion(description: "迁移到新 API")))
-    m["E7206"] = ErrorMeta(code: "E7206", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8306"] = ErrorMeta(code: "E8306", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "命名不符合 snake_case：{name}", fix: Some(FixSuggestion(description: "使用 snake_case")))
-    m["E7207"] = ErrorMeta(code: "E7207", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8307"] = ErrorMeta(code: "E8307", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "类型命名不符合 CamelCase：{name}", fix: Some(FixSuggestion(description: "使用 CamelCase")))
-    m["E7208"] = ErrorMeta(code: "E7208", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8308"] = ErrorMeta(code: "E8308", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "常量命名未全大写：{name}", fix: Some(FixSuggestion(description: "使用 UPPER_CASE")))
-    m["E7209"] = ErrorMeta(code: "E7209", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8309"] = ErrorMeta(code: "E8309", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "硬编码路径：{path}", fix: Some(FixSuggestion(description: "使用配置或常量")))
-    m["E7210"] = ErrorMeta(code: "E7210", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8310"] = ErrorMeta(code: "E8310", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "使用了魔术数字：{value}", fix: Some(FixSuggestion(description: "提取为具名常量")))
-    m["E7211"] = ErrorMeta(code: "E7211", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8311"] = ErrorMeta(code: "E8311", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "遗留 TODO/FIXME 注释", fix: Some(FixSuggestion(description: "完成或登记任务")))
-    m["E7212"] = ErrorMeta(code: "E7212", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8312"] = ErrorMeta(code: "E8312", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "使用了 print 调试语句", fix: Some(FixSuggestion(description: "改用日志")))
-    m["E7213"] = ErrorMeta(code: "E7213", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8313"] = ErrorMeta(code: "E8313", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "存在 unsafe 块（需审查）", fix: Some(FixSuggestion(description: "确认 unsafe 必要性")))
-    m["E7214"] = ErrorMeta(code: "E7214", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8314"] = ErrorMeta(code: "E8314", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "在循环中不必要的 clone", fix: Some(FixSuggestion(description: "移出循环或借用")))
-    m["E7215"] = ErrorMeta(code: "E7215", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8315"] = ErrorMeta(code: "E8315", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "函数复杂度过高", fix: Some(FixSuggestion(description: "拆分函数")))
-    m["E7216"] = ErrorMeta(code: "E7216", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8316"] = ErrorMeta(code: "E8316", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "函数参数过多（{n}）", fix: Some(FixSuggestion(description: "使用结构体聚合参数")))
-    m["E7217"] = ErrorMeta(code: "E7217", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8317"] = ErrorMeta(code: "E8317", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "嵌套层级过深", fix: Some(FixSuggestion(description: "提前返回扁平化")))
-    m["E7218"] = ErrorMeta(code: "E7218", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8318"] = ErrorMeta(code: "E8318", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "单行过长（{n} 字符）", fix: Some(FixSuggestion(description: "拆分长行")))
-    m["E7219"] = ErrorMeta(code: "E7219", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8319"] = ErrorMeta(code: "E8319", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "公共项缺少文档注释", fix: Some(FixSuggestion(description: "补充文档")))
-    m["E7220"] = ErrorMeta(code: "E7220", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8320"] = ErrorMeta(code: "E8320", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "可传引用却发生了拷贝", fix: Some(FixSuggestion(description: "改为引用传递")))
-    m["E7221"] = ErrorMeta(code: "E7221", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8321"] = ErrorMeta(code: "E8321", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "使用了通配导入（*）", fix: Some(FixSuggestion(description: "改为显式导入")))
-    m["E7222"] = ErrorMeta(code: "E7222", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8322"] = ErrorMeta(code: "E8322", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "match 存在不可达分支", fix: Some(FixSuggestion(description: "移除不可达分支")))
-    m["E7223"] = ErrorMeta(code: "E7223", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8323"] = ErrorMeta(code: "E8323", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "let-else 非穷尽", fix: Some(FixSuggestion(description: "补全处理分支")))
-    m["E7224"] = ErrorMeta(code: "E7224", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8324"] = ErrorMeta(code: "E8324", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "冗余的 clone 调用", fix: Some(FixSuggestion(description: "移除冗余 clone")))
-    m["E7225"] = ErrorMeta(code: "E7225", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8325"] = ErrorMeta(code: "E8325", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "变量遮蔽（shadowing）", fix: Some(FixSuggestion(description: "重命名以避免混淆")))
-    m["E7226"] = ErrorMeta(code: "E7226", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8326"] = ErrorMeta(code: "E8326", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "变量声明为 mut 但从未修改", fix: Some(FixSuggestion(description: "移除 mut")))
-    m["E7227"] = ErrorMeta(code: "E7227", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8327"] = ErrorMeta(code: "E8327", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "不必要的可变借用", fix: Some(FixSuggestion(description: "改为不可变借用")))
-    m["E7228"] = ErrorMeta(code: "E7228", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8328"] = ErrorMeta(code: "E8328", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "低效的字符串转换", fix: Some(FixSuggestion(description: "使用更高效的格式化")))
-    m["E7229"] = ErrorMeta(code: "E7229", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8329"] = ErrorMeta(code: "E8329", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "生产代码中存在 panic", fix: Some(FixSuggestion(description: "改用错误返回")))
-    m["E7230"] = ErrorMeta(code: "E7230", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8330"] = ErrorMeta(code: "E8330", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "直接比较浮点相等", fix: Some(FixSuggestion(description: "使用容差比较")))
-    m["E7231"] = ErrorMeta(code: "E7231", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8331"] = ErrorMeta(code: "E8331", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "使用了 unwrap（可能 panic）", fix: Some(FixSuggestion(description: "使用安全的解包方式")))
-    m["E7232"] = ErrorMeta(code: "E7232", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8332"] = ErrorMeta(code: "E8332", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "使用了 expect（可能 panic）", fix: Some(FixSuggestion(description: "处理错误分支")))
-    m["E7233"] = ErrorMeta(code: "E7233", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8333"] = ErrorMeta(code: "E8333", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "未检查越界的索引访问", fix: Some(FixSuggestion(description: "使用 checked 访问")))
-    m["E7234"] = ErrorMeta(code: "E7234", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8334"] = ErrorMeta(code: "E8334", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "在迭代中持有值引用导致冲突", fix: Some(FixSuggestion(description: "调整迭代方式")))
-    m["E7235"] = ErrorMeta(code: "E7235", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8335"] = ErrorMeta(code: "E8335", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "枚举变体过大（内存不均）", fix: Some(FixSuggestion(description: "使用 Box 装箱大字段")))
-    m["E7236"] = ErrorMeta(code: "E7236", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8336"] = ErrorMeta(code: "E8336", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "对解引用结果多余 clone", fix: Some(FixSuggestion(description: "直接使用引用")))
-    m["E7237"] = ErrorMeta(code: "E7237", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8337"] = ErrorMeta(code: "E8337", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "冗余的字段初始化", fix: Some(FixSuggestion(description: "移除冗余字段")))
-    m["E7238"] = ErrorMeta(code: "E7238", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8338"] = ErrorMeta(code: "E8338", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "不符合惯用写法", fix: Some(FixSuggestion(description: "采用惯用表达")))
-    m["E7239"] = ErrorMeta(code: "E7239", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8339"] = ErrorMeta(code: "E8339", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "代码风格违规", fix: Some(FixSuggestion(description: "运行格式化器")))
-    m["E7240"] = ErrorMeta(code: "E7240", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8340"] = ErrorMeta(code: "E8340", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "可安全替代 unsafe 的写法", fix: Some(FixSuggestion(description: "改用安全 API")))
-    m["E7241"] = ErrorMeta(code: "E7241", category: ErrorCategory.Lint, severity: Severity.Warning,
+    m["E8341"] = ErrorMeta(code: "E8341", category: ErrorCategory.Lint, severity: Severity.Warning,
         template: "可能存在逻辑缺陷的模式", fix: Some(FixSuggestion(description: "人工复核")))
-    m["E7301"] = ErrorMeta(code: "E7301", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8001"] = ErrorMeta(code: "E8001", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "检测到硬编码密钥/口令", fix: Some(FixSuggestion(description: "改用环境变量或密钥管理")))
-    m["E7302"] = ErrorMeta(code: "E7302", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8002"] = ErrorMeta(code: "E8002", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "可能存在 SQL 注入风险", fix: Some(FixSuggestion(description: "使用参数化查询")))
-    m["E7303"] = ErrorMeta(code: "E7303", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8003"] = ErrorMeta(code: "E8003", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "可能存在命令注入风险", fix: Some(FixSuggestion(description: "校验外部输入")))
-    m["E7304"] = ErrorMeta(code: "E7304", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8004"] = ErrorMeta(code: "E8004", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "可能存在路径穿越（traversal）", fix: Some(FixSuggestion(description: "规范化路径并校验")))
-    m["E7305"] = ErrorMeta(code: "E7305", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8005"] = ErrorMeta(code: "E8005", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "不安全的反序列化", fix: Some(FixSuggestion(description: "使用受信任格式")))
-    m["E7306"] = ErrorMeta(code: "E7306", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8006"] = ErrorMeta(code: "E8006", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "使用了弱加密算法：{algo}", fix: Some(FixSuggestion(description: "改用强加密")))
-    m["E7307"] = ErrorMeta(code: "E7307", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8007"] = ErrorMeta(code: "E8007", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "使用了不安全随机数源", fix: Some(FixSuggestion(description: "使用密码学安全随机")))
-    m["E7308"] = ErrorMeta(code: "E7308", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8008"] = ErrorMeta(code: "E8008", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "关闭了 TLS 证书校验", fix: Some(FixSuggestion(description: "启用证书校验")))
-    m["E7309"] = ErrorMeta(code: "E7309", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8009"] = ErrorMeta(code: "E8009", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "明文传输敏感数据", fix: Some(FixSuggestion(description: "使用加密通道")))
-    m["E7310"] = ErrorMeta(code: "E7310", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8010"] = ErrorMeta(code: "E8010", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "执行了不可信的动态代码", fix: Some(FixSuggestion(description: "避免动态执行")))
-    m["E7311"] = ErrorMeta(code: "E7311", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8011"] = ErrorMeta(code: "E8011", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "潜在的缓冲区溢出", fix: Some(FixSuggestion(description: "使用边界检查")))
-    m["E7312"] = ErrorMeta(code: "E7312", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8012"] = ErrorMeta(code: "E8012", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "格式化字符串可能受控", fix: Some(FixSuggestion(description: "使用静态格式串")))
-    m["E7313"] = ErrorMeta(code: "E7313", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8013"] = ErrorMeta(code: "E8013", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "整数溢出可能被利用", fix: Some(FixSuggestion(description: "使用饱和/检查运算")))
-    m["E7314"] = ErrorMeta(code: "E7314", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8014"] = ErrorMeta(code: "E8014", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "存在竞态条件风险", fix: Some(FixSuggestion(description: "使用同步保护")))
-    m["E7315"] = ErrorMeta(code: "E7315", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8015"] = ErrorMeta(code: "E8015", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "潜在的释放后使用", fix: Some(FixSuggestion(description: "延长所有者生命周期")))
-    m["E7316"] = ErrorMeta(code: "E7316", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8016"] = ErrorMeta(code: "E8016", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "潜在的重复释放", fix: Some(FixSuggestion(description: "确保每个分配释放一次")))
-    m["E7317"] = ErrorMeta(code: "E7317", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8017"] = ErrorMeta(code: "E8017", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "潜在的空指针解引用", fix: Some(FixSuggestion(description: "使用前判空")))
-    m["E7318"] = ErrorMeta(code: "E7318", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8018"] = ErrorMeta(code: "E8018", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "日志可能泄露敏感信息", fix: Some(FixSuggestion(description: "脱敏日志")))
-    m["E7319"] = ErrorMeta(code: "E7319", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8019"] = ErrorMeta(code: "E8019", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "使用了可预测的临时文件名", fix: Some(FixSuggestion(description: "使用安全临时文件")))
-    m["E7320"] = ErrorMeta(code: "E7320", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8020"] = ErrorMeta(code: "E8020", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "存在符号链接攻击风险", fix: Some(FixSuggestion(description: "使用真实路径校验")))
-    m["E7321"] = ErrorMeta(code: "E7321", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8021"] = ErrorMeta(code: "E8021", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "不安全的类型转换", fix: Some(FixSuggestion(description: "使用安全转换")))
-    m["E7322"] = ErrorMeta(code: "E7322", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8022"] = ErrorMeta(code: "E8022", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "可能泄露内存内容", fix: Some(FixSuggestion(description: "清零敏感缓冲区")))
-    m["E7323"] = ErrorMeta(code: "E7323", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8023"] = ErrorMeta(code: "E8023", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "缺少授权检查", fix: Some(FixSuggestion(description: "补充授权逻辑")))
-    m["E7324"] = ErrorMeta(code: "E7324", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8024"] = ErrorMeta(code: "E8024", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "缺少身份认证", fix: Some(FixSuggestion(description: "补充认证逻辑")))
-    m["E7325"] = ErrorMeta(code: "E7325", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8025"] = ErrorMeta(code: "E8025", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "存在 CSRF 风险", fix: Some(FixSuggestion(description: "添加令牌校验")))
-    m["E7326"] = ErrorMeta(code: "E7326", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8026"] = ErrorMeta(code: "E8026", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "存在 XSS 风险", fix: Some(FixSuggestion(description: "转义输出")))
-    m["E7327"] = ErrorMeta(code: "E7327", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8027"] = ErrorMeta(code: "E8027", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "Cookie 安全属性缺失", fix: Some(FixSuggestion(description: "设置 Secure/HttpOnly")))
-    m["E7328"] = ErrorMeta(code: "E7328", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8028"] = ErrorMeta(code: "E8028", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "开放重定向风险", fix: Some(FixSuggestion(description: "校验重定向目标")))
-    m["E7329"] = ErrorMeta(code: "E7329", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8029"] = ErrorMeta(code: "E8029", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "不安全的反射/动态调用", fix: Some(FixSuggestion(description: "限制可调用集合")))
-    m["E7330"] = ErrorMeta(code: "E7330", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8030"] = ErrorMeta(code: "E8030", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "依赖存在已知漏洞", fix: Some(FixSuggestion(description: "升级依赖版本")))
-    m["E7331"] = ErrorMeta(code: "E7331", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8031"] = ErrorMeta(code: "E8031", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "请求了过度权限", fix: Some(FixSuggestion(description: "按最小权限原则收敛")))
-    m["E7332"] = ErrorMeta(code: "E7332", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8032"] = ErrorMeta(code: "E8032", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "密钥长度过短", fix: Some(FixSuggestion(description: "增大密钥长度")))
-    m["E7333"] = ErrorMeta(code: "E7333", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8033"] = ErrorMeta(code: "E8033", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "使用了弱哈希（如 MD5/SHA1）", fix: Some(FixSuggestion(description: "改用 SHA-256+")))
-    m["E7334"] = ErrorMeta(code: "E7334", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8034"] = ErrorMeta(code: "E8034", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "使用了弱分组模式（如 ECB）", fix: Some(FixSuggestion(description: "改用 GCM/CBC")))
-    m["E7335"] = ErrorMeta(code: "E7335", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8035"] = ErrorMeta(code: "E8035", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "检测到 nonce 重用", fix: Some(FixSuggestion(description: "每次使用唯一 nonce")))
-    m["E7336"] = ErrorMeta(code: "E7336", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8036"] = ErrorMeta(code: "E8036", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "证书已过期", fix: Some(FixSuggestion(description: "更新证书")))
-    m["E7337"] = ErrorMeta(code: "E7337", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8037"] = ErrorMeta(code: "E8037", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "使用了不安全协议（如 HTTP/TLS1.0）", fix: Some(FixSuggestion(description: "升级到安全协议")))
-    m["E7338"] = ErrorMeta(code: "E7338", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8038"] = ErrorMeta(code: "E8038", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "未降权运行（以高权限常驻）", fix: Some(FixSuggestion(description: "降权到最小权限")))
-    m["E7339"] = ErrorMeta(code: "E7339", category: ErrorCategory.Sec, severity: Severity.Warning,
+    m["E8039"] = ErrorMeta(code: "E8039", category: ErrorCategory.Sec, severity: Severity.Warning,
         template: "错误信息可能泄露内部细节", fix: Some(FixSuggestion(description: "返回通用错误")))
 }
 
 /// 填充错误码元数据第 8 组（Conf .. Gpu），共 5 个类别。
 func buildMetaPart8(m: HashMap<String, ErrorMeta>) {
-    m["E7401"] = ErrorMeta(code: "E7401", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8101"] = ErrorMeta(code: "E8101", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置文件未找到：{path}", fix: Some(FixSuggestion(description: "创建配置文件")))
-    m["E7402"] = ErrorMeta(code: "E7402", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8102"] = ErrorMeta(code: "E8102", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置解析失败：{reason}", fix: Some(FixSuggestion(description: "修正配置语法")))
-    m["E7403"] = ErrorMeta(code: "E7403", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8103"] = ErrorMeta(code: "E8103", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置不符合 schema", fix: Some(FixSuggestion(description: "对照 schema 修正")))
-    m["E7404"] = ErrorMeta(code: "E7404", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8104"] = ErrorMeta(code: "E8104", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "未知配置项：{key}", fix: Some(FixSuggestion(description: "删除或更正配置项")))
-    m["E7405"] = ErrorMeta(code: "E7405", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8105"] = ErrorMeta(code: "E8105", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置项类型不匹配：期望 {expected}", fix: Some(FixSuggestion(description: "使用正确类型")))
-    m["E7406"] = ErrorMeta(code: "E7406", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8106"] = ErrorMeta(code: "E8106", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "缺少必填配置项：{key}", fix: Some(FixSuggestion(description: "补充必填项")))
-    m["E7407"] = ErrorMeta(code: "E7407", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8107"] = ErrorMeta(code: "E8107", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置项已废弃：{key}", fix: Some(FixSuggestion(description: "迁移到新配置")))
-    m["E7408"] = ErrorMeta(code: "E7408", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8108"] = ErrorMeta(code: "E8108", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置项相互冲突", fix: Some(FixSuggestion(description: "统一配置值")))
-    m["E7409"] = ErrorMeta(code: "E7409", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8109"] = ErrorMeta(code: "E8109", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "环境变量覆盖配置失败", fix: Some(FixSuggestion(description: "检查环境变量名")))
-    m["E7410"] = ErrorMeta(code: "E7410", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8110"] = ErrorMeta(code: "E8110", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "未知配置档（profile）：{profile}", fix: Some(FixSuggestion(description: "使用合法 profile")))
-    m["E7411"] = ErrorMeta(code: "E7411", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8111"] = ErrorMeta(code: "E8111", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置 include 失败：{path}", fix: Some(FixSuggestion(description: "检查包含路径")))
-    m["E7412"] = ErrorMeta(code: "E7412", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8112"] = ErrorMeta(code: "E8112", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置引用形成循环", fix: Some(FixSuggestion(description: "打破配置循环")))
-    m["E7413"] = ErrorMeta(code: "E7413", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8113"] = ErrorMeta(code: "E8113", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置文件无读取权限", fix: Some(FixSuggestion(description: "修正文件权限")))
-    m["E7414"] = ErrorMeta(code: "E7414", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8114"] = ErrorMeta(code: "E8114", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置文件编码非法", fix: Some(FixSuggestion(description: "使用 UTF-8")))
-    m["E7415"] = ErrorMeta(code: "E7415", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8115"] = ErrorMeta(code: "E8115", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置文件过大", fix: Some(FixSuggestion(description: "拆分配置")))
-    m["E7416"] = ErrorMeta(code: "E7416", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8116"] = ErrorMeta(code: "E8116", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置校验失败", fix: Some(FixSuggestion(description: "检查校验规则")))
-    m["E7417"] = ErrorMeta(code: "E7417", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8117"] = ErrorMeta(code: "E8117", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "默认值非法", fix: Some(FixSuggestion(description: "修正默认值")))
-    m["E7418"] = ErrorMeta(code: "E7418", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8118"] = ErrorMeta(code: "E8118", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置值超出范围", fix: Some(FixSuggestion(description: "使用范围内值")))
-    m["E7419"] = ErrorMeta(code: "E7419", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8119"] = ErrorMeta(code: "E8119", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置枚举值非法", fix: Some(FixSuggestion(description: "使用合法枚举值")))
-    m["E7420"] = ErrorMeta(code: "E7420", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8120"] = ErrorMeta(code: "E8120", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置路径非法：{path}", fix: Some(FixSuggestion(description: "使用合法路径")))
-    m["E7421"] = ErrorMeta(code: "E7421", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8121"] = ErrorMeta(code: "E8121", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置 URL 非法", fix: Some(FixSuggestion(description: "使用合法 URL")))
-    m["E7422"] = ErrorMeta(code: "E7422", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8122"] = ErrorMeta(code: "E8122", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置超时值非法", fix: Some(FixSuggestion(description: "使用合法超时")))
-    m["E7423"] = ErrorMeta(code: "E7423", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8123"] = ErrorMeta(code: "E8123", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "特性配置冲突", fix: Some(FixSuggestion(description: "统一特性开关")))
-    m["E7424"] = ErrorMeta(code: "E7424", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8124"] = ErrorMeta(code: "E8124", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置与目标不匹配", fix: Some(FixSuggestion(description: "检查目标配置")))
-    m["E7425"] = ErrorMeta(code: "E7425", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8125"] = ErrorMeta(code: "E8125", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "运行期配置与启动期不一致", fix: Some(FixSuggestion(description: "统一配置来源")))
-    m["E7426"] = ErrorMeta(code: "E7426", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8126"] = ErrorMeta(code: "E8126", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置热加载失败", fix: Some(FixSuggestion(description: "检查配置变更")))
-    m["E7427"] = ErrorMeta(code: "E7427", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8127"] = ErrorMeta(code: "E8127", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置可能包含密钥明文", fix: Some(FixSuggestion(description: "改用密钥引用")))
-    m["E7428"] = ErrorMeta(code: "E7428", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8128"] = ErrorMeta(code: "E8128", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "未知配置格式", fix: Some(FixSuggestion(description: "使用受支持格式")))
-    m["E7429"] = ErrorMeta(code: "E7429", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8129"] = ErrorMeta(code: "E8129", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "多来源配置合并冲突", fix: Some(FixSuggestion(description: "明确合并优先级")))
-    m["E7430"] = ErrorMeta(code: "E7430", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8130"] = ErrorMeta(code: "E8130", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置版本不兼容", fix: Some(FixSuggestion(description: "迁移配置版本")))
-    m["E7431"] = ErrorMeta(code: "E7431", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8131"] = ErrorMeta(code: "E8131", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置含不安全值", fix: Some(FixSuggestion(description: "审查配置值")))
-    m["E7432"] = ErrorMeta(code: "E7432", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8132"] = ErrorMeta(code: "E8132", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置项冗余", fix: Some(FixSuggestion(description: "移除冗余项")))
-    m["E7433"] = ErrorMeta(code: "E7433", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8133"] = ErrorMeta(code: "E8133", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置项缺少说明", fix: Some(FixSuggestion(description: "补充配置文档")))
-    m["E7434"] = ErrorMeta(code: "E7434", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8134"] = ErrorMeta(code: "E8134", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "配置类型强制转换丢失精度", fix: Some(FixSuggestion(description: "使用精确类型")))
-    m["E7435"] = ErrorMeta(code: "E7435", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8135"] = ErrorMeta(code: "E8135", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置含未替换的占位符", fix: Some(FixSuggestion(description: "补全占位符")))
-    m["E7436"] = ErrorMeta(code: "E7436", category: ErrorCategory.Conf, severity: Severity.Warning,
+    m["E8136"] = ErrorMeta(code: "E8136", category: ErrorCategory.Conf, severity: Severity.Warning,
         template: "条件配置不满足分支", fix: Some(FixSuggestion(description: "检查条件")))
-    m["E7437"] = ErrorMeta(code: "E7437", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8137"] = ErrorMeta(code: "E8137", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置被锁定不可修改", fix: Some(FixSuggestion(description: "解除锁定或新开配置")))
-    m["E7438"] = ErrorMeta(code: "E7438", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8138"] = ErrorMeta(code: "E8138", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置依赖的环境变量缺失", fix: Some(FixSuggestion(description: "设置环境变量")))
-    m["E7439"] = ErrorMeta(code: "E7439", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8139"] = ErrorMeta(code: "E8139", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置布尔值非法", fix: Some(FixSuggestion(description: "使用 true/false")))
-    m["E7440"] = ErrorMeta(code: "E7440", category: ErrorCategory.Conf, severity: Severity.Error,
+    m["E8140"] = ErrorMeta(code: "E8140", category: ErrorCategory.Conf, severity: Severity.Error,
         template: "配置列表为空（需至少一项）", fix: Some(FixSuggestion(description: "补充列表项")))
-    m["E7501"] = ErrorMeta(code: "E7501", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8201"] = ErrorMeta(code: "E8201", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测被禁用", fix: Some(FixSuggestion(description: "启用遥测以采集")))
-    m["E7502"] = ErrorMeta(code: "E7502", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8202"] = ErrorMeta(code: "E8202", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测初始化失败", fix: Some(FixSuggestion(description: "检查遥测配置")))
-    m["E7503"] = ErrorMeta(code: "E7503", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8203"] = ErrorMeta(code: "E8203", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测导出失败", fix: Some(FixSuggestion(description: "检查导出端点")))
-    m["E7504"] = ErrorMeta(code: "E7504", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8204"] = ErrorMeta(code: "E8204", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测队列已满（丢弃数据）", fix: Some(FixSuggestion(description: "增大队列或降采样")))
-    m["E7505"] = ErrorMeta(code: "E7505", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8205"] = ErrorMeta(code: "E8205", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测上报超时", fix: Some(FixSuggestion(description: "增大超时或降频")))
-    m["E7506"] = ErrorMeta(code: "E7506", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8206"] = ErrorMeta(code: "E8206", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测端点鉴权失败", fix: Some(FixSuggestion(description: "检查凭证")))
-    m["E7507"] = ErrorMeta(code: "E7507", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8207"] = ErrorMeta(code: "E8207", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测端点不可达", fix: Some(FixSuggestion(description: "检查网络")))
-    m["E7508"] = ErrorMeta(code: "E7508", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8208"] = ErrorMeta(code: "E8208", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测数据 schema 非法", fix: Some(FixSuggestion(description: "修正数据格式")))
-    m["E7509"] = ErrorMeta(code: "E7509", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8209"] = ErrorMeta(code: "E8209", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "追踪（trace）跨度被丢弃", fix: Some(FixSuggestion(description: "调整采样率")))
-    m["E7510"] = ErrorMeta(code: "E7510", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8210"] = ErrorMeta(code: "E8210", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测缺少上下文（trace_id）", fix: Some(FixSuggestion(description: "注入上下文")))
-    m["E7511"] = ErrorMeta(code: "E7511", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8211"] = ErrorMeta(code: "E8211", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测标签基数过高", fix: Some(FixSuggestion(description: "降低标签维度")))
-    m["E7512"] = ErrorMeta(code: "E7512", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8212"] = ErrorMeta(code: "E8212", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测可能泄露个人数据", fix: Some(FixSuggestion(description: "脱敏遥测")))
-    m["E7513"] = ErrorMeta(code: "E7513", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8213"] = ErrorMeta(code: "E8213", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "重复上报遥测", fix: Some(FixSuggestion(description: "去重上报")))
-    m["E7514"] = ErrorMeta(code: "E7514", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8214"] = ErrorMeta(code: "E8214", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测时钟偏差", fix: Some(FixSuggestion(description: "同步时钟")))
-    m["E7515"] = ErrorMeta(code: "E7515", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8215"] = ErrorMeta(code: "E8215", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测缓冲刷新失败", fix: Some(FixSuggestion(description: "检查存储")))
-    m["E7516"] = ErrorMeta(code: "E7516", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8216"] = ErrorMeta(code: "E8216", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测占用内存过高", fix: Some(FixSuggestion(description: "限制遥测内存")))
-    m["E7517"] = ErrorMeta(code: "E7517", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8217"] = ErrorMeta(code: "E8217", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测配置不完整", fix: Some(FixSuggestion(description: "补全遥测配置")))
-    m["E7518"] = ErrorMeta(code: "E7518", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8218"] = ErrorMeta(code: "E8218", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测协议版本不匹配", fix: Some(FixSuggestion(description: "对齐协议版本")))
-    m["E7519"] = ErrorMeta(code: "E7519", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8219"] = ErrorMeta(code: "E8219", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "采样器配置非法", fix: Some(FixSuggestion(description: "使用合法采样率")))
-    m["E7520"] = ErrorMeta(code: "E7520", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8220"] = ErrorMeta(code: "E8220", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测属性值过长", fix: Some(FixSuggestion(description: "截断属性")))
-    m["E7521"] = ErrorMeta(code: "E7521", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8221"] = ErrorMeta(code: "E8221", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测指标名非法", fix: Some(FixSuggestion(description: "使用合法命名")))
-    m["E7522"] = ErrorMeta(code: "E7522", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8222"] = ErrorMeta(code: "E8222", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "指标被丢弃", fix: Some(FixSuggestion(description: "检查导出管道")))
-    m["E7523"] = ErrorMeta(code: "E7523", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8223"] = ErrorMeta(code: "E8223", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "结构化日志导出失败", fix: Some(FixSuggestion(description: "检查日志端点")))
-    m["E7524"] = ErrorMeta(code: "E7524", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8224"] = ErrorMeta(code: "E8224", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "崩溃未生成遥测报告", fix: Some(FixSuggestion(description: "启用崩溃上报")))
-    m["E7525"] = ErrorMeta(code: "E7525", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8225"] = ErrorMeta(code: "E8225", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测被限流", fix: Some(FixSuggestion(description: "降低上报频率")))
-    m["E7526"] = ErrorMeta(code: "E7526", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8226"] = ErrorMeta(code: "E8226", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测属性含密钥", fix: Some(FixSuggestion(description: "移除敏感属性")))
-    m["E7527"] = ErrorMeta(code: "E7527", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8227"] = ErrorMeta(code: "E8227", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测导出被网络策略拦截", fix: Some(FixSuggestion(description: "配置网络策略")))
-    m["E7528"] = ErrorMeta(code: "E7528", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8228"] = ErrorMeta(code: "E8228", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测产生背压（backpressure）", fix: Some(FixSuggestion(description: "降采样")))
-    m["E7529"] = ErrorMeta(code: "E7529", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8229"] = ErrorMeta(code: "E8229", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "追踪跨度无父节点", fix: Some(FixSuggestion(description: "建立跨度关系")))
-    m["E7530"] = ErrorMeta(code: "E7530", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8230"] = ErrorMeta(code: "E8230", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测迟到被丢弃", fix: Some(FixSuggestion(description: "增大等待窗口")))
-    m["E7531"] = ErrorMeta(code: "E7531", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8231"] = ErrorMeta(code: "E8231", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测存储已满", fix: Some(FixSuggestion(description: "清理或扩容")))
-    m["E7532"] = ErrorMeta(code: "E7532", category: ErrorCategory.Telem, severity: Severity.Error,
+    m["E8232"] = ErrorMeta(code: "E8232", category: ErrorCategory.Telem, severity: Severity.Error,
         template: "遥测序列化失败", fix: Some(FixSuggestion(description: "检查数据格式")))
-    m["E7533"] = ErrorMeta(code: "E7533", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8233"] = ErrorMeta(code: "E8233", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测批量发送失败", fix: Some(FixSuggestion(description: "重试发送")))
-    m["E7534"] = ErrorMeta(code: "E7534", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8234"] = ErrorMeta(code: "E8234", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "未配置遥测收集器", fix: Some(FixSuggestion(description: "配置 collector")))
-    m["E7535"] = ErrorMeta(code: "E7535", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8235"] = ErrorMeta(code: "E8235", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测前后不一致", fix: Some(FixSuggestion(description: "统一采集逻辑")))
-    m["E7536"] = ErrorMeta(code: "E7536", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8236"] = ErrorMeta(code: "E8236", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测所需特性未开启", fix: Some(FixSuggestion(description: "开启特性")))
-    m["E7537"] = ErrorMeta(code: "E7537", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8237"] = ErrorMeta(code: "E8237", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测违反隐私策略", fix: Some(FixSuggestion(description: "调整采集范围")))
-    m["E7538"] = ErrorMeta(code: "E7538", category: ErrorCategory.Telem, severity: Severity.Warning,
+    m["E8238"] = ErrorMeta(code: "E8238", category: ErrorCategory.Telem, severity: Severity.Warning,
         template: "遥测属性数量超限", fix: Some(FixSuggestion(description: "减少属性")))
     m["E7601"] = ErrorMeta(code: "E7601", category: ErrorCategory.Xcompile, severity: Severity.Error,
         template: "交叉编译工具链缺失：{target}", fix: Some(FixSuggestion(description: "安装目标工具链")))
@@ -3493,16 +3554,16 @@ func buildMetaPart8(m: HashMap<String, ErrorMeta>) {
 /// 命名规范：首字母 E + 类别号（1 位）+ 子类号（1 位）+ 序号（2 位）。
 public enum ErrorCode <: Equatable<ErrorCode> {
     // ===== Lexer 词法分析（E00xx） =====
-    | LexerUnterminatedString
-    | LexerUnterminatedBlockComment
-    | LexerInvalidEscapeSequence
-    | LexerInvalidNumberLiteral
-    | LexerUnexpectedCharacter
-    | LexerInvalidIdentifier
-    | LexerNumericOverflow
-    | LexerUnterminatedCharLiteral
-    | LexerEmptyCharLiteral
-    | LexerInvalidUtf8Sequence
+    | InvalidCharacter
+    | InvalidUnicodeScalar
+    | UnterminatedString
+    | UnterminatedBlockComment
+    | InvalidNumberLiteral
+    | InvalidEscapeSequence
+    | InvalidCharLiteral
+    | EncodingError
+    | InvalidRawStringDelimiter
+    | TokenOverflow
     | LexerInvalidNumericSuffix
     | LexerNewlineInStringLiteral
     | LexerInvalidIdentifierStart
@@ -3522,8 +3583,8 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | LexerRadixLiteralFormat
     | LexerLiteralTooLong
     | LexerTruncatedMultibyte
-    | ParserMissingOperand
-    | ParserInvalidModifierOrder
+    | InvalidVisibility
+    | TrailingComma
     | ParserDuplicateImport
     | ParserUnexpectedExpressionStatement
     | ParserIllegalTopLevelStatement
@@ -3533,16 +3594,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | ParserDuplicateParameterName
     | ParserMisplacedAnnotation
     // ===== Parser 语法分析（E01xx） =====
-    | ParserUnterminatedString
-    | ParserUnexpectedToken
-    | ParserMissingSemicolon
-    | ParserMismatchedBracket
-    | ParserInvalidExpression
-    | ParserMissingColon
-    | ParserDuplicateModifier
-    | ParserInvalidDeclaration
-    | ParserTrailingComma
-    | ParserUnexpectedEOF
+    | ExpectedToken
+    | UnexpectedToken
+    | ExpectedExpression
+    | ExpectedIdentifier
+    | ExpectedType
+    | MissingSemicolonOrNewline
+    | InvalidAttribute
+    | InvalidPattern
+    | UnclosedDelimiter
+    | DuplicateModifier
     | ParserInvalidGenericConstraint
     | ParserMissingReturnType
     | ParserDanglingDocComment
@@ -3554,11 +3615,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | ParserInvalidStringInterpolation
     | ParserMissingElseBranch
     | ParserOperatorPrecedenceAmbiguous
-    | SemaUninitializedConstant
-    | SemaDuplicateImportItem
-    | SemaIllegalRecursion
-    | SemaNonExhaustiveMatch
-    | SemaUnreachableMatchArm
+    | InvalidSelfUse
+    | AbstractInstantiation
+    | OverrideMismatch
+    | AccessViolation
+    | ConstEvalError
     | SemaTypeInferenceFailed
     | SemaMutableOpOnImmutable
     | SemaOperatorOverloadMismatch
@@ -3577,19 +3638,19 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | SemaInvalidAsyncContext
     | SemaCyclicInitialization
     // ===== Sema 语义分析（E10xx） =====
-    | SemaUndefinedSymbol
-    | SemaRedeclaration
-    | SemaInvalidArgumentCount
-    | SemaImmutableAssignment
-    | SemaUseBeforeDeclaration
-    | SemaInvalidBreakContinue
-    | SemaMissingReturn
-    | SemaUnreachableCode
-    | SemaShadowedVariable
-    | SemaDeprecatedUsage
-    | TypeInvalidVariancePosition
-    | TypeWhereClauseViolation
-    | TypeClosureTypeMismatch
+    | UndefinedSymbol
+    | Redeclaration
+    | ImmutableAssignment
+    | MovedValueUsed
+    | BorrowConflict
+    | LifetimeError
+    | UninitializedUse
+    | UnreachableCode
+    | UnusedVariable
+    | MissingReturn
+    | NilSafetyViolation
+    | InvalidTypeAlias
+    | TraitObjectError
     | TypeBorrowConflict
     | TypeCyclicInference
     | TypeCovariantReturnInvalid
@@ -3611,16 +3672,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     // ===== Type 类型系统（E20xx） =====
     | TypeMismatch
     | TypeInferenceFailed
-    | TypeInvalidCast
-    | TypeAmbiguousOverload
-    | TypeMissingGenericArgument
-    | TypeConstraintViolation
-    | TypeRecursiveAlias
-    | TypeUnsizedInStack
-    | TypeImplicitConversionLossy
-    | TypeIncompatibleVariance
-    | ResolutionMacroExpansionFailed
-    | ResolutionCyclicTypeAlias
+    | UnsatisfiedConstraint
+    | AmbiguousType
+    | InvalidCast
+    | MissingTypeParam
+    | ExtraTypeParam
+    | RecursiveType
+    | IncompatibleVariance
+    | AssociatedTypeConflict
+    | ReexportConflict
+    | VersionConflict
     | ResolutionMissingExport
     | ResolutionTransitiveVisibility
     | ResolutionUncoveredCfgBranch
@@ -3640,16 +3701,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | ResolutionTraitMethodConflict
     | ResolutionCfgExpressionError
     // ===== Resolution 名称解析（E30xx） =====
-    | ResolutionModuleNotFound
-    | ResolutionImportNotFound
-    | ResolutionAmbiguousImport
-    | ResolutionPrivateAccess
-    | ResolutionUnresolvedPath
-    | ResolutionCircularImport
-    | ResolutionTraitNotImplemented
-    | ResolutionInvalidSuperCall
-    | ResolutionNameClash
-    | ResolutionVersionMismatch
+    | UnresolvedImport
+    | AmbiguousImport
+    | PrivateImport
+    | OverloadAmbiguity
+    | NoMatchingOverload
+    | CircularImport
+    | PackageNotFound
+    | PackageNameMismatch
+    | NameShadowing
+    | QualifiedPathError
     | CodegenRegisterAllocationFailed
     | CodegenUnsupportedTailCall
     | CodegenInlineFailed
@@ -3674,21 +3735,21 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | CodegenInvalidTargetTriple
     | CodegenDebugFormatError
     // ===== Codegen 代码生成（E40xx） =====
-    | CodegenUnsupportedConstruct
-    | CodegenStackOverflowRisk
-    | CodegenInvalidIntrinsic
-    | CodegenLinkageError
-    | CodegenABIIncompatible
-    | CodegenOptimizationFailed
-    | CodegenUninitializedUse
-    | CodegenLargeConstant
-    | CodegenTargetNotSupported
-    | CodegenEmissionInterrupted
-    | RuntimeUseAfterMove
-    | RuntimeDataRace
-    | RuntimeBufferOverflow
-    | RuntimeInfiniteRecursion
-    | RuntimeFFICallFailed
+    | InternalCompilerError
+    | UnsupportedFeature
+    | InvalidIR
+    | ABIIncompatible
+    | StackFrameOverflow
+    | TargetUnsupported
+    | DebugInfoGenFailed
+    | EHFrameError
+    | VTableError
+    | ClosureCaptureError
+    | ConcurrentModification
+    | DeadlockDetected
+    | GoroutineLeak
+    | FinalizerError
+    | GCError
     | RuntimeDestructorThrow
     | RuntimeDanglingWeakRef
     | RuntimeNegativeIndex
@@ -3706,18 +3767,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | RuntimeThreadLimitExceeded
     | RuntimeMemoryMapFailed
     // ===== Runtime 运行时（E50xx） =====
-    | RuntimeNullDereference
-    | RuntimeIndexOutOfBounds
-    | RuntimeDivisionByZero
-    | RuntimeStackOverflow
-    | RuntimeIntegerOverflow
-    | RuntimeInvalidCast
-    | RuntimeResourceExhausted
-    | RuntimeDeadlockDetected
-    | RuntimeAssertionFailed
-    | RuntimeUnwindAborted
-    | SystemConcurrencyLimit
-    | SystemDiagnosticSerializeFailed
+    | NullPointerDereference
+    | ArrayIndexOutOfBounds
+    | DivisionByZero
+    | IntegerOverflow
+    | UnwrapNone
+    | Unreachable
+    | StackOverflow
+    | OutOfMemory
+    | UncaughtException
+    | InvalidCastRuntime
+    | InvalidPath
+    | SymlinkError
     | SystemIncompatibleCompilerVersion
     | SystemMissingEnvVar
     | SystemInternalAssertion
@@ -3727,16 +3788,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | SystemInterrupted
     | SystemUnknownInternal
     // ===== System 系统/内部（E90xx） =====
-    | SystemInternalError
-    | SystemIOError
-    | SystemOutOfMemory
-    | SystemTimeout
-    | SystemInvalidConfig
-    | SystemPluginLoadFailed
-    | SystemCacheCorrupted
-    | SystemNetworkError
-    | SystemPermissionDenied
-    | SystemUnknown
+    | FileNotFound
+    | PermissionDenied
+    | FileAlreadyExists
+    | IOError
+    | EnvironmentError
+    | ProcessSpawnFailed
+    | SignalError
+    | TimeError
+    | NetworkInitError
+    | ResourceLimitExceeded
     | SystemResourceLimit
     | SystemFeatureUnsupported
     | SystemFatalSignal
@@ -3745,16 +3806,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | SystemIncrementalCacheInvalidated
     | SystemRemoteBuildFailed
     | SystemSandboxLimitExceeded
-    | MacroUndefinedIdentifier
-    | MacroArityMismatch
-    | MacroRecursiveExpansion
+    | MacroNotFound
+    | MacroExpansionFailed
+    | MacroRecursionLimit
+    | InvalidMacroArgument
+    | ProcMacroPanic
+    | ProcMacroCompileError
+    | CustomDiagError
+    | CustomDiagWarning
     | MacroHygieneViolation
-    | MacroInvalidTokenTree
-    | MacroMissingMacroDef
-    | MacroDuplicateMacroDef
-    | MacroWrongFragmentKind
-    | MacroMetavarReuse
-    | MacroNoMatchingRule
+    | CompileTimeEvalError
     | MacroReservedName
     | MacroContextualKeyword
     | MacroExpansionDepthLimit
@@ -4026,14 +4087,14 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | BackendComdatFailed
     | BackendAliasEmitFailed
     | BackendWeakSymbolConflict
-    | OptPassFailed
-    | OptPassCrashed
-    | OptInvalidation
-    | OptLoopUnrollFailed
-    | OptVectorizationFailed
-    | OptInliningFailed
-    | OptInliningTooDeep
-    | OptDeadCodeNotRemoved
+    | OptimizationPassFailed
+    | OptimizationTimeout
+    | InvalidOptimizationLevel
+    | LTOError
+    | PGOProfileError
+    | InlineFailed
+    | DCEInvalidState
+    | VectorizationFailed
     | OptConstPropOverflow
     | OptGvnConflict
     | OptSccpFailed
@@ -4067,16 +4128,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | OptDivRemOpt
     | OptOptShiftBase
     | OptOptFloatReassoc
-    | LinkerLinkerNotFound
-    | LinkerLinkerInvocation
     | LinkerUndefinedSymbol
-    | LinkerDuplicateSymbol
-    | LinkerLibraryNotFound
-    | LinkerLibraryVersion
-    | LinkerMissingEntryPoint
-    | LinkerRelocOverflow
-    | LinkerArchMismatch
-    | LinkerAbiMismatch
+    | MultipleDefinition
+    | LibraryNotFound
+    | CrtFileMissing
+    | LinkerScriptError
+    | SectionOverflow
+    | IncompatibleObject
+    | RelocationError
+    | LinkerNotFound
+    | WeakSymbolConflict
     | LinkerLinkScriptError
     | LinkerStaticDynamicConflict
     | LinkerStdLibLinkFailed
@@ -4270,18 +4331,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | OsProcessAlreadyExited
     | OsUserNamespaceFailed
     | OsFileSystemType
-    | LspInvalidRequest
-    | LspDocumentNotFound
-    | LspPositionOutOfRange
-    | LspUnsupportedCapability
-    | LspDiagnosticsStale
-    | LspSemanticTokensFailed
-    | LspCompletionFailed
-    | LspHoverFailed
-    | LspDefinitionNotFound
-    | LspReferenceSearchFailed
-    | LspRenameFailed
-    | LspFormatFailed
+    | ServerInitFailed
+    | DocumentSyncError
+    | CompletionError
+    | HoverError
+    | GotoDefinitionFailed
+    | FindReferencesFailed
+    | RenameError
+    | HighlightError
+    | CodeActionError
+    | InlayHintError
+    | SemanticTokensError
+    | FormattingError
     | LspCodeActionFailed
     | LspInlayHintFailed
     | LspFoldingFailed
@@ -4391,21 +4452,21 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | PkgResolveTimeout
     | PkgDuplicatePackage
     | PkgTargetSpecificManifest
-    | BuildBuildScriptPanic
-    | BuildBuildTargetMissing
-    | BuildBuildProfileUnknown
-    | BuildArtifactNotFound
-    | BuildCompileStepFailed
-    | BuildLinkStepFailed
-    | BuildCustomTargetFailed
-    | BuildBuildCacheInvalid
-    | BuildParallelBuildDeadlock
-    | BuildJobServerUnavailable
-    | BuildOutputDirLocked
-    | BuildPermissionDenied
-    | BuildDiskFull
-    | BuildBuildTimeout
-    | BuildIncrementalDisabled
+    | ManifestNotFound
+    | ManifestParseError
+    | DependencyNotFound
+    | DependencyConflict
+    | BuildFailed
+    | CompilerNotFound
+    | InvalidPackageName
+    | BuildPackageNameMismatch
+    | SourceScanFailed
+    | ArtifactOutputError
+    | CacheCorrupted
+    | NetworkError
+    | ChecksumMismatch
+    | UnsupportedPlatform
+    | BuildScriptError
     | BuildFeatureGateBuild
     | BuildCrossCompileToolchain
     | BuildSysrootMissing
@@ -4666,16 +4727,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | EmbedEmbedCriticalSection
     | EmbedEmbedNoFpu
     | EmbedCgoCallbackLifetime
-    | TestTestCompileFailed
-    | TestTestBinaryMissing
-    | TestTestTimeout
-    | TestTestPanic
-    | TestTestAssertFailed
-    | TestTestFixtureFailed
-    | TestTestTeardownFailed
-    | TestTestFilterNoMatch
-    | TestTestDuplicateName
-    | TestTestDependencyOrder
+    | AssertionFailed
+    | TestPanic
+    | TestTimeout
+    | NoTestsFound
+    | CoverageError
+    | BenchmarkError
+    | TestFilterError
+    | SetupTeardownError
+    | ParallelTestConflict
+    | ExpectedPanicNoPanic
     | TestTestResourceLeak
     | TestTestIgnored
     | TestTestShouldPanic
@@ -4707,13 +4768,13 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | TestTestDoubleRun
     | TestTestSummaryLost
     | TestTestHang
-    | DocDocBrokenLink
-    | DocDocMissingItem
-    | DocDocCodeBlockFailed
-    | DocDocTestFailed
-    | DocDocExamplePanic
-    | DocDocCompileFailed
-    | DocDocMalformedAttr
+    | DocParseError
+    | BrokenDocLink
+    | MissingDocComment
+    | DocCodeExampleFailed
+    | DocOutputError
+    | InvalidDocAttribute
+    | CrossRefError
     | DocDocCyclicModule
     | DocDocPrivateLeak
     | DocDocHtmlEscape
@@ -5019,18 +5080,42 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     | GpuGpuFatbinMissing
     | GpuGpuArchMismatch
     | GpuGpuResourceLeak
+    | InvalidInstruction
+    | InvalidRegister
+    | ObjectFormatError
+    | ImmediateOverflow
+    | AssemblerNotFound
+    | DirectiveError
+    | FormatCheckFailed
+    | FormatConfigError
+    | SyntaxErrorPreventFormat
+    | UnsupportedSyntax
+    | LineTooLong
+    | DebugInfoMissing
+    | BreakpointError
+    | DebugProtocolError
+    | VariableResolveFailed
+    | SteppingError
+    | ExpressionEvalError
+    | DebuggerAttachFailed
+    | ProfileInitFailed
+    | SamplingError
+    | ProfileDataError
+    | PGOInstrumentError
+    | PGOProfileMergeError
+    | UnsupportedArch
     public static func all(): ArrayList<ErrorCode> {
         let list = ArrayList<ErrorCode>()
-        list.add(ErrorCode.LexerUnterminatedString)
-        list.add(ErrorCode.LexerUnterminatedBlockComment)
-        list.add(ErrorCode.LexerInvalidEscapeSequence)
-        list.add(ErrorCode.LexerInvalidNumberLiteral)
-        list.add(ErrorCode.LexerUnexpectedCharacter)
-        list.add(ErrorCode.LexerInvalidIdentifier)
-        list.add(ErrorCode.LexerNumericOverflow)
-        list.add(ErrorCode.LexerUnterminatedCharLiteral)
-        list.add(ErrorCode.LexerEmptyCharLiteral)
-        list.add(ErrorCode.LexerInvalidUtf8Sequence)
+        list.add(ErrorCode.InvalidCharacter)
+        list.add(ErrorCode.InvalidUnicodeScalar)
+        list.add(ErrorCode.UnterminatedString)
+        list.add(ErrorCode.UnterminatedBlockComment)
+        list.add(ErrorCode.InvalidNumberLiteral)
+        list.add(ErrorCode.InvalidEscapeSequence)
+        list.add(ErrorCode.InvalidCharLiteral)
+        list.add(ErrorCode.EncodingError)
+        list.add(ErrorCode.InvalidRawStringDelimiter)
+        list.add(ErrorCode.TokenOverflow)
         list.add(ErrorCode.LexerInvalidNumericSuffix)
         list.add(ErrorCode.LexerNewlineInStringLiteral)
         list.add(ErrorCode.LexerInvalidIdentifierStart)
@@ -5050,8 +5135,8 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.LexerRadixLiteralFormat)
         list.add(ErrorCode.LexerLiteralTooLong)
         list.add(ErrorCode.LexerTruncatedMultibyte)
-        list.add(ErrorCode.ParserMissingOperand)
-        list.add(ErrorCode.ParserInvalidModifierOrder)
+        list.add(ErrorCode.InvalidVisibility)
+        list.add(ErrorCode.TrailingComma)
         list.add(ErrorCode.ParserDuplicateImport)
         list.add(ErrorCode.ParserUnexpectedExpressionStatement)
         list.add(ErrorCode.ParserIllegalTopLevelStatement)
@@ -5060,16 +5145,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.ParserUnclosedTypeParams)
         list.add(ErrorCode.ParserDuplicateParameterName)
         list.add(ErrorCode.ParserMisplacedAnnotation)
-        list.add(ErrorCode.ParserUnterminatedString)
-        list.add(ErrorCode.ParserUnexpectedToken)
-        list.add(ErrorCode.ParserMissingSemicolon)
-        list.add(ErrorCode.ParserMismatchedBracket)
-        list.add(ErrorCode.ParserInvalidExpression)
-        list.add(ErrorCode.ParserMissingColon)
-        list.add(ErrorCode.ParserDuplicateModifier)
-        list.add(ErrorCode.ParserInvalidDeclaration)
-        list.add(ErrorCode.ParserTrailingComma)
-        list.add(ErrorCode.ParserUnexpectedEOF)
+        list.add(ErrorCode.ExpectedToken)
+        list.add(ErrorCode.UnexpectedToken)
+        list.add(ErrorCode.ExpectedExpression)
+        list.add(ErrorCode.ExpectedIdentifier)
+        list.add(ErrorCode.ExpectedType)
+        list.add(ErrorCode.MissingSemicolonOrNewline)
+        list.add(ErrorCode.InvalidAttribute)
+        list.add(ErrorCode.InvalidPattern)
+        list.add(ErrorCode.UnclosedDelimiter)
+        list.add(ErrorCode.DuplicateModifier)
         list.add(ErrorCode.ParserInvalidGenericConstraint)
         list.add(ErrorCode.ParserMissingReturnType)
         list.add(ErrorCode.ParserDanglingDocComment)
@@ -5081,11 +5166,11 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.ParserInvalidStringInterpolation)
         list.add(ErrorCode.ParserMissingElseBranch)
         list.add(ErrorCode.ParserOperatorPrecedenceAmbiguous)
-        list.add(ErrorCode.SemaUninitializedConstant)
-        list.add(ErrorCode.SemaDuplicateImportItem)
-        list.add(ErrorCode.SemaIllegalRecursion)
-        list.add(ErrorCode.SemaNonExhaustiveMatch)
-        list.add(ErrorCode.SemaUnreachableMatchArm)
+        list.add(ErrorCode.InvalidSelfUse)
+        list.add(ErrorCode.AbstractInstantiation)
+        list.add(ErrorCode.OverrideMismatch)
+        list.add(ErrorCode.AccessViolation)
+        list.add(ErrorCode.ConstEvalError)
         list.add(ErrorCode.SemaTypeInferenceFailed)
         list.add(ErrorCode.SemaMutableOpOnImmutable)
         list.add(ErrorCode.SemaOperatorOverloadMismatch)
@@ -5103,19 +5188,19 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.SemaMutabilityPropagation)
         list.add(ErrorCode.SemaInvalidAsyncContext)
         list.add(ErrorCode.SemaCyclicInitialization)
-        list.add(ErrorCode.SemaUndefinedSymbol)
-        list.add(ErrorCode.SemaRedeclaration)
-        list.add(ErrorCode.SemaInvalidArgumentCount)
-        list.add(ErrorCode.SemaImmutableAssignment)
-        list.add(ErrorCode.SemaUseBeforeDeclaration)
-        list.add(ErrorCode.SemaInvalidBreakContinue)
-        list.add(ErrorCode.SemaMissingReturn)
-        list.add(ErrorCode.SemaUnreachableCode)
-        list.add(ErrorCode.SemaShadowedVariable)
-        list.add(ErrorCode.SemaDeprecatedUsage)
-        list.add(ErrorCode.TypeInvalidVariancePosition)
-        list.add(ErrorCode.TypeWhereClauseViolation)
-        list.add(ErrorCode.TypeClosureTypeMismatch)
+        list.add(ErrorCode.UndefinedSymbol)
+        list.add(ErrorCode.Redeclaration)
+        list.add(ErrorCode.ImmutableAssignment)
+        list.add(ErrorCode.MovedValueUsed)
+        list.add(ErrorCode.BorrowConflict)
+        list.add(ErrorCode.LifetimeError)
+        list.add(ErrorCode.UninitializedUse)
+        list.add(ErrorCode.UnreachableCode)
+        list.add(ErrorCode.UnusedVariable)
+        list.add(ErrorCode.MissingReturn)
+        list.add(ErrorCode.NilSafetyViolation)
+        list.add(ErrorCode.InvalidTypeAlias)
+        list.add(ErrorCode.TraitObjectError)
         list.add(ErrorCode.TypeBorrowConflict)
         list.add(ErrorCode.TypeCyclicInference)
         list.add(ErrorCode.TypeCovariantReturnInvalid)
@@ -5136,16 +5221,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.TypeLiteralAmbiguity)
         list.add(ErrorCode.TypeMismatch)
         list.add(ErrorCode.TypeInferenceFailed)
-        list.add(ErrorCode.TypeInvalidCast)
-        list.add(ErrorCode.TypeAmbiguousOverload)
-        list.add(ErrorCode.TypeMissingGenericArgument)
-        list.add(ErrorCode.TypeConstraintViolation)
-        list.add(ErrorCode.TypeRecursiveAlias)
-        list.add(ErrorCode.TypeUnsizedInStack)
-        list.add(ErrorCode.TypeImplicitConversionLossy)
-        list.add(ErrorCode.TypeIncompatibleVariance)
-        list.add(ErrorCode.ResolutionMacroExpansionFailed)
-        list.add(ErrorCode.ResolutionCyclicTypeAlias)
+        list.add(ErrorCode.UnsatisfiedConstraint)
+        list.add(ErrorCode.AmbiguousType)
+        list.add(ErrorCode.InvalidCast)
+        list.add(ErrorCode.MissingTypeParam)
+        list.add(ErrorCode.ExtraTypeParam)
+        list.add(ErrorCode.RecursiveType)
+        list.add(ErrorCode.IncompatibleVariance)
+        list.add(ErrorCode.AssociatedTypeConflict)
+        list.add(ErrorCode.ReexportConflict)
+        list.add(ErrorCode.VersionConflict)
         list.add(ErrorCode.ResolutionMissingExport)
         list.add(ErrorCode.ResolutionTransitiveVisibility)
         list.add(ErrorCode.ResolutionUncoveredCfgBranch)
@@ -5164,16 +5249,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.ResolutionVisibilityTierViolation)
         list.add(ErrorCode.ResolutionTraitMethodConflict)
         list.add(ErrorCode.ResolutionCfgExpressionError)
-        list.add(ErrorCode.ResolutionModuleNotFound)
-        list.add(ErrorCode.ResolutionImportNotFound)
-        list.add(ErrorCode.ResolutionAmbiguousImport)
-        list.add(ErrorCode.ResolutionPrivateAccess)
-        list.add(ErrorCode.ResolutionUnresolvedPath)
-        list.add(ErrorCode.ResolutionCircularImport)
-        list.add(ErrorCode.ResolutionTraitNotImplemented)
-        list.add(ErrorCode.ResolutionInvalidSuperCall)
-        list.add(ErrorCode.ResolutionNameClash)
-        list.add(ErrorCode.ResolutionVersionMismatch)
+        list.add(ErrorCode.UnresolvedImport)
+        list.add(ErrorCode.AmbiguousImport)
+        list.add(ErrorCode.PrivateImport)
+        list.add(ErrorCode.OverloadAmbiguity)
+        list.add(ErrorCode.NoMatchingOverload)
+        list.add(ErrorCode.CircularImport)
+        list.add(ErrorCode.PackageNotFound)
+        list.add(ErrorCode.PackageNameMismatch)
+        list.add(ErrorCode.NameShadowing)
+        list.add(ErrorCode.QualifiedPathError)
         list.add(ErrorCode.CodegenRegisterAllocationFailed)
         list.add(ErrorCode.CodegenUnsupportedTailCall)
         list.add(ErrorCode.CodegenInlineFailed)
@@ -5197,21 +5282,21 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.CodegenFfiAbiMismatch)
         list.add(ErrorCode.CodegenInvalidTargetTriple)
         list.add(ErrorCode.CodegenDebugFormatError)
-        list.add(ErrorCode.CodegenUnsupportedConstruct)
-        list.add(ErrorCode.CodegenStackOverflowRisk)
-        list.add(ErrorCode.CodegenInvalidIntrinsic)
-        list.add(ErrorCode.CodegenLinkageError)
-        list.add(ErrorCode.CodegenABIIncompatible)
-        list.add(ErrorCode.CodegenOptimizationFailed)
-        list.add(ErrorCode.CodegenUninitializedUse)
-        list.add(ErrorCode.CodegenLargeConstant)
-        list.add(ErrorCode.CodegenTargetNotSupported)
-        list.add(ErrorCode.CodegenEmissionInterrupted)
-        list.add(ErrorCode.RuntimeUseAfterMove)
-        list.add(ErrorCode.RuntimeDataRace)
-        list.add(ErrorCode.RuntimeBufferOverflow)
-        list.add(ErrorCode.RuntimeInfiniteRecursion)
-        list.add(ErrorCode.RuntimeFFICallFailed)
+        list.add(ErrorCode.InternalCompilerError)
+        list.add(ErrorCode.UnsupportedFeature)
+        list.add(ErrorCode.InvalidIR)
+        list.add(ErrorCode.ABIIncompatible)
+        list.add(ErrorCode.StackFrameOverflow)
+        list.add(ErrorCode.TargetUnsupported)
+        list.add(ErrorCode.DebugInfoGenFailed)
+        list.add(ErrorCode.EHFrameError)
+        list.add(ErrorCode.VTableError)
+        list.add(ErrorCode.ClosureCaptureError)
+        list.add(ErrorCode.ConcurrentModification)
+        list.add(ErrorCode.DeadlockDetected)
+        list.add(ErrorCode.GoroutineLeak)
+        list.add(ErrorCode.FinalizerError)
+        list.add(ErrorCode.GCError)
         list.add(ErrorCode.RuntimeDestructorThrow)
         list.add(ErrorCode.RuntimeDanglingWeakRef)
         list.add(ErrorCode.RuntimeNegativeIndex)
@@ -5228,18 +5313,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.RuntimeAtomicMisuse)
         list.add(ErrorCode.RuntimeThreadLimitExceeded)
         list.add(ErrorCode.RuntimeMemoryMapFailed)
-        list.add(ErrorCode.RuntimeNullDereference)
-        list.add(ErrorCode.RuntimeIndexOutOfBounds)
-        list.add(ErrorCode.RuntimeDivisionByZero)
-        list.add(ErrorCode.RuntimeStackOverflow)
-        list.add(ErrorCode.RuntimeIntegerOverflow)
-        list.add(ErrorCode.RuntimeInvalidCast)
-        list.add(ErrorCode.RuntimeResourceExhausted)
-        list.add(ErrorCode.RuntimeDeadlockDetected)
-        list.add(ErrorCode.RuntimeAssertionFailed)
-        list.add(ErrorCode.RuntimeUnwindAborted)
-        list.add(ErrorCode.SystemConcurrencyLimit)
-        list.add(ErrorCode.SystemDiagnosticSerializeFailed)
+        list.add(ErrorCode.NullPointerDereference)
+        list.add(ErrorCode.ArrayIndexOutOfBounds)
+        list.add(ErrorCode.DivisionByZero)
+        list.add(ErrorCode.IntegerOverflow)
+        list.add(ErrorCode.UnwrapNone)
+        list.add(ErrorCode.Unreachable)
+        list.add(ErrorCode.StackOverflow)
+        list.add(ErrorCode.OutOfMemory)
+        list.add(ErrorCode.UncaughtException)
+        list.add(ErrorCode.InvalidCastRuntime)
+        list.add(ErrorCode.InvalidPath)
+        list.add(ErrorCode.SymlinkError)
         list.add(ErrorCode.SystemIncompatibleCompilerVersion)
         list.add(ErrorCode.SystemMissingEnvVar)
         list.add(ErrorCode.SystemInternalAssertion)
@@ -5248,16 +5333,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.SystemPluginVersionMismatch)
         list.add(ErrorCode.SystemInterrupted)
         list.add(ErrorCode.SystemUnknownInternal)
-        list.add(ErrorCode.SystemInternalError)
-        list.add(ErrorCode.SystemIOError)
-        list.add(ErrorCode.SystemOutOfMemory)
-        list.add(ErrorCode.SystemTimeout)
-        list.add(ErrorCode.SystemInvalidConfig)
-        list.add(ErrorCode.SystemPluginLoadFailed)
-        list.add(ErrorCode.SystemCacheCorrupted)
-        list.add(ErrorCode.SystemNetworkError)
-        list.add(ErrorCode.SystemPermissionDenied)
-        list.add(ErrorCode.SystemUnknown)
+        list.add(ErrorCode.FileNotFound)
+        list.add(ErrorCode.PermissionDenied)
+        list.add(ErrorCode.FileAlreadyExists)
+        list.add(ErrorCode.IOError)
+        list.add(ErrorCode.EnvironmentError)
+        list.add(ErrorCode.ProcessSpawnFailed)
+        list.add(ErrorCode.SignalError)
+        list.add(ErrorCode.TimeError)
+        list.add(ErrorCode.NetworkInitError)
+        list.add(ErrorCode.ResourceLimitExceeded)
         list.add(ErrorCode.SystemResourceLimit)
         list.add(ErrorCode.SystemFeatureUnsupported)
         list.add(ErrorCode.SystemFatalSignal)
@@ -5266,16 +5351,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.SystemIncrementalCacheInvalidated)
         list.add(ErrorCode.SystemRemoteBuildFailed)
         list.add(ErrorCode.SystemSandboxLimitExceeded)
-        list.add(ErrorCode.MacroUndefinedIdentifier)
-        list.add(ErrorCode.MacroArityMismatch)
-        list.add(ErrorCode.MacroRecursiveExpansion)
+        list.add(ErrorCode.MacroNotFound)
+        list.add(ErrorCode.MacroExpansionFailed)
+        list.add(ErrorCode.MacroRecursionLimit)
+        list.add(ErrorCode.InvalidMacroArgument)
+        list.add(ErrorCode.ProcMacroPanic)
+        list.add(ErrorCode.ProcMacroCompileError)
+        list.add(ErrorCode.CustomDiagError)
+        list.add(ErrorCode.CustomDiagWarning)
         list.add(ErrorCode.MacroHygieneViolation)
-        list.add(ErrorCode.MacroInvalidTokenTree)
-        list.add(ErrorCode.MacroMissingMacroDef)
-        list.add(ErrorCode.MacroDuplicateMacroDef)
-        list.add(ErrorCode.MacroWrongFragmentKind)
-        list.add(ErrorCode.MacroMetavarReuse)
-        list.add(ErrorCode.MacroNoMatchingRule)
+        list.add(ErrorCode.CompileTimeEvalError)
         list.add(ErrorCode.MacroReservedName)
         list.add(ErrorCode.MacroContextualKeyword)
         list.add(ErrorCode.MacroExpansionDepthLimit)
@@ -5547,14 +5632,14 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.BackendComdatFailed)
         list.add(ErrorCode.BackendAliasEmitFailed)
         list.add(ErrorCode.BackendWeakSymbolConflict)
-        list.add(ErrorCode.OptPassFailed)
-        list.add(ErrorCode.OptPassCrashed)
-        list.add(ErrorCode.OptInvalidation)
-        list.add(ErrorCode.OptLoopUnrollFailed)
-        list.add(ErrorCode.OptVectorizationFailed)
-        list.add(ErrorCode.OptInliningFailed)
-        list.add(ErrorCode.OptInliningTooDeep)
-        list.add(ErrorCode.OptDeadCodeNotRemoved)
+        list.add(ErrorCode.OptimizationPassFailed)
+        list.add(ErrorCode.OptimizationTimeout)
+        list.add(ErrorCode.InvalidOptimizationLevel)
+        list.add(ErrorCode.LTOError)
+        list.add(ErrorCode.PGOProfileError)
+        list.add(ErrorCode.InlineFailed)
+        list.add(ErrorCode.DCEInvalidState)
+        list.add(ErrorCode.VectorizationFailed)
         list.add(ErrorCode.OptConstPropOverflow)
         list.add(ErrorCode.OptGvnConflict)
         list.add(ErrorCode.OptSccpFailed)
@@ -5588,16 +5673,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.OptDivRemOpt)
         list.add(ErrorCode.OptOptShiftBase)
         list.add(ErrorCode.OptOptFloatReassoc)
-        list.add(ErrorCode.LinkerLinkerNotFound)
-        list.add(ErrorCode.LinkerLinkerInvocation)
         list.add(ErrorCode.LinkerUndefinedSymbol)
-        list.add(ErrorCode.LinkerDuplicateSymbol)
-        list.add(ErrorCode.LinkerLibraryNotFound)
-        list.add(ErrorCode.LinkerLibraryVersion)
-        list.add(ErrorCode.LinkerMissingEntryPoint)
-        list.add(ErrorCode.LinkerRelocOverflow)
-        list.add(ErrorCode.LinkerArchMismatch)
-        list.add(ErrorCode.LinkerAbiMismatch)
+        list.add(ErrorCode.MultipleDefinition)
+        list.add(ErrorCode.LibraryNotFound)
+        list.add(ErrorCode.CrtFileMissing)
+        list.add(ErrorCode.LinkerScriptError)
+        list.add(ErrorCode.SectionOverflow)
+        list.add(ErrorCode.IncompatibleObject)
+        list.add(ErrorCode.RelocationError)
+        list.add(ErrorCode.LinkerNotFound)
+        list.add(ErrorCode.WeakSymbolConflict)
         list.add(ErrorCode.LinkerLinkScriptError)
         list.add(ErrorCode.LinkerStaticDynamicConflict)
         list.add(ErrorCode.LinkerStdLibLinkFailed)
@@ -5791,18 +5876,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.OsProcessAlreadyExited)
         list.add(ErrorCode.OsUserNamespaceFailed)
         list.add(ErrorCode.OsFileSystemType)
-        list.add(ErrorCode.LspInvalidRequest)
-        list.add(ErrorCode.LspDocumentNotFound)
-        list.add(ErrorCode.LspPositionOutOfRange)
-        list.add(ErrorCode.LspUnsupportedCapability)
-        list.add(ErrorCode.LspDiagnosticsStale)
-        list.add(ErrorCode.LspSemanticTokensFailed)
-        list.add(ErrorCode.LspCompletionFailed)
-        list.add(ErrorCode.LspHoverFailed)
-        list.add(ErrorCode.LspDefinitionNotFound)
-        list.add(ErrorCode.LspReferenceSearchFailed)
-        list.add(ErrorCode.LspRenameFailed)
-        list.add(ErrorCode.LspFormatFailed)
+        list.add(ErrorCode.ServerInitFailed)
+        list.add(ErrorCode.DocumentSyncError)
+        list.add(ErrorCode.CompletionError)
+        list.add(ErrorCode.HoverError)
+        list.add(ErrorCode.GotoDefinitionFailed)
+        list.add(ErrorCode.FindReferencesFailed)
+        list.add(ErrorCode.RenameError)
+        list.add(ErrorCode.HighlightError)
+        list.add(ErrorCode.CodeActionError)
+        list.add(ErrorCode.InlayHintError)
+        list.add(ErrorCode.SemanticTokensError)
+        list.add(ErrorCode.FormattingError)
         list.add(ErrorCode.LspCodeActionFailed)
         list.add(ErrorCode.LspInlayHintFailed)
         list.add(ErrorCode.LspFoldingFailed)
@@ -5912,21 +5997,21 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.PkgResolveTimeout)
         list.add(ErrorCode.PkgDuplicatePackage)
         list.add(ErrorCode.PkgTargetSpecificManifest)
-        list.add(ErrorCode.BuildBuildScriptPanic)
-        list.add(ErrorCode.BuildBuildTargetMissing)
-        list.add(ErrorCode.BuildBuildProfileUnknown)
-        list.add(ErrorCode.BuildArtifactNotFound)
-        list.add(ErrorCode.BuildCompileStepFailed)
-        list.add(ErrorCode.BuildLinkStepFailed)
-        list.add(ErrorCode.BuildCustomTargetFailed)
-        list.add(ErrorCode.BuildBuildCacheInvalid)
-        list.add(ErrorCode.BuildParallelBuildDeadlock)
-        list.add(ErrorCode.BuildJobServerUnavailable)
-        list.add(ErrorCode.BuildOutputDirLocked)
-        list.add(ErrorCode.BuildPermissionDenied)
-        list.add(ErrorCode.BuildDiskFull)
-        list.add(ErrorCode.BuildBuildTimeout)
-        list.add(ErrorCode.BuildIncrementalDisabled)
+        list.add(ErrorCode.ManifestNotFound)
+        list.add(ErrorCode.ManifestParseError)
+        list.add(ErrorCode.DependencyNotFound)
+        list.add(ErrorCode.DependencyConflict)
+        list.add(ErrorCode.BuildFailed)
+        list.add(ErrorCode.CompilerNotFound)
+        list.add(ErrorCode.InvalidPackageName)
+        list.add(ErrorCode.BuildPackageNameMismatch)
+        list.add(ErrorCode.SourceScanFailed)
+        list.add(ErrorCode.ArtifactOutputError)
+        list.add(ErrorCode.CacheCorrupted)
+        list.add(ErrorCode.NetworkError)
+        list.add(ErrorCode.ChecksumMismatch)
+        list.add(ErrorCode.UnsupportedPlatform)
+        list.add(ErrorCode.BuildScriptError)
         list.add(ErrorCode.BuildFeatureGateBuild)
         list.add(ErrorCode.BuildCrossCompileToolchain)
         list.add(ErrorCode.BuildSysrootMissing)
@@ -6187,16 +6272,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.EmbedEmbedCriticalSection)
         list.add(ErrorCode.EmbedEmbedNoFpu)
         list.add(ErrorCode.EmbedCgoCallbackLifetime)
-        list.add(ErrorCode.TestTestCompileFailed)
-        list.add(ErrorCode.TestTestBinaryMissing)
-        list.add(ErrorCode.TestTestTimeout)
-        list.add(ErrorCode.TestTestPanic)
-        list.add(ErrorCode.TestTestAssertFailed)
-        list.add(ErrorCode.TestTestFixtureFailed)
-        list.add(ErrorCode.TestTestTeardownFailed)
-        list.add(ErrorCode.TestTestFilterNoMatch)
-        list.add(ErrorCode.TestTestDuplicateName)
-        list.add(ErrorCode.TestTestDependencyOrder)
+        list.add(ErrorCode.AssertionFailed)
+        list.add(ErrorCode.TestPanic)
+        list.add(ErrorCode.TestTimeout)
+        list.add(ErrorCode.NoTestsFound)
+        list.add(ErrorCode.CoverageError)
+        list.add(ErrorCode.BenchmarkError)
+        list.add(ErrorCode.TestFilterError)
+        list.add(ErrorCode.SetupTeardownError)
+        list.add(ErrorCode.ParallelTestConflict)
+        list.add(ErrorCode.ExpectedPanicNoPanic)
         list.add(ErrorCode.TestTestResourceLeak)
         list.add(ErrorCode.TestTestIgnored)
         list.add(ErrorCode.TestTestShouldPanic)
@@ -6228,13 +6313,13 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.TestTestDoubleRun)
         list.add(ErrorCode.TestTestSummaryLost)
         list.add(ErrorCode.TestTestHang)
-        list.add(ErrorCode.DocDocBrokenLink)
-        list.add(ErrorCode.DocDocMissingItem)
-        list.add(ErrorCode.DocDocCodeBlockFailed)
-        list.add(ErrorCode.DocDocTestFailed)
-        list.add(ErrorCode.DocDocExamplePanic)
-        list.add(ErrorCode.DocDocCompileFailed)
-        list.add(ErrorCode.DocDocMalformedAttr)
+        list.add(ErrorCode.DocParseError)
+        list.add(ErrorCode.BrokenDocLink)
+        list.add(ErrorCode.MissingDocComment)
+        list.add(ErrorCode.DocCodeExampleFailed)
+        list.add(ErrorCode.DocOutputError)
+        list.add(ErrorCode.InvalidDocAttribute)
+        list.add(ErrorCode.CrossRefError)
         list.add(ErrorCode.DocDocCyclicModule)
         list.add(ErrorCode.DocDocPrivateLeak)
         list.add(ErrorCode.DocDocHtmlEscape)
@@ -6540,6 +6625,30 @@ public enum ErrorCode <: Equatable<ErrorCode> {
         list.add(ErrorCode.GpuGpuFatbinMissing)
         list.add(ErrorCode.GpuGpuArchMismatch)
         list.add(ErrorCode.GpuGpuResourceLeak)
+        list.add(ErrorCode.InvalidInstruction)
+        list.add(ErrorCode.InvalidRegister)
+        list.add(ErrorCode.ObjectFormatError)
+        list.add(ErrorCode.ImmediateOverflow)
+        list.add(ErrorCode.AssemblerNotFound)
+        list.add(ErrorCode.DirectiveError)
+        list.add(ErrorCode.FormatCheckFailed)
+        list.add(ErrorCode.FormatConfigError)
+        list.add(ErrorCode.SyntaxErrorPreventFormat)
+        list.add(ErrorCode.UnsupportedSyntax)
+        list.add(ErrorCode.LineTooLong)
+        list.add(ErrorCode.DebugInfoMissing)
+        list.add(ErrorCode.BreakpointError)
+        list.add(ErrorCode.DebugProtocolError)
+        list.add(ErrorCode.VariableResolveFailed)
+        list.add(ErrorCode.SteppingError)
+        list.add(ErrorCode.ExpressionEvalError)
+        list.add(ErrorCode.DebuggerAttachFailed)
+        list.add(ErrorCode.ProfileInitFailed)
+        list.add(ErrorCode.SamplingError)
+        list.add(ErrorCode.ProfileDataError)
+        list.add(ErrorCode.PGOInstrumentError)
+        list.add(ErrorCode.PGOProfileMergeError)
+        list.add(ErrorCode.UnsupportedArch)
         return list
     }
 
@@ -6547,16 +6656,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
     /// 错误码字符串（如 "E2001"）
     public func code(): String {
         match (this) {
-            case ErrorCode.MacroUndefinedIdentifier => "E0201"
-            case ErrorCode.MacroArityMismatch => "E0202"
-            case ErrorCode.MacroRecursiveExpansion => "E0203"
-            case ErrorCode.MacroHygieneViolation => "E0204"
-            case ErrorCode.MacroInvalidTokenTree => "E0205"
-            case ErrorCode.MacroMissingMacroDef => "E0206"
-            case ErrorCode.MacroDuplicateMacroDef => "E0207"
-            case ErrorCode.MacroWrongFragmentKind => "E0208"
-            case ErrorCode.MacroMetavarReuse => "E0209"
-            case ErrorCode.MacroNoMatchingRule => "E0210"
+            case ErrorCode.MacroNotFound => "E0201"
+            case ErrorCode.MacroExpansionFailed => "E0202"
+            case ErrorCode.MacroRecursionLimit => "E0203"
+            case ErrorCode.InvalidMacroArgument => "E0204"
+            case ErrorCode.ProcMacroPanic => "E0205"
+            case ErrorCode.ProcMacroCompileError => "E0206"
+            case ErrorCode.CustomDiagError => "E0207"
+            case ErrorCode.CustomDiagWarning => "E0208"
+            case ErrorCode.MacroHygieneViolation => "E0209"
+            case ErrorCode.CompileTimeEvalError => "E0210"
             case ErrorCode.MacroReservedName => "E0211"
             case ErrorCode.MacroContextualKeyword => "E0212"
             case ErrorCode.MacroExpansionDepthLimit => "E0213"
@@ -6828,87 +6937,87 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.BackendComdatFailed => "E1139"
             case ErrorCode.BackendAliasEmitFailed => "E1140"
             case ErrorCode.BackendWeakSymbolConflict => "E1141"
-            case ErrorCode.OptPassFailed => "E1201"
-            case ErrorCode.OptPassCrashed => "E1202"
-            case ErrorCode.OptInvalidation => "E1203"
-            case ErrorCode.OptLoopUnrollFailed => "E1204"
-            case ErrorCode.OptVectorizationFailed => "E1205"
-            case ErrorCode.OptInliningFailed => "E1206"
-            case ErrorCode.OptInliningTooDeep => "E1207"
-            case ErrorCode.OptDeadCodeNotRemoved => "E1208"
-            case ErrorCode.OptConstPropOverflow => "E1209"
-            case ErrorCode.OptGvnConflict => "E1210"
-            case ErrorCode.OptSccpFailed => "E1211"
-            case ErrorCode.OptMem2RegFailed => "E1212"
-            case ErrorCode.OptLoopInvariantFailed => "E1213"
-            case ErrorCode.OptTailDuplicateFailed => "E1214"
-            case ErrorCode.OptPeepholeFailed => "E1215"
-            case ErrorCode.OptStrengthReduction => "E1216"
-            case ErrorCode.OptAliasAnalysisFailed => "E1217"
-            case ErrorCode.OptOptLevelInvalid => "E1218"
-            case ErrorCode.OptOptSizeConflict => "E1219"
-            case ErrorCode.OptProfileMismatch => "E1220"
-            case ErrorCode.OptOptCorruptIr => "E1221"
-            case ErrorCode.OptLoopRotateFailed => "E1222"
-            case ErrorCode.OptGlobalOptFailed => "E1223"
-            case ErrorCode.OptIpConstantProp => "E1224"
-            case ErrorCode.OptArgumentPromotion => "E1225"
-            case ErrorCode.OptStructRetOpt => "E1226"
-            case ErrorCode.OptTailCallOptFailed => "E1227"
-            case ErrorCode.OptSLPVectorizeFailed => "E1228"
-            case ErrorCode.OptLoopVersioning => "E1229"
-            case ErrorCode.OptPartialInline => "E1230"
-            case ErrorCode.OptHotColdSplit => "E1231"
-            case ErrorCode.OptMergeFuncFailed => "E1232"
-            case ErrorCode.OptGVNLoadElim => "E1233"
-            case ErrorCode.OptOptzLoopUnswitch => "E1234"
-            case ErrorCode.OptReassociateFailed => "E1235"
-            case ErrorCode.OptOptLoopIdiom => "E1236"
-            case ErrorCode.OptCFGSimplifyFailed => "E1237"
-            case ErrorCode.OptOptIndVar => "E1238"
-            case ErrorCode.OptDivRemOpt => "E1239"
-            case ErrorCode.OptOptShiftBase => "E1240"
-            case ErrorCode.OptOptFloatReassoc => "E1241"
-            case ErrorCode.LinkerLinkerNotFound => "E1301"
-            case ErrorCode.LinkerLinkerInvocation => "E1302"
-            case ErrorCode.LinkerUndefinedSymbol => "E1303"
-            case ErrorCode.LinkerDuplicateSymbol => "E1304"
-            case ErrorCode.LinkerLibraryNotFound => "E1305"
-            case ErrorCode.LinkerLibraryVersion => "E1306"
-            case ErrorCode.LinkerMissingEntryPoint => "E1307"
-            case ErrorCode.LinkerRelocOverflow => "E1308"
-            case ErrorCode.LinkerArchMismatch => "E1309"
-            case ErrorCode.LinkerAbiMismatch => "E1310"
-            case ErrorCode.LinkerLinkScriptError => "E1311"
-            case ErrorCode.LinkerStaticDynamicConflict => "E1312"
-            case ErrorCode.LinkerStdLibLinkFailed => "E1313"
-            case ErrorCode.LinkerRuntimeLibMissing => "E1314"
-            case ErrorCode.LinkerLinkerOOM => "E1315"
-            case ErrorCode.LinkerLinkerTimeout => "E1316"
-            case ErrorCode.LinkerThreadLocalLink => "E1317"
-            case ErrorCode.LinkerWeakSymbolUnresolved => "E1318"
-            case ErrorCode.LinkerExportSymbolMissing => "E1319"
-            case ErrorCode.LinkerImportLibraryMissing => "E1320"
-            case ErrorCode.LinkerCOMDATConflict => "E1321"
-            case ErrorCode.LinkerLinkOrderError => "E1322"
-            case ErrorCode.LinkerBitcodeLinkFailed => "E1323"
-            case ErrorCode.LinkerLTOFailed => "E1324"
-            case ErrorCode.LinkerLinkerScriptUnknown => "E1325"
-            case ErrorCode.LinkerDynamicLibMissing => "E1326"
-            case ErrorCode.LinkerRpathInvalid => "E1327"
-            case ErrorCode.LinkerSymbolVisibility => "E1328"
-            case ErrorCode.LinkerLinkerLangMismatch => "E1329"
-            case ErrorCode.LinkerGCSectionsFailed => "E1330"
-            case ErrorCode.LinkerMmapLinkFailed => "E1331"
-            case ErrorCode.LinkerLinkSanitizer => "E1332"
-            case ErrorCode.LinkerDeadStripFailed => "E1333"
-            case ErrorCode.LinkerLinkerPluginError => "E1334"
-            case ErrorCode.LinkerCrtFileMissing => "E1335"
-            case ErrorCode.LinkerLinkerVersionOld => "E1336"
-            case ErrorCode.LinkerMangledNameConflict => "E1337"
-            case ErrorCode.LinkerPieUnsupported => "E1338"
-            case ErrorCode.LinkerLinkerStackSize => "E1339"
-            case ErrorCode.LinkerUnwindLibMissing => "E1340"
+            case ErrorCode.OptimizationPassFailed => "E4101"
+            case ErrorCode.OptimizationTimeout => "E4102"
+            case ErrorCode.InvalidOptimizationLevel => "E4103"
+            case ErrorCode.LTOError => "E4104"
+            case ErrorCode.PGOProfileError => "E4105"
+            case ErrorCode.InlineFailed => "E4106"
+            case ErrorCode.DCEInvalidState => "E4107"
+            case ErrorCode.VectorizationFailed => "E4108"
+            case ErrorCode.OptConstPropOverflow => "E4109"
+            case ErrorCode.OptGvnConflict => "E4110"
+            case ErrorCode.OptSccpFailed => "E4111"
+            case ErrorCode.OptMem2RegFailed => "E4112"
+            case ErrorCode.OptLoopInvariantFailed => "E4113"
+            case ErrorCode.OptTailDuplicateFailed => "E4114"
+            case ErrorCode.OptPeepholeFailed => "E4115"
+            case ErrorCode.OptStrengthReduction => "E4116"
+            case ErrorCode.OptAliasAnalysisFailed => "E4117"
+            case ErrorCode.OptOptLevelInvalid => "E4118"
+            case ErrorCode.OptOptSizeConflict => "E4119"
+            case ErrorCode.OptProfileMismatch => "E4120"
+            case ErrorCode.OptOptCorruptIr => "E4121"
+            case ErrorCode.OptLoopRotateFailed => "E4122"
+            case ErrorCode.OptGlobalOptFailed => "E4123"
+            case ErrorCode.OptIpConstantProp => "E4124"
+            case ErrorCode.OptArgumentPromotion => "E4125"
+            case ErrorCode.OptStructRetOpt => "E4126"
+            case ErrorCode.OptTailCallOptFailed => "E4127"
+            case ErrorCode.OptSLPVectorizeFailed => "E4128"
+            case ErrorCode.OptLoopVersioning => "E4129"
+            case ErrorCode.OptPartialInline => "E4130"
+            case ErrorCode.OptHotColdSplit => "E4131"
+            case ErrorCode.OptMergeFuncFailed => "E4132"
+            case ErrorCode.OptGVNLoadElim => "E4133"
+            case ErrorCode.OptOptzLoopUnswitch => "E4134"
+            case ErrorCode.OptReassociateFailed => "E4135"
+            case ErrorCode.OptOptLoopIdiom => "E4136"
+            case ErrorCode.OptCFGSimplifyFailed => "E4137"
+            case ErrorCode.OptOptIndVar => "E4138"
+            case ErrorCode.OptDivRemOpt => "E4139"
+            case ErrorCode.OptOptShiftBase => "E4140"
+            case ErrorCode.OptOptFloatReassoc => "E4141"
+            case ErrorCode.LinkerUndefinedSymbol => "E4201"
+            case ErrorCode.MultipleDefinition => "E4202"
+            case ErrorCode.LibraryNotFound => "E4203"
+            case ErrorCode.CrtFileMissing => "E4204"
+            case ErrorCode.LinkerScriptError => "E4205"
+            case ErrorCode.SectionOverflow => "E4206"
+            case ErrorCode.IncompatibleObject => "E4207"
+            case ErrorCode.RelocationError => "E4208"
+            case ErrorCode.LinkerNotFound => "E4209"
+            case ErrorCode.WeakSymbolConflict => "E4210"
+            case ErrorCode.LinkerLinkScriptError => "E4211"
+            case ErrorCode.LinkerStaticDynamicConflict => "E4212"
+            case ErrorCode.LinkerStdLibLinkFailed => "E4213"
+            case ErrorCode.LinkerRuntimeLibMissing => "E4214"
+            case ErrorCode.LinkerLinkerOOM => "E4215"
+            case ErrorCode.LinkerLinkerTimeout => "E4216"
+            case ErrorCode.LinkerThreadLocalLink => "E4217"
+            case ErrorCode.LinkerWeakSymbolUnresolved => "E4218"
+            case ErrorCode.LinkerExportSymbolMissing => "E4219"
+            case ErrorCode.LinkerImportLibraryMissing => "E4220"
+            case ErrorCode.LinkerCOMDATConflict => "E4221"
+            case ErrorCode.LinkerLinkOrderError => "E4222"
+            case ErrorCode.LinkerBitcodeLinkFailed => "E4223"
+            case ErrorCode.LinkerLTOFailed => "E4224"
+            case ErrorCode.LinkerLinkerScriptUnknown => "E4225"
+            case ErrorCode.LinkerDynamicLibMissing => "E4226"
+            case ErrorCode.LinkerRpathInvalid => "E4227"
+            case ErrorCode.LinkerSymbolVisibility => "E4228"
+            case ErrorCode.LinkerLinkerLangMismatch => "E4229"
+            case ErrorCode.LinkerGCSectionsFailed => "E4230"
+            case ErrorCode.LinkerMmapLinkFailed => "E4231"
+            case ErrorCode.LinkerLinkSanitizer => "E4232"
+            case ErrorCode.LinkerDeadStripFailed => "E4233"
+            case ErrorCode.LinkerLinkerPluginError => "E4234"
+            case ErrorCode.LinkerCrtFileMissing => "E4235"
+            case ErrorCode.LinkerLinkerVersionOld => "E4236"
+            case ErrorCode.LinkerMangledNameConflict => "E4237"
+            case ErrorCode.LinkerPieUnsupported => "E4238"
+            case ErrorCode.LinkerLinkerStackSize => "E4239"
+            case ErrorCode.LinkerUnwindLibMissing => "E4240"
             case ErrorCode.AbiFfiSignatureMismatch => "E1401"
             case ErrorCode.AbiFfiTypeUnsupported => "E1402"
             case ErrorCode.AbiCAbiMismatch => "E1403"
@@ -7072,18 +7181,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.OsProcessAlreadyExited => "E5339"
             case ErrorCode.OsUserNamespaceFailed => "E5340"
             case ErrorCode.OsFileSystemType => "E5341"
-            case ErrorCode.LspInvalidRequest => "E6001"
-            case ErrorCode.LspDocumentNotFound => "E6002"
-            case ErrorCode.LspPositionOutOfRange => "E6003"
-            case ErrorCode.LspUnsupportedCapability => "E6004"
-            case ErrorCode.LspDiagnosticsStale => "E6005"
-            case ErrorCode.LspSemanticTokensFailed => "E6006"
-            case ErrorCode.LspCompletionFailed => "E6007"
-            case ErrorCode.LspHoverFailed => "E6008"
-            case ErrorCode.LspDefinitionNotFound => "E6009"
-            case ErrorCode.LspReferenceSearchFailed => "E6010"
-            case ErrorCode.LspRenameFailed => "E6011"
-            case ErrorCode.LspFormatFailed => "E6012"
+            case ErrorCode.ServerInitFailed => "E6001"
+            case ErrorCode.DocumentSyncError => "E6002"
+            case ErrorCode.CompletionError => "E6003"
+            case ErrorCode.HoverError => "E6004"
+            case ErrorCode.GotoDefinitionFailed => "E6005"
+            case ErrorCode.FindReferencesFailed => "E6006"
+            case ErrorCode.RenameError => "E6007"
+            case ErrorCode.HighlightError => "E6008"
+            case ErrorCode.CodeActionError => "E6009"
+            case ErrorCode.InlayHintError => "E6010"
+            case ErrorCode.SemanticTokensError => "E6011"
+            case ErrorCode.FormattingError => "E6012"
             case ErrorCode.LspCodeActionFailed => "E6013"
             case ErrorCode.LspInlayHintFailed => "E6014"
             case ErrorCode.LspFoldingFailed => "E6015"
@@ -7193,46 +7302,46 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.PkgResolveTimeout => "E6239"
             case ErrorCode.PkgDuplicatePackage => "E6240"
             case ErrorCode.PkgTargetSpecificManifest => "E6241"
-            case ErrorCode.BuildBuildScriptPanic => "E6301"
-            case ErrorCode.BuildBuildTargetMissing => "E6302"
-            case ErrorCode.BuildBuildProfileUnknown => "E6303"
-            case ErrorCode.BuildArtifactNotFound => "E6304"
-            case ErrorCode.BuildCompileStepFailed => "E6305"
-            case ErrorCode.BuildLinkStepFailed => "E6306"
-            case ErrorCode.BuildCustomTargetFailed => "E6307"
-            case ErrorCode.BuildBuildCacheInvalid => "E6308"
-            case ErrorCode.BuildParallelBuildDeadlock => "E6309"
-            case ErrorCode.BuildJobServerUnavailable => "E6310"
-            case ErrorCode.BuildOutputDirLocked => "E6311"
-            case ErrorCode.BuildPermissionDenied => "E6312"
-            case ErrorCode.BuildDiskFull => "E6313"
-            case ErrorCode.BuildBuildTimeout => "E6314"
-            case ErrorCode.BuildIncrementalDisabled => "E6315"
-            case ErrorCode.BuildFeatureGateBuild => "E6316"
-            case ErrorCode.BuildCrossCompileToolchain => "E6317"
-            case ErrorCode.BuildSysrootMissing => "E6318"
-            case ErrorCode.BuildEnvVarMissing => "E6319"
-            case ErrorCode.BuildBuildScriptEnv => "E6320"
-            case ErrorCode.BuildFingerprintMismatch => "E6321"
-            case ErrorCode.BuildDepInfoStale => "E6322"
-            case ErrorCode.BuildTargetTripleInvalid => "E6323"
-            case ErrorCode.BuildBuildPlanFailed => "E6324"
-            case ErrorCode.BuildPostBuildFailed => "E6325"
-            case ErrorCode.BuildTestHarnessFailed => "E6326"
-            case ErrorCode.BuildBenchHarnessFailed => "E6327"
-            case ErrorCode.BuildDocBuildFailed => "E6328"
-            case ErrorCode.BuildExampleBuildFailed => "E6329"
-            case ErrorCode.BuildToolchainDownload => "E6330"
-            case ErrorCode.BuildRustflagsConflict => "E6331"
-            case ErrorCode.BuildCfgNotDefined => "E6332"
-            case ErrorCode.BuildBuildScriptRebuild => "E6333"
-            case ErrorCode.BuildLockContention => "E6334"
-            case ErrorCode.BuildTargetSpecificFail => "E6335"
-            case ErrorCode.BuildOutOfMemory => "E6336"
-            case ErrorCode.BuildSignalInterrupted => "E6337"
-            case ErrorCode.BuildTmpDirUnwritable => "E6338"
-            case ErrorCode.BuildBuildHookFailed => "E6339"
-            case ErrorCode.BuildUnsupportedAction => "E6340"
+            case ErrorCode.ManifestNotFound => "E7001"
+            case ErrorCode.ManifestParseError => "E7002"
+            case ErrorCode.DependencyNotFound => "E7003"
+            case ErrorCode.DependencyConflict => "E7004"
+            case ErrorCode.BuildFailed => "E7005"
+            case ErrorCode.CompilerNotFound => "E7006"
+            case ErrorCode.InvalidPackageName => "E7007"
+            case ErrorCode.BuildPackageNameMismatch => "E7008"
+            case ErrorCode.SourceScanFailed => "E7009"
+            case ErrorCode.ArtifactOutputError => "E7010"
+            case ErrorCode.CacheCorrupted => "E7011"
+            case ErrorCode.NetworkError => "E7012"
+            case ErrorCode.ChecksumMismatch => "E7013"
+            case ErrorCode.UnsupportedPlatform => "E7014"
+            case ErrorCode.BuildScriptError => "E7015"
+            case ErrorCode.BuildFeatureGateBuild => "E7016"
+            case ErrorCode.BuildCrossCompileToolchain => "E7017"
+            case ErrorCode.BuildSysrootMissing => "E7018"
+            case ErrorCode.BuildEnvVarMissing => "E7019"
+            case ErrorCode.BuildBuildScriptEnv => "E7020"
+            case ErrorCode.BuildFingerprintMismatch => "E7021"
+            case ErrorCode.BuildDepInfoStale => "E7022"
+            case ErrorCode.BuildTargetTripleInvalid => "E7023"
+            case ErrorCode.BuildBuildPlanFailed => "E7024"
+            case ErrorCode.BuildPostBuildFailed => "E7025"
+            case ErrorCode.BuildTestHarnessFailed => "E7026"
+            case ErrorCode.BuildBenchHarnessFailed => "E7027"
+            case ErrorCode.BuildDocBuildFailed => "E7028"
+            case ErrorCode.BuildExampleBuildFailed => "E7029"
+            case ErrorCode.BuildToolchainDownload => "E7030"
+            case ErrorCode.BuildRustflagsConflict => "E7031"
+            case ErrorCode.BuildCfgNotDefined => "E7032"
+            case ErrorCode.BuildBuildScriptRebuild => "E7033"
+            case ErrorCode.BuildLockContention => "E7034"
+            case ErrorCode.BuildTargetSpecificFail => "E7035"
+            case ErrorCode.BuildOutOfMemory => "E7036"
+            case ErrorCode.BuildSignalInterrupted => "E7037"
+            case ErrorCode.BuildTmpDirUnwritable => "E7038"
+            case ErrorCode.BuildBuildHookFailed => "E7039"
+            case ErrorCode.BuildUnsupportedAction => "E7040"
             case ErrorCode.DebugDwarfEmitFailed => "E6401"
             case ErrorCode.DebugDebugInfoStripped => "E6402"
             case ErrorCode.DebugLineTableMissing => "E6403"
@@ -7468,242 +7577,242 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.EmbedEmbedCriticalSection => "E6938"
             case ErrorCode.EmbedEmbedNoFpu => "E6939"
             case ErrorCode.EmbedCgoCallbackLifetime => "E6940"
-            case ErrorCode.TestTestCompileFailed => "E7001"
-            case ErrorCode.TestTestBinaryMissing => "E7002"
-            case ErrorCode.TestTestTimeout => "E7003"
-            case ErrorCode.TestTestPanic => "E7004"
-            case ErrorCode.TestTestAssertFailed => "E7005"
-            case ErrorCode.TestTestFixtureFailed => "E7006"
-            case ErrorCode.TestTestTeardownFailed => "E7007"
-            case ErrorCode.TestTestFilterNoMatch => "E7008"
-            case ErrorCode.TestTestDuplicateName => "E7009"
-            case ErrorCode.TestTestDependencyOrder => "E7010"
-            case ErrorCode.TestTestResourceLeak => "E7011"
-            case ErrorCode.TestTestIgnored => "E7012"
-            case ErrorCode.TestTestShouldPanic => "E7013"
-            case ErrorCode.TestTestUnexpectedPanic => "E7014"
-            case ErrorCode.TestTestFlaky => "E7015"
-            case ErrorCode.TestTestHarnessCrash => "E7016"
-            case ErrorCode.TestTestStdoutCapture => "E7017"
-            case ErrorCode.TestTestEnvMissing => "E7018"
-            case ErrorCode.TestTestDataMissing => "E7019"
-            case ErrorCode.TestTestMockFailed => "E7020"
-            case ErrorCode.TestTestConcurrency => "E7021"
-            case ErrorCode.TestTestDeadlock => "E7022"
-            case ErrorCode.TestTestLeakSanitizer => "E7023"
-            case ErrorCode.TestTestCoverageFailed => "E7024"
-            case ErrorCode.TestTestReportFailed => "E7025"
-            case ErrorCode.TestTestParallelConflict => "E7026"
-            case ErrorCode.TestTestBeforeAllFailed => "E7027"
-            case ErrorCode.TestTestAfterAllFailed => "E7028"
-            case ErrorCode.TestTestSkipCondition => "E7029"
-            case ErrorCode.TestTestParamMismatch => "E7030"
-            case ErrorCode.TestTestTimeoutConfig => "E7031"
-            case ErrorCode.TestTestBinaryCrash => "E7032"
-            case ErrorCode.TestTestSignal => "E7033"
-            case ErrorCode.TestTestMemoryLimit => "E7034"
-            case ErrorCode.TestTestIsolation => "E7035"
-            case ErrorCode.TestTestRandomSeed => "E7036"
-            case ErrorCode.TestTestImportFailed => "E7037"
-            case ErrorCode.TestTestUnknownAttr => "E7038"
-            case ErrorCode.TestTestDoubleRun => "E7039"
-            case ErrorCode.TestTestSummaryLost => "E7040"
-            case ErrorCode.TestTestHang => "E7041"
-            case ErrorCode.DocDocBrokenLink => "E7101"
-            case ErrorCode.DocDocMissingItem => "E7102"
-            case ErrorCode.DocDocCodeBlockFailed => "E7103"
-            case ErrorCode.DocDocTestFailed => "E7104"
-            case ErrorCode.DocDocExamplePanic => "E7105"
-            case ErrorCode.DocDocCompileFailed => "E7106"
-            case ErrorCode.DocDocMalformedAttr => "E7107"
-            case ErrorCode.DocDocCyclicModule => "E7108"
-            case ErrorCode.DocDocPrivateLeak => "E7109"
-            case ErrorCode.DocDocHtmlEscape => "E7110"
-            case ErrorCode.DocDocMissingSummary => "E7111"
-            case ErrorCode.DocDocBrokenIntraLink => "E7112"
-            case ErrorCode.DocDocAliasConflict => "E7113"
-            case ErrorCode.DocDocSearchIndex => "E7114"
-            case ErrorCode.DocDocThemeFailed => "E7115"
-            case ErrorCode.DocDocAssetMissing => "E7116"
-            case ErrorCode.DocDocCommentTooLong => "E7117"
-            case ErrorCode.DocDocNonAsciiPath => "E7118"
-            case ErrorCode.DocDocVersionMismatch => "E7119"
-            case ErrorCode.DocDocExampleOutdated => "E7120"
-            case ErrorCode.DocDocInvalidMarkdown => "E7121"
-            case ErrorCode.DocDocTableBroken => "E7122"
-            case ErrorCode.DocDocCodeLangUnknown => "E7123"
-            case ErrorCode.DocDocRedirectLoop => "E7124"
-            case ErrorCode.DocDocCrossCrate => "E7125"
-            case ErrorCode.DocDocFeatureGate => "E7126"
-            case ErrorCode.DocDocJsonFailed => "E7127"
-            case ErrorCode.DocDocTestCompileTimeout => "E7128"
-            case ErrorCode.DocDocHiddenItemRef => "E7129"
-            case ErrorCode.DocDocDuplicateAnchor => "E7130"
-            case ErrorCode.DocDocMacroDoc => "E7131"
-            case ErrorCode.DocDocTraitImplMissing => "E7132"
-            case ErrorCode.DocDocGenericParam => "E7133"
-            case ErrorCode.DocDocCfgFiltered => "E7134"
-            case ErrorCode.DocDocPlatformSpecific => "E7135"
-            case ErrorCode.DocDocIncludeFailed => "E7136"
-            case ErrorCode.DocDocEduLinkBroken => "E7137"
-            case ErrorCode.LintLintUnusedVariable => "E7201"
-            case ErrorCode.LintLintUnusedImport => "E7202"
-            case ErrorCode.LintLintUnusedFunction => "E7203"
-            case ErrorCode.LintLintDeadCode => "E7204"
-            case ErrorCode.LintLintDeprecatedUse => "E7205"
-            case ErrorCode.LintLintNonSnakeCase => "E7206"
-            case ErrorCode.LintLintNonCamelCase => "E7207"
-            case ErrorCode.LintLintNonUpperCaseConst => "E7208"
-            case ErrorCode.LintLintHardcodedPath => "E7209"
-            case ErrorCode.LintLintMagicNumber => "E7210"
-            case ErrorCode.LintLintTodoLeft => "E7211"
-            case ErrorCode.LintLintPrintStatement => "E7212"
-            case ErrorCode.LintLintUnsafeBlock => "E7213"
-            case ErrorCode.LintLintCloneInLoop => "E7214"
-            case ErrorCode.LintLintComplexity => "E7215"
-            case ErrorCode.LintLintTooManyArgs => "E7216"
-            case ErrorCode.LintLintDeepNesting => "E7217"
-            case ErrorCode.LintLintLineTooLong => "E7218"
-            case ErrorCode.LintLintDocMissing => "E7219"
-            case ErrorCode.LintLintCopyInsteadRef => "E7220"
-            case ErrorCode.LintLintWildcardImport => "E7221"
-            case ErrorCode.LintLintUnreachablePattern => "E7222"
-            case ErrorCode.LintLintNonExhaustiveLet => "E7223"
-            case ErrorCode.LintLintRedundantClone => "E7224"
-            case ErrorCode.LintLintShadowing => "E7225"
-            case ErrorCode.LintLintMutableNotNeeded => "E7226"
-            case ErrorCode.LintLintUnnecessaryMut => "E7227"
-            case ErrorCode.LintLintInefficientToStr => "E7228"
-            case ErrorCode.LintLintPanicInProd => "E7229"
-            case ErrorCode.LintLintFloatEquality => "E7230"
-            case ErrorCode.LintLintUnwrapUsed => "E7231"
-            case ErrorCode.LintLintExpectUsed => "E7232"
-            case ErrorCode.LintLintIndexUnchecked => "E7233"
-            case ErrorCode.LintLintIteratorValue => "E7234"
-            case ErrorCode.LintLintLargeEnumVariant => "E7235"
-            case ErrorCode.LintLintDerefClone => "E7236"
-            case ErrorCode.LintLintRedundantField => "E7237"
-            case ErrorCode.LintLintNonIdiomatic => "E7238"
-            case ErrorCode.LintLintStyleViolation => "E7239"
-            case ErrorCode.LintLintUnsafeSuggest => "E7240"
-            case ErrorCode.LintLintPossibleBug => "E7241"
-            case ErrorCode.SecSecHardcodedSecret => "E7301"
-            case ErrorCode.SecSecSqlInjection => "E7302"
-            case ErrorCode.SecSecCommandInjection => "E7303"
-            case ErrorCode.SecSecPathTraversal => "E7304"
-            case ErrorCode.SecSecUnsafeDeserialize => "E7305"
-            case ErrorCode.SecSecWeakCrypto => "E7306"
-            case ErrorCode.SecSecInsecureRandom => "E7307"
-            case ErrorCode.SecSecTlsVerificationOff => "E7308"
-            case ErrorCode.SecSecCleartextTransport => "E7309"
-            case ErrorCode.SecSecUnsafeEval => "E7310"
-            case ErrorCode.SecSecBufferOverflowRisk => "E7311"
-            case ErrorCode.SecSecFormatString => "E7312"
-            case ErrorCode.SecSecIntegerOverflow => "E7313"
-            case ErrorCode.SecSecRaceCondition => "E7314"
-            case ErrorCode.SecSecUseAfterFreeRisk => "E7315"
-            case ErrorCode.SecSecDoubleFreeRisk => "E7316"
-            case ErrorCode.SecSecNullDerefRisk => "E7317"
-            case ErrorCode.SecSecSensitiveLog => "E7318"
-            case ErrorCode.SecSecInsecureTemp => "E7319"
-            case ErrorCode.SecSecSymlinkAttack => "E7320"
-            case ErrorCode.SecSecUnsafeCast => "E7321"
-            case ErrorCode.SecSecMemoryDisclosure => "E7322"
-            case ErrorCode.SecSecMissingAuthz => "E7323"
-            case ErrorCode.SecSecMissingAuthn => "E7324"
-            case ErrorCode.SecSecCsrfRisk => "E7325"
-            case ErrorCode.SecSecXssRisk => "E7326"
-            case ErrorCode.SecSecInsecureCookie => "E7327"
-            case ErrorCode.SecSecOpenRedirect => "E7328"
-            case ErrorCode.SecSecUnsafeReflection => "E7329"
-            case ErrorCode.SecSecDependencyVuln => "E7330"
-            case ErrorCode.SecSecUnsafePermission => "E7331"
-            case ErrorCode.SecSecKeySizeSmall => "E7332"
-            case ErrorCode.SecSecHashWeak => "E7333"
-            case ErrorCode.SecSecCipherModeWeak => "E7334"
-            case ErrorCode.SecSecNonceReuse => "E7335"
-            case ErrorCode.SecSecCertExpired => "E7336"
-            case ErrorCode.SecSecInsecureProto => "E7337"
-            case ErrorCode.SecSecPrivilegeDrop => "E7338"
-            case ErrorCode.SecSecInfoLeak => "E7339"
-            case ErrorCode.ConfConfigFileNotFound => "E7401"
-            case ErrorCode.ConfConfigParseFailed => "E7402"
-            case ErrorCode.ConfConfigSchemaInvalid => "E7403"
-            case ErrorCode.ConfConfigKeyUnknown => "E7404"
-            case ErrorCode.ConfConfigTypeMismatch => "E7405"
-            case ErrorCode.ConfConfigMissingRequired => "E7406"
-            case ErrorCode.ConfConfigDeprecated => "E7407"
-            case ErrorCode.ConfConfigConflict => "E7408"
-            case ErrorCode.ConfConfigEnvOverride => "E7409"
-            case ErrorCode.ConfConfigProfileUnknown => "E7410"
-            case ErrorCode.ConfConfigIncludeFailed => "E7411"
-            case ErrorCode.ConfConfigCycle => "E7412"
-            case ErrorCode.ConfConfigPermission => "E7413"
-            case ErrorCode.ConfConfigEncoding => "E7414"
-            case ErrorCode.ConfConfigTooLarge => "E7415"
-            case ErrorCode.ConfConfigValidationFailed => "E7416"
-            case ErrorCode.ConfConfigDefaultInvalid => "E7417"
-            case ErrorCode.ConfConfigRangeViolation => "E7418"
-            case ErrorCode.ConfConfigEnumInvalid => "E7419"
-            case ErrorCode.ConfConfigPathInvalid => "E7420"
-            case ErrorCode.ConfConfigUrlInvalid => "E7421"
-            case ErrorCode.ConfConfigTimeoutInvalid => "E7422"
-            case ErrorCode.ConfConfigFeatureConflict => "E7423"
-            case ErrorCode.ConfConfigTargetMismatch => "E7424"
-            case ErrorCode.ConfConfigRuntimeMismatch => "E7425"
-            case ErrorCode.ConfConfigHotReloadFailed => "E7426"
-            case ErrorCode.ConfConfigSecretLeak => "E7427"
-            case ErrorCode.ConfConfigFormatUnknown => "E7428"
-            case ErrorCode.ConfConfigMergeConflict => "E7429"
-            case ErrorCode.ConfConfigVersionMismatch => "E7430"
-            case ErrorCode.ConfConfigUnsafeValue => "E7431"
-            case ErrorCode.ConfConfigRedundant => "E7432"
-            case ErrorCode.ConfConfigDocMissing => "E7433"
-            case ErrorCode.ConfConfigTypeCoercion => "E7434"
-            case ErrorCode.ConfConfigPlaceholder => "E7435"
-            case ErrorCode.ConfConfigConditional => "E7436"
-            case ErrorCode.ConfConfigLocked => "E7437"
-            case ErrorCode.ConfConfigEnvMissing => "E7438"
-            case ErrorCode.ConfConfigInvalidBool => "E7439"
-            case ErrorCode.ConfConfigListEmpty => "E7440"
-            case ErrorCode.TelemTelemDisabled => "E7501"
-            case ErrorCode.TelemTelemInitFailed => "E7502"
-            case ErrorCode.TelemTelemExportFailed => "E7503"
-            case ErrorCode.TelemTelemQueueFull => "E7504"
-            case ErrorCode.TelemTelemTimeout => "E7505"
-            case ErrorCode.TelemTelemUnauthorized => "E7506"
-            case ErrorCode.TelemTelemEndpointUnreachable => "E7507"
-            case ErrorCode.TelemTelemSchemaInvalid => "E7508"
-            case ErrorCode.TelemTelemDropSpans => "E7509"
-            case ErrorCode.TelemTelemMissingContext => "E7510"
-            case ErrorCode.TelemTelemCardinality => "E7511"
-            case ErrorCode.TelemTelemPiiLeak => "E7512"
-            case ErrorCode.TelemTelemDuplicate => "E7513"
-            case ErrorCode.TelemTelemClockSkew => "E7514"
-            case ErrorCode.TelemTelemBufferFlush => "E7515"
-            case ErrorCode.TelemTelemOOM => "E7516"
-            case ErrorCode.TelemTelemMisconfigured => "E7517"
-            case ErrorCode.TelemTelemVersionMismatch => "E7518"
-            case ErrorCode.TelemTelemSamplerInvalid => "E7519"
-            case ErrorCode.TelemTelemAttrTooLong => "E7520"
-            case ErrorCode.TelemTelemNameInvalid => "E7521"
-            case ErrorCode.TelemTelemDropMetrics => "E7522"
-            case ErrorCode.TelemTelemLogFailed => "E7523"
-            case ErrorCode.TelemTelemCrashNoReport => "E7524"
-            case ErrorCode.TelemTelemRateLimited => "E7525"
-            case ErrorCode.TelemTelemSecretInAttr => "E7526"
-            case ErrorCode.TelemTelemExportBlocked => "E7527"
-            case ErrorCode.TelemTelemBackpressure => "E7528"
-            case ErrorCode.TelemTelemSpanOrphan => "E7529"
-            case ErrorCode.TelemTelemLateArrival => "E7530"
-            case ErrorCode.TelemTelemStorageFull => "E7531"
-            case ErrorCode.TelemTelemEncodingFailed => "E7532"
-            case ErrorCode.TelemTelemBatchFailed => "E7533"
-            case ErrorCode.TelemTelemNoCollector => "E7534"
-            case ErrorCode.TelemTelemInconsistent => "E7535"
-            case ErrorCode.TelemTelemDisabledFeature => "E7536"
-            case ErrorCode.TelemTelemPrivacyPolicy => "E7537"
-            case ErrorCode.TelemTelemAttrCountExceed => "E7538"
+            case ErrorCode.AssertionFailed => "E7101"
+            case ErrorCode.TestPanic => "E7102"
+            case ErrorCode.TestTimeout => "E7103"
+            case ErrorCode.NoTestsFound => "E7104"
+            case ErrorCode.CoverageError => "E7105"
+            case ErrorCode.BenchmarkError => "E7106"
+            case ErrorCode.TestFilterError => "E7107"
+            case ErrorCode.SetupTeardownError => "E7108"
+            case ErrorCode.ParallelTestConflict => "E7109"
+            case ErrorCode.ExpectedPanicNoPanic => "E7110"
+            case ErrorCode.TestTestResourceLeak => "E7111"
+            case ErrorCode.TestTestIgnored => "E7112"
+            case ErrorCode.TestTestShouldPanic => "E7113"
+            case ErrorCode.TestTestUnexpectedPanic => "E7114"
+            case ErrorCode.TestTestFlaky => "E7115"
+            case ErrorCode.TestTestHarnessCrash => "E7116"
+            case ErrorCode.TestTestStdoutCapture => "E7117"
+            case ErrorCode.TestTestEnvMissing => "E7118"
+            case ErrorCode.TestTestDataMissing => "E7119"
+            case ErrorCode.TestTestMockFailed => "E7120"
+            case ErrorCode.TestTestConcurrency => "E7121"
+            case ErrorCode.TestTestDeadlock => "E7122"
+            case ErrorCode.TestTestLeakSanitizer => "E7123"
+            case ErrorCode.TestTestCoverageFailed => "E7124"
+            case ErrorCode.TestTestReportFailed => "E7125"
+            case ErrorCode.TestTestParallelConflict => "E7126"
+            case ErrorCode.TestTestBeforeAllFailed => "E7127"
+            case ErrorCode.TestTestAfterAllFailed => "E7128"
+            case ErrorCode.TestTestSkipCondition => "E7129"
+            case ErrorCode.TestTestParamMismatch => "E7130"
+            case ErrorCode.TestTestTimeoutConfig => "E7131"
+            case ErrorCode.TestTestBinaryCrash => "E7132"
+            case ErrorCode.TestTestSignal => "E7133"
+            case ErrorCode.TestTestMemoryLimit => "E7134"
+            case ErrorCode.TestTestIsolation => "E7135"
+            case ErrorCode.TestTestRandomSeed => "E7136"
+            case ErrorCode.TestTestImportFailed => "E7137"
+            case ErrorCode.TestTestUnknownAttr => "E7138"
+            case ErrorCode.TestTestDoubleRun => "E7139"
+            case ErrorCode.TestTestSummaryLost => "E7140"
+            case ErrorCode.TestTestHang => "E7141"
+            case ErrorCode.DocParseError => "E7201"
+            case ErrorCode.BrokenDocLink => "E7202"
+            case ErrorCode.MissingDocComment => "E7203"
+            case ErrorCode.DocCodeExampleFailed => "E7204"
+            case ErrorCode.DocOutputError => "E7205"
+            case ErrorCode.InvalidDocAttribute => "E7206"
+            case ErrorCode.CrossRefError => "E7207"
+            case ErrorCode.DocDocCyclicModule => "E7208"
+            case ErrorCode.DocDocPrivateLeak => "E7209"
+            case ErrorCode.DocDocHtmlEscape => "E7210"
+            case ErrorCode.DocDocMissingSummary => "E7211"
+            case ErrorCode.DocDocBrokenIntraLink => "E7212"
+            case ErrorCode.DocDocAliasConflict => "E7213"
+            case ErrorCode.DocDocSearchIndex => "E7214"
+            case ErrorCode.DocDocThemeFailed => "E7215"
+            case ErrorCode.DocDocAssetMissing => "E7216"
+            case ErrorCode.DocDocCommentTooLong => "E7217"
+            case ErrorCode.DocDocNonAsciiPath => "E7218"
+            case ErrorCode.DocDocVersionMismatch => "E7219"
+            case ErrorCode.DocDocExampleOutdated => "E7220"
+            case ErrorCode.DocDocInvalidMarkdown => "E7221"
+            case ErrorCode.DocDocTableBroken => "E7222"
+            case ErrorCode.DocDocCodeLangUnknown => "E7223"
+            case ErrorCode.DocDocRedirectLoop => "E7224"
+            case ErrorCode.DocDocCrossCrate => "E7225"
+            case ErrorCode.DocDocFeatureGate => "E7226"
+            case ErrorCode.DocDocJsonFailed => "E7227"
+            case ErrorCode.DocDocTestCompileTimeout => "E7228"
+            case ErrorCode.DocDocHiddenItemRef => "E7229"
+            case ErrorCode.DocDocDuplicateAnchor => "E7230"
+            case ErrorCode.DocDocMacroDoc => "E7231"
+            case ErrorCode.DocDocTraitImplMissing => "E7232"
+            case ErrorCode.DocDocGenericParam => "E7233"
+            case ErrorCode.DocDocCfgFiltered => "E7234"
+            case ErrorCode.DocDocPlatformSpecific => "E7235"
+            case ErrorCode.DocDocIncludeFailed => "E7236"
+            case ErrorCode.DocDocEduLinkBroken => "E7237"
+            case ErrorCode.LintLintUnusedVariable => "E8301"
+            case ErrorCode.LintLintUnusedImport => "E8302"
+            case ErrorCode.LintLintUnusedFunction => "E8303"
+            case ErrorCode.LintLintDeadCode => "E8304"
+            case ErrorCode.LintLintDeprecatedUse => "E8305"
+            case ErrorCode.LintLintNonSnakeCase => "E8306"
+            case ErrorCode.LintLintNonCamelCase => "E8307"
+            case ErrorCode.LintLintNonUpperCaseConst => "E8308"
+            case ErrorCode.LintLintHardcodedPath => "E8309"
+            case ErrorCode.LintLintMagicNumber => "E8310"
+            case ErrorCode.LintLintTodoLeft => "E8311"
+            case ErrorCode.LintLintPrintStatement => "E8312"
+            case ErrorCode.LintLintUnsafeBlock => "E8313"
+            case ErrorCode.LintLintCloneInLoop => "E8314"
+            case ErrorCode.LintLintComplexity => "E8315"
+            case ErrorCode.LintLintTooManyArgs => "E8316"
+            case ErrorCode.LintLintDeepNesting => "E8317"
+            case ErrorCode.LintLintLineTooLong => "E8318"
+            case ErrorCode.LintLintDocMissing => "E8319"
+            case ErrorCode.LintLintCopyInsteadRef => "E8320"
+            case ErrorCode.LintLintWildcardImport => "E8321"
+            case ErrorCode.LintLintUnreachablePattern => "E8322"
+            case ErrorCode.LintLintNonExhaustiveLet => "E8323"
+            case ErrorCode.LintLintRedundantClone => "E8324"
+            case ErrorCode.LintLintShadowing => "E8325"
+            case ErrorCode.LintLintMutableNotNeeded => "E8326"
+            case ErrorCode.LintLintUnnecessaryMut => "E8327"
+            case ErrorCode.LintLintInefficientToStr => "E8328"
+            case ErrorCode.LintLintPanicInProd => "E8329"
+            case ErrorCode.LintLintFloatEquality => "E8330"
+            case ErrorCode.LintLintUnwrapUsed => "E8331"
+            case ErrorCode.LintLintExpectUsed => "E8332"
+            case ErrorCode.LintLintIndexUnchecked => "E8333"
+            case ErrorCode.LintLintIteratorValue => "E8334"
+            case ErrorCode.LintLintLargeEnumVariant => "E8335"
+            case ErrorCode.LintLintDerefClone => "E8336"
+            case ErrorCode.LintLintRedundantField => "E8337"
+            case ErrorCode.LintLintNonIdiomatic => "E8338"
+            case ErrorCode.LintLintStyleViolation => "E8339"
+            case ErrorCode.LintLintUnsafeSuggest => "E8340"
+            case ErrorCode.LintLintPossibleBug => "E8341"
+            case ErrorCode.SecSecHardcodedSecret => "E8001"
+            case ErrorCode.SecSecSqlInjection => "E8002"
+            case ErrorCode.SecSecCommandInjection => "E8003"
+            case ErrorCode.SecSecPathTraversal => "E8004"
+            case ErrorCode.SecSecUnsafeDeserialize => "E8005"
+            case ErrorCode.SecSecWeakCrypto => "E8006"
+            case ErrorCode.SecSecInsecureRandom => "E8007"
+            case ErrorCode.SecSecTlsVerificationOff => "E8008"
+            case ErrorCode.SecSecCleartextTransport => "E8009"
+            case ErrorCode.SecSecUnsafeEval => "E8010"
+            case ErrorCode.SecSecBufferOverflowRisk => "E8011"
+            case ErrorCode.SecSecFormatString => "E8012"
+            case ErrorCode.SecSecIntegerOverflow => "E8013"
+            case ErrorCode.SecSecRaceCondition => "E8014"
+            case ErrorCode.SecSecUseAfterFreeRisk => "E8015"
+            case ErrorCode.SecSecDoubleFreeRisk => "E8016"
+            case ErrorCode.SecSecNullDerefRisk => "E8017"
+            case ErrorCode.SecSecSensitiveLog => "E8018"
+            case ErrorCode.SecSecInsecureTemp => "E8019"
+            case ErrorCode.SecSecSymlinkAttack => "E8020"
+            case ErrorCode.SecSecUnsafeCast => "E8021"
+            case ErrorCode.SecSecMemoryDisclosure => "E8022"
+            case ErrorCode.SecSecMissingAuthz => "E8023"
+            case ErrorCode.SecSecMissingAuthn => "E8024"
+            case ErrorCode.SecSecCsrfRisk => "E8025"
+            case ErrorCode.SecSecXssRisk => "E8026"
+            case ErrorCode.SecSecInsecureCookie => "E8027"
+            case ErrorCode.SecSecOpenRedirect => "E8028"
+            case ErrorCode.SecSecUnsafeReflection => "E8029"
+            case ErrorCode.SecSecDependencyVuln => "E8030"
+            case ErrorCode.SecSecUnsafePermission => "E8031"
+            case ErrorCode.SecSecKeySizeSmall => "E8032"
+            case ErrorCode.SecSecHashWeak => "E8033"
+            case ErrorCode.SecSecCipherModeWeak => "E8034"
+            case ErrorCode.SecSecNonceReuse => "E8035"
+            case ErrorCode.SecSecCertExpired => "E8036"
+            case ErrorCode.SecSecInsecureProto => "E8037"
+            case ErrorCode.SecSecPrivilegeDrop => "E8038"
+            case ErrorCode.SecSecInfoLeak => "E8039"
+            case ErrorCode.ConfConfigFileNotFound => "E8101"
+            case ErrorCode.ConfConfigParseFailed => "E8102"
+            case ErrorCode.ConfConfigSchemaInvalid => "E8103"
+            case ErrorCode.ConfConfigKeyUnknown => "E8104"
+            case ErrorCode.ConfConfigTypeMismatch => "E8105"
+            case ErrorCode.ConfConfigMissingRequired => "E8106"
+            case ErrorCode.ConfConfigDeprecated => "E8107"
+            case ErrorCode.ConfConfigConflict => "E8108"
+            case ErrorCode.ConfConfigEnvOverride => "E8109"
+            case ErrorCode.ConfConfigProfileUnknown => "E8110"
+            case ErrorCode.ConfConfigIncludeFailed => "E8111"
+            case ErrorCode.ConfConfigCycle => "E8112"
+            case ErrorCode.ConfConfigPermission => "E8113"
+            case ErrorCode.ConfConfigEncoding => "E8114"
+            case ErrorCode.ConfConfigTooLarge => "E8115"
+            case ErrorCode.ConfConfigValidationFailed => "E8116"
+            case ErrorCode.ConfConfigDefaultInvalid => "E8117"
+            case ErrorCode.ConfConfigRangeViolation => "E8118"
+            case ErrorCode.ConfConfigEnumInvalid => "E8119"
+            case ErrorCode.ConfConfigPathInvalid => "E8120"
+            case ErrorCode.ConfConfigUrlInvalid => "E8121"
+            case ErrorCode.ConfConfigTimeoutInvalid => "E8122"
+            case ErrorCode.ConfConfigFeatureConflict => "E8123"
+            case ErrorCode.ConfConfigTargetMismatch => "E8124"
+            case ErrorCode.ConfConfigRuntimeMismatch => "E8125"
+            case ErrorCode.ConfConfigHotReloadFailed => "E8126"
+            case ErrorCode.ConfConfigSecretLeak => "E8127"
+            case ErrorCode.ConfConfigFormatUnknown => "E8128"
+            case ErrorCode.ConfConfigMergeConflict => "E8129"
+            case ErrorCode.ConfConfigVersionMismatch => "E8130"
+            case ErrorCode.ConfConfigUnsafeValue => "E8131"
+            case ErrorCode.ConfConfigRedundant => "E8132"
+            case ErrorCode.ConfConfigDocMissing => "E8133"
+            case ErrorCode.ConfConfigTypeCoercion => "E8134"
+            case ErrorCode.ConfConfigPlaceholder => "E8135"
+            case ErrorCode.ConfConfigConditional => "E8136"
+            case ErrorCode.ConfConfigLocked => "E8137"
+            case ErrorCode.ConfConfigEnvMissing => "E8138"
+            case ErrorCode.ConfConfigInvalidBool => "E8139"
+            case ErrorCode.ConfConfigListEmpty => "E8140"
+            case ErrorCode.TelemTelemDisabled => "E8201"
+            case ErrorCode.TelemTelemInitFailed => "E8202"
+            case ErrorCode.TelemTelemExportFailed => "E8203"
+            case ErrorCode.TelemTelemQueueFull => "E8204"
+            case ErrorCode.TelemTelemTimeout => "E8205"
+            case ErrorCode.TelemTelemUnauthorized => "E8206"
+            case ErrorCode.TelemTelemEndpointUnreachable => "E8207"
+            case ErrorCode.TelemTelemSchemaInvalid => "E8208"
+            case ErrorCode.TelemTelemDropSpans => "E8209"
+            case ErrorCode.TelemTelemMissingContext => "E8210"
+            case ErrorCode.TelemTelemCardinality => "E8211"
+            case ErrorCode.TelemTelemPiiLeak => "E8212"
+            case ErrorCode.TelemTelemDuplicate => "E8213"
+            case ErrorCode.TelemTelemClockSkew => "E8214"
+            case ErrorCode.TelemTelemBufferFlush => "E8215"
+            case ErrorCode.TelemTelemOOM => "E8216"
+            case ErrorCode.TelemTelemMisconfigured => "E8217"
+            case ErrorCode.TelemTelemVersionMismatch => "E8218"
+            case ErrorCode.TelemTelemSamplerInvalid => "E8219"
+            case ErrorCode.TelemTelemAttrTooLong => "E8220"
+            case ErrorCode.TelemTelemNameInvalid => "E8221"
+            case ErrorCode.TelemTelemDropMetrics => "E8222"
+            case ErrorCode.TelemTelemLogFailed => "E8223"
+            case ErrorCode.TelemTelemCrashNoReport => "E8224"
+            case ErrorCode.TelemTelemRateLimited => "E8225"
+            case ErrorCode.TelemTelemSecretInAttr => "E8226"
+            case ErrorCode.TelemTelemExportBlocked => "E8227"
+            case ErrorCode.TelemTelemBackpressure => "E8228"
+            case ErrorCode.TelemTelemSpanOrphan => "E8229"
+            case ErrorCode.TelemTelemLateArrival => "E8230"
+            case ErrorCode.TelemTelemStorageFull => "E8231"
+            case ErrorCode.TelemTelemEncodingFailed => "E8232"
+            case ErrorCode.TelemTelemBatchFailed => "E8233"
+            case ErrorCode.TelemTelemNoCollector => "E8234"
+            case ErrorCode.TelemTelemInconsistent => "E8235"
+            case ErrorCode.TelemTelemDisabledFeature => "E8236"
+            case ErrorCode.TelemTelemPrivacyPolicy => "E8237"
+            case ErrorCode.TelemTelemAttrCountExceed => "E8238"
             case ErrorCode.XcompileXcompileToolchainMissing => "E7601"
             case ErrorCode.XcompileXcompileSysrootMissing => "E7602"
             case ErrorCode.XcompileXcompileLinkerMissing => "E7603"
@@ -7823,16 +7932,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.GpuGpuResourceLeak => "E7839"
 
             // Lexer
-            case ErrorCode.LexerUnterminatedString => "E0001"
-            case ErrorCode.LexerUnterminatedBlockComment => "E0002"
-            case ErrorCode.LexerInvalidEscapeSequence => "E0003"
-            case ErrorCode.LexerInvalidNumberLiteral => "E0004"
-            case ErrorCode.LexerUnexpectedCharacter => "E0005"
-            case ErrorCode.LexerInvalidIdentifier => "E0006"
-            case ErrorCode.LexerNumericOverflow => "E0007"
-            case ErrorCode.LexerUnterminatedCharLiteral => "E0008"
-            case ErrorCode.LexerEmptyCharLiteral => "E0009"
-            case ErrorCode.LexerInvalidUtf8Sequence => "E0010"
+            case ErrorCode.InvalidCharacter => "E0001"
+            case ErrorCode.InvalidUnicodeScalar => "E0002"
+            case ErrorCode.UnterminatedString => "E0003"
+            case ErrorCode.UnterminatedBlockComment => "E0004"
+            case ErrorCode.InvalidNumberLiteral => "E0005"
+            case ErrorCode.InvalidEscapeSequence => "E0006"
+            case ErrorCode.InvalidCharLiteral => "E0007"
+            case ErrorCode.EncodingError => "E0008"
+            case ErrorCode.InvalidRawStringDelimiter => "E0009"
+            case ErrorCode.TokenOverflow => "E0010"
             case ErrorCode.LexerInvalidNumericSuffix => "E0011"
             case ErrorCode.LexerNewlineInStringLiteral => "E0012"
             case ErrorCode.LexerInvalidIdentifierStart => "E0013"
@@ -7853,18 +7962,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.LexerLiteralTooLong => "E0028"
             case ErrorCode.LexerTruncatedMultibyte => "E0029"
             // Parser
-            case ErrorCode.ParserUnterminatedString => "E0101"
-            case ErrorCode.ParserUnexpectedToken => "E0102"
-            case ErrorCode.ParserMissingSemicolon => "E0103"
-            case ErrorCode.ParserMismatchedBracket => "E0104"
-            case ErrorCode.ParserInvalidExpression => "E0105"
-            case ErrorCode.ParserMissingColon => "E0106"
-            case ErrorCode.ParserDuplicateModifier => "E0107"
-            case ErrorCode.ParserInvalidDeclaration => "E0108"
-            case ErrorCode.ParserTrailingComma => "E0109"
-            case ErrorCode.ParserUnexpectedEOF => "E0110"
-            case ErrorCode.ParserMissingOperand => "E0111"
-            case ErrorCode.ParserInvalidModifierOrder => "E0112"
+            case ErrorCode.ExpectedToken => "E0101"
+            case ErrorCode.UnexpectedToken => "E0102"
+            case ErrorCode.ExpectedExpression => "E0103"
+            case ErrorCode.ExpectedIdentifier => "E0104"
+            case ErrorCode.ExpectedType => "E0105"
+            case ErrorCode.MissingSemicolonOrNewline => "E0106"
+            case ErrorCode.InvalidAttribute => "E0107"
+            case ErrorCode.InvalidPattern => "E0108"
+            case ErrorCode.UnclosedDelimiter => "E0109"
+            case ErrorCode.DuplicateModifier => "E0110"
+            case ErrorCode.InvalidVisibility => "E0111"
+            case ErrorCode.TrailingComma => "E0112"
             case ErrorCode.ParserDuplicateImport => "E0113"
             case ErrorCode.ParserUnexpectedExpressionStatement => "E0114"
             case ErrorCode.ParserIllegalTopLevelStatement => "E0115"
@@ -7885,21 +7994,21 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.ParserMissingElseBranch => "E0130"
             case ErrorCode.ParserOperatorPrecedenceAmbiguous => "E0131"
             // Sema
-            case ErrorCode.SemaUndefinedSymbol => "E1001"
-            case ErrorCode.SemaRedeclaration => "E1002"
-            case ErrorCode.SemaInvalidArgumentCount => "E1003"
-            case ErrorCode.SemaImmutableAssignment => "E1004"
-            case ErrorCode.SemaUseBeforeDeclaration => "E1005"
-            case ErrorCode.SemaInvalidBreakContinue => "E1006"
-            case ErrorCode.SemaMissingReturn => "E1007"
-            case ErrorCode.SemaUnreachableCode => "E1008"
-            case ErrorCode.SemaShadowedVariable => "E1009"
-            case ErrorCode.SemaDeprecatedUsage => "E1010"
-            case ErrorCode.SemaUninitializedConstant => "E1011"
-            case ErrorCode.SemaDuplicateImportItem => "E1012"
-            case ErrorCode.SemaIllegalRecursion => "E1013"
-            case ErrorCode.SemaNonExhaustiveMatch => "E1014"
-            case ErrorCode.SemaUnreachableMatchArm => "E1015"
+            case ErrorCode.UndefinedSymbol => "E1001"
+            case ErrorCode.Redeclaration => "E1002"
+            case ErrorCode.ImmutableAssignment => "E1003"
+            case ErrorCode.MovedValueUsed => "E1004"
+            case ErrorCode.BorrowConflict => "E1005"
+            case ErrorCode.LifetimeError => "E1006"
+            case ErrorCode.UninitializedUse => "E1007"
+            case ErrorCode.UnreachableCode => "E1008"
+            case ErrorCode.UnusedVariable => "E1009"
+            case ErrorCode.MissingReturn => "E1010"
+            case ErrorCode.InvalidSelfUse => "E1011"
+            case ErrorCode.AbstractInstantiation => "E1012"
+            case ErrorCode.OverrideMismatch => "E1013"
+            case ErrorCode.AccessViolation => "E1014"
+            case ErrorCode.ConstEvalError => "E1015"
             case ErrorCode.SemaTypeInferenceFailed => "E1016"
             case ErrorCode.SemaMutableOpOnImmutable => "E1017"
             case ErrorCode.SemaOperatorOverloadMismatch => "E1018"
@@ -7920,17 +8029,17 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             // Type
             case ErrorCode.TypeMismatch => "E2001"
             case ErrorCode.TypeInferenceFailed => "E2002"
-            case ErrorCode.TypeInvalidCast => "E2003"
-            case ErrorCode.TypeAmbiguousOverload => "E2004"
-            case ErrorCode.TypeMissingGenericArgument => "E2005"
-            case ErrorCode.TypeConstraintViolation => "E2006"
-            case ErrorCode.TypeRecursiveAlias => "E2007"
-            case ErrorCode.TypeUnsizedInStack => "E2008"
-            case ErrorCode.TypeImplicitConversionLossy => "E2009"
-            case ErrorCode.TypeIncompatibleVariance => "E2010"
-            case ErrorCode.TypeInvalidVariancePosition => "E2011"
-            case ErrorCode.TypeWhereClauseViolation => "E2012"
-            case ErrorCode.TypeClosureTypeMismatch => "E2013"
+            case ErrorCode.UnsatisfiedConstraint => "E2003"
+            case ErrorCode.AmbiguousType => "E2004"
+            case ErrorCode.InvalidCast => "E2005"
+            case ErrorCode.MissingTypeParam => "E2006"
+            case ErrorCode.ExtraTypeParam => "E2007"
+            case ErrorCode.RecursiveType => "E2008"
+            case ErrorCode.IncompatibleVariance => "E2009"
+            case ErrorCode.AssociatedTypeConflict => "E2010"
+            case ErrorCode.NilSafetyViolation => "E2011"
+            case ErrorCode.InvalidTypeAlias => "E2012"
+            case ErrorCode.TraitObjectError => "E2013"
             case ErrorCode.TypeBorrowConflict => "E2014"
             case ErrorCode.TypeCyclicInference => "E2015"
             case ErrorCode.TypeCovariantReturnInvalid => "E2016"
@@ -7950,18 +8059,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.TypeFunctionPointerMismatch => "E2030"
             case ErrorCode.TypeLiteralAmbiguity => "E2031"
             // Resolution
-            case ErrorCode.ResolutionModuleNotFound => "E3001"
-            case ErrorCode.ResolutionImportNotFound => "E3002"
-            case ErrorCode.ResolutionAmbiguousImport => "E3003"
-            case ErrorCode.ResolutionPrivateAccess => "E3004"
-            case ErrorCode.ResolutionUnresolvedPath => "E3005"
-            case ErrorCode.ResolutionCircularImport => "E3006"
-            case ErrorCode.ResolutionTraitNotImplemented => "E3007"
-            case ErrorCode.ResolutionInvalidSuperCall => "E3008"
-            case ErrorCode.ResolutionNameClash => "E3009"
-            case ErrorCode.ResolutionVersionMismatch => "E3010"
-            case ErrorCode.ResolutionMacroExpansionFailed => "E3011"
-            case ErrorCode.ResolutionCyclicTypeAlias => "E3012"
+            case ErrorCode.UnresolvedImport => "E3001"
+            case ErrorCode.AmbiguousImport => "E3002"
+            case ErrorCode.PrivateImport => "E3003"
+            case ErrorCode.OverloadAmbiguity => "E3004"
+            case ErrorCode.NoMatchingOverload => "E3005"
+            case ErrorCode.CircularImport => "E3006"
+            case ErrorCode.PackageNotFound => "E3007"
+            case ErrorCode.PackageNameMismatch => "E3008"
+            case ErrorCode.NameShadowing => "E3009"
+            case ErrorCode.QualifiedPathError => "E3010"
+            case ErrorCode.ReexportConflict => "E3011"
+            case ErrorCode.VersionConflict => "E3012"
             case ErrorCode.ResolutionMissingExport => "E3013"
             case ErrorCode.ResolutionTransitiveVisibility => "E3014"
             case ErrorCode.ResolutionUncoveredCfgBranch => "E3015"
@@ -7981,16 +8090,16 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.ResolutionTraitMethodConflict => "E3029"
             case ErrorCode.ResolutionCfgExpressionError => "E3030"
             // Codegen
-            case ErrorCode.CodegenUnsupportedConstruct => "E4001"
-            case ErrorCode.CodegenStackOverflowRisk => "E4002"
-            case ErrorCode.CodegenInvalidIntrinsic => "E4003"
-            case ErrorCode.CodegenLinkageError => "E4004"
-            case ErrorCode.CodegenABIIncompatible => "E4005"
-            case ErrorCode.CodegenOptimizationFailed => "E4006"
-            case ErrorCode.CodegenUninitializedUse => "E4007"
-            case ErrorCode.CodegenLargeConstant => "E4008"
-            case ErrorCode.CodegenTargetNotSupported => "E4009"
-            case ErrorCode.CodegenEmissionInterrupted => "E4010"
+            case ErrorCode.InternalCompilerError => "E4001"
+            case ErrorCode.UnsupportedFeature => "E4002"
+            case ErrorCode.InvalidIR => "E4003"
+            case ErrorCode.ABIIncompatible => "E4004"
+            case ErrorCode.StackFrameOverflow => "E4005"
+            case ErrorCode.TargetUnsupported => "E4006"
+            case ErrorCode.DebugInfoGenFailed => "E4007"
+            case ErrorCode.EHFrameError => "E4008"
+            case ErrorCode.VTableError => "E4009"
+            case ErrorCode.ClosureCaptureError => "E4010"
             case ErrorCode.CodegenRegisterAllocationFailed => "E4011"
             case ErrorCode.CodegenUnsupportedTailCall => "E4012"
             case ErrorCode.CodegenInlineFailed => "E4013"
@@ -8015,21 +8124,21 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.CodegenInvalidTargetTriple => "E4032"
             case ErrorCode.CodegenDebugFormatError => "E4033"
             // Runtime
-            case ErrorCode.RuntimeNullDereference => "E5001"
-            case ErrorCode.RuntimeIndexOutOfBounds => "E5002"
-            case ErrorCode.RuntimeDivisionByZero => "E5003"
-            case ErrorCode.RuntimeStackOverflow => "E5004"
-            case ErrorCode.RuntimeIntegerOverflow => "E5005"
-            case ErrorCode.RuntimeInvalidCast => "E5006"
-            case ErrorCode.RuntimeResourceExhausted => "E5007"
-            case ErrorCode.RuntimeDeadlockDetected => "E5008"
-            case ErrorCode.RuntimeAssertionFailed => "E5009"
-            case ErrorCode.RuntimeUnwindAborted => "E5010"
-            case ErrorCode.RuntimeUseAfterMove => "E5011"
-            case ErrorCode.RuntimeDataRace => "E5012"
-            case ErrorCode.RuntimeBufferOverflow => "E5013"
-            case ErrorCode.RuntimeInfiniteRecursion => "E5014"
-            case ErrorCode.RuntimeFFICallFailed => "E5015"
+            case ErrorCode.NullPointerDereference => "E5001"
+            case ErrorCode.ArrayIndexOutOfBounds => "E5002"
+            case ErrorCode.DivisionByZero => "E5003"
+            case ErrorCode.IntegerOverflow => "E5004"
+            case ErrorCode.UnwrapNone => "E5005"
+            case ErrorCode.Unreachable => "E5006"
+            case ErrorCode.StackOverflow => "E5007"
+            case ErrorCode.OutOfMemory => "E5008"
+            case ErrorCode.UncaughtException => "E5009"
+            case ErrorCode.InvalidCastRuntime => "E5010"
+            case ErrorCode.ConcurrentModification => "E5011"
+            case ErrorCode.DeadlockDetected => "E5012"
+            case ErrorCode.GoroutineLeak => "E5013"
+            case ErrorCode.FinalizerError => "E5014"
+            case ErrorCode.GCError => "E5015"
             case ErrorCode.RuntimeDestructorThrow => "E5016"
             case ErrorCode.RuntimeDanglingWeakRef => "E5017"
             case ErrorCode.RuntimeNegativeIndex => "E5018"
@@ -8047,18 +8156,18 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.RuntimeThreadLimitExceeded => "E5030"
             case ErrorCode.RuntimeMemoryMapFailed => "E5031"
             // System
-            case ErrorCode.SystemInternalError => "E9001"
-            case ErrorCode.SystemIOError => "E9002"
-            case ErrorCode.SystemOutOfMemory => "E9003"
-            case ErrorCode.SystemTimeout => "E9004"
-            case ErrorCode.SystemInvalidConfig => "E9005"
-            case ErrorCode.SystemPluginLoadFailed => "E9006"
-            case ErrorCode.SystemCacheCorrupted => "E9007"
-            case ErrorCode.SystemNetworkError => "E9008"
-            case ErrorCode.SystemPermissionDenied => "E9009"
-            case ErrorCode.SystemUnknown => "E9010"
-            case ErrorCode.SystemConcurrencyLimit => "E9011"
-            case ErrorCode.SystemDiagnosticSerializeFailed => "E9012"
+            case ErrorCode.FileNotFound => "E9001"
+            case ErrorCode.PermissionDenied => "E9002"
+            case ErrorCode.FileAlreadyExists => "E9003"
+            case ErrorCode.IOError => "E9004"
+            case ErrorCode.EnvironmentError => "E9005"
+            case ErrorCode.ProcessSpawnFailed => "E9006"
+            case ErrorCode.SignalError => "E9007"
+            case ErrorCode.TimeError => "E9008"
+            case ErrorCode.NetworkInitError => "E9009"
+            case ErrorCode.ResourceLimitExceeded => "E9010"
+            case ErrorCode.InvalidPath => "E9011"
+            case ErrorCode.SymlinkError => "E9012"
             case ErrorCode.SystemIncompatibleCompilerVersion => "E9013"
             case ErrorCode.SystemMissingEnvVar => "E9014"
             case ErrorCode.SystemInternalAssertion => "E9015"
@@ -8075,6 +8184,30 @@ public enum ErrorCode <: Equatable<ErrorCode> {
             case ErrorCode.SystemIncrementalCacheInvalidated => "E9026"
             case ErrorCode.SystemRemoteBuildFailed => "E9027"
             case ErrorCode.SystemSandboxLimitExceeded => "E9028"
+            case ErrorCode.InvalidInstruction => "E4301"
+            case ErrorCode.InvalidRegister => "E4302"
+            case ErrorCode.ObjectFormatError => "E4303"
+            case ErrorCode.ImmediateOverflow => "E4304"
+            case ErrorCode.AssemblerNotFound => "E4305"
+            case ErrorCode.DirectiveError => "E4306"
+            case ErrorCode.FormatCheckFailed => "E7301"
+            case ErrorCode.FormatConfigError => "E7302"
+            case ErrorCode.SyntaxErrorPreventFormat => "E7303"
+            case ErrorCode.UnsupportedSyntax => "E7304"
+            case ErrorCode.LineTooLong => "E7305"
+            case ErrorCode.DebugInfoMissing => "E7401"
+            case ErrorCode.BreakpointError => "E7402"
+            case ErrorCode.DebugProtocolError => "E7403"
+            case ErrorCode.VariableResolveFailed => "E7404"
+            case ErrorCode.SteppingError => "E7405"
+            case ErrorCode.ExpressionEvalError => "E7406"
+            case ErrorCode.DebuggerAttachFailed => "E7407"
+            case ErrorCode.ProfileInitFailed => "E7501"
+            case ErrorCode.SamplingError => "E7502"
+            case ErrorCode.ProfileDataError => "E7503"
+            case ErrorCode.PGOInstrumentError => "E7504"
+            case ErrorCode.PGOProfileMergeError => "E7505"
+            case ErrorCode.UnsupportedArch => "E7506"
         }
     }
 

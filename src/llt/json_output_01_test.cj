@@ -26,7 +26,7 @@ class JSONOutputTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = diagnostic_builder_for_test(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "测试消息",
             span: span
         )

@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class ParserInvalidExpressionTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserInvalidExpression.code(), "E0105")
+        @Expect(ErrorCode.ExpectedType.code(), "E0105")
     }
 
     @TestCase func testReportMethod(): Unit {
@@ -16,6 +16,6 @@ class ParserInvalidExpressionTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = parser.reportExprSyntaxError(span: span)
-        @Expect(diag.code, ErrorCode.ParserInvalidExpression)
+        @Expect(diag.code, ErrorCode.ExpectedType)
     }
 }

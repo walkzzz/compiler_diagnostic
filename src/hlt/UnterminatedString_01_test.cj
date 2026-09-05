@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class ParserUnterminatedStringTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ParserUnterminatedString.code(), "E0101")
+        @Expect(ErrorCode.ExpectedToken.code(), "E0101")
     }
 
     @TestCase func testReportMethod(): Unit {
@@ -16,7 +16,7 @@ class ParserUnterminatedStringTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: SourceLoc(line: 10, column: 20))
         let diag = parser.reportUnterminatedString(span: span)
-        @Expect(diag.code, ErrorCode.ParserUnterminatedString)
+        @Expect(diag.code, ErrorCode.ExpectedToken)
         @Expect(diag.fix.isSome(), true)
     }
 }

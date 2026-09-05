@@ -29,31 +29,31 @@ error[E667]: type mismatch ...
 | cjc 内部码 | 本工程 ErrorCode | 语义 |
 |-----------|----------------|------|
 | E667 | `TypeMismatch` (E2001) | 类型不匹配 |
-| E75  | `SemaUndefinedSymbol` (E1001) | 未声明的标识符 |
-| E673 | `SemaDuplicateImportItem` (E3558) | 重复定义 |
-| E488 | `ResolutionModuleNotFound` (E3643) | 包 / 模块未找到 |
+| E75  | `UndefinedSymbol` (E1001) | 未声明的标识符 |
+| E673 | `AbstractInstantiation` (E3558) | 重复定义 |
+| E488 | `UnresolvedImport` (E3643) | 包 / 模块未找到 |
 | E671 | `TypeInferenceFailed` (E3613) | 无法推断类型 |
 
 ### 2.2 关键词 / 子串映射（顺序即优先级，越靠前越具体）
 
 | 命中子串（小写） | 映射到 ErrorCode |
 |----------------|----------------|
-| `unterminated string` / `unclosed string` | `ParserUnterminatedString` |
-| `mismatched bracket` | `ParserMismatchedBracket` |
-| `unexpected token` | `ParserInvalidExpression` |
-| `unexpected end of file` | `ParserUnexpectedToken` |
+| `unterminated string` / `unclosed string` | `ExpectedToken` |
+| `mismatched bracket` | `ExpectedIdentifier` |
+| `unexpected token` | `ExpectedType` |
+| `unexpected end of file` | `UnexpectedToken` |
 | `duplicate import` | `ParserDuplicateImport` |
-| `undeclared identifier` / `cannot find` | `SemaUndefinedSymbol` |
+| `undeclared identifier` / `cannot find` | `UndefinedSymbol` |
 | `cannot infer` / `type inference` | `TypeInferenceFailed` |
-| `duplicate definition` / `redefinition` | `SemaDuplicateImportItem` |
+| `duplicate definition` / `redefinition` | `AbstractInstantiation` |
 | `mismatched types` / `type mismatch` | `TypeMismatch` |
-| `ambiguous` | `TypeAmbiguousOverload` |
-| `constraint violated` / `trait bound` | `TypeConstraintViolation` |
-| `private` | `ResolutionPrivateAccess` |
-| `module not found` | `ResolutionModuleNotFound` |
-| `import not found` | `ResolutionImportNotFound` |
-| `macro` | `MacroUndefinedIdentifier` |
-| `null pointer` / `null dereference` | `RuntimeNullDereference` |
+| `ambiguous` | `AmbiguousType` |
+| `constraint violated` / `trait bound` | `MissingTypeParam` |
+| `private` | `OverloadAmbiguity` |
+| `module not found` | `UnresolvedImport` |
+| `import not found` | `AmbiguousImport` |
+| `macro` | `MacroNotFound` |
+| `null pointer` / `null dereference` | `NullPointerDereference` |
 | `llvm verify` | `BackendLlvmVerifyFailed` |
 | `linker` | `CodegenLinkerFailed` |
 

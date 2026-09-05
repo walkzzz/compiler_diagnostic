@@ -11,12 +11,12 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "测试消息",
             span: span
         )
         let diag = builder.build()
-        @Expect(diag.code, ErrorCode.ParserUnterminatedString)
+        @Expect(diag.code, ErrorCode.ExpectedToken)
         @Expect(diag.message, "测试消息")
         @Expect(diag.severity, "error")
     }
@@ -25,7 +25,7 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "测试消息",
             span: span
         )
@@ -52,7 +52,7 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.SemaUndefinedSymbol,
+            code: ErrorCode.UndefinedSymbol,
             message: "测试消息",
             span: span
         )
@@ -65,7 +65,7 @@ class DiagnosticBuilderTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let builder = DiagnosticBuilder(
-            code: ErrorCode.ParserInvalidExpression,
+            code: ErrorCode.ExpectedType,
             message: "测试",
             span: span
         )

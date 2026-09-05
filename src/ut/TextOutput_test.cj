@@ -19,7 +19,7 @@ class TextOutputTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "未终止的字符串字面量",
             span: span
         ).build()
@@ -33,7 +33,7 @@ class TextOutputTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "test",
             span: span
         ).setFix(Some(FixSuggestion(description: "添加引号"))).build()
@@ -62,7 +62,7 @@ class TextOutputTest {
         let span = Span(start: loc, end: loc)
         let cands: List<Candidate> = ArrayList<Candidate>([Candidate(name: "foo", kind: "variable"), Candidate(name: "bar", kind: "variable"), Candidate(name: "baz", kind: "function")])
         let diag = DiagnosticBuilder(
-            code: ErrorCode.SemaUndefinedSymbol,
+            code: ErrorCode.UndefinedSymbol,
             message: "未定义标识符",
             span: span
         ).setCandidates(cands).build()
@@ -76,7 +76,7 @@ class TextOutputTest {
         let output = TextOutput()
         let loc = SourceLoc(line: 1, column: 0)
         let span = Span(start: loc, end: loc)
-        let d1 = DiagnosticBuilder(code: ErrorCode.ParserUnterminatedString, message: "d1", span: span).build()
+        let d1 = DiagnosticBuilder(code: ErrorCode.ExpectedToken, message: "d1", span: span).build()
         let d2 = DiagnosticBuilder(code: ErrorCode.TypeMismatch, message: "d2", span: span).build()
         let result = output.output(ArrayList<DiagnosticMessage>([d1, d2]))
         @Expect(result.contains("[E0101]"), true)
@@ -90,7 +90,7 @@ class TextOutputTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "无候选",
             span: span
         ).build()
@@ -103,7 +103,7 @@ class TextOutputTest {
         let loc = SourceLoc(line: -1, column: -1)
         let span = Span(start: loc, end: loc)
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserInvalidExpression,
+            code: ErrorCode.ExpectedType,
             message: "负数位置",
             span: span
         ).build()

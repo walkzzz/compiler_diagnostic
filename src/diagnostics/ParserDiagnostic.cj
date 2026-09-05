@@ -5,7 +5,7 @@ import std.collection.*
 public class ParserDiagnostic {
     public func reportUnterminatedString(span!: Span): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "未终止的字符串字面量",
             span: span
         )
@@ -24,7 +24,7 @@ public class ParserDiagnostic {
 
     public func reportExprSyntaxError(span!: Span): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserInvalidExpression,
+            code: ErrorCode.ExpectedType,
             message: "表达式语法错误",
             span: span
         )
@@ -33,7 +33,7 @@ public class ParserDiagnostic {
 
     public func reportUndefinedIdentifier(span!: Span, identifier!: String, candidates!: List<Candidate>): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.SemaUndefinedSymbol,
+            code: ErrorCode.UndefinedSymbol,
             message: "未定义的标识符：" + identifier,
             span: span
         )
@@ -43,7 +43,7 @@ public class ParserDiagnostic {
 
     public func reportBracketMismatch(span!: Span): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ParserMismatchedBracket,
+            code: ErrorCode.ExpectedIdentifier,
             message: "括号不匹配",
             span: span
         )

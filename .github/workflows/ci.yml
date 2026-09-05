@@ -24,17 +24,19 @@ jobs:
         shell: bash
         run: |
           set +e
+          # Windows 上 SDK 二进制为 cjc.exe；统一用 has_cjc 判定，避免对无后缀名 cjc 的 -x 误判
+          has_cjc() { [ -x "$1/bin/cjc" ] || [ -x "$1/bin/cjc.exe" ]; }
           SDK=""
           # 1) 显式注入（judge / self-hosted runner 最常见路径）
-          if [ -n "${CANGJIE_HOME:-}" ] && [ -x "$CANGJIE_HOME/bin/cjc" ]; then
+          if [ -n "${CANGJIE_HOME:-}" ] && has_cjc "$CANGJIE_HOME"; then
             SDK="$CANGJIE_HOME"
             echo "using injected CANGJIE_HOME=$SDK"
           # 2) 仓库内 vendored SDK（仅当仓库已携带时）
-          elif [ -x "$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie/bin/cjc" ]; then
+          elif has_cjc "$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie"; then
             SDK="$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie"
             echo "using vendored SDK at $SDK"
           # 3) 自托管 runner 上的固定路径
-          elif [ -n "${CJ_SDK_PATH:-}" ] && [ -x "$CJ_SDK_PATH/bin/cjc" ]; then
+          elif [ -n "${CJ_SDK_PATH:-}" ] && has_cjc "$CJ_SDK_PATH"; then
             SDK="$CJ_SDK_PATH"
             echo "using CJ_SDK_PATH=$SDK"
           # 4) 可选：从直链下载并解压（CI 自包含，免去提交大体积 SDK）
@@ -43,16 +45,17 @@ jobs:
             mkdir -p "$RUNNER_TEMP/cj-sdk"
             curl -fsSL "$CJ_SDK_DOWNLOAD_URL" -o "$RUNNER_TEMP/cj-sdk/sdk.zip" || {
               echo "::error::SDK download failed"; exit 1; }
-            (cd "$RUNNER_TEMP/cj-sdk" && unzip -q sdk.zip) || {
+            (cd "$RUNNER_TEMP/cj-sdk" && (unzip -q sdk.zip || python3 -c "import zipfile;zipfile.ZipFile('sdk.zip').extractall('.')")) || {
               echo "::error::SDK unzip failed"; exit 1; }
-            SDK=$(find "$RUNNER_TEMP/cj-sdk" -maxdepth 3 -type f -name cjc | head -1 | xargs dirname 2>/dev/null)
-            SDK=$(dirname "$SDK")
-            [ -x "$SDK/bin/cjc" ] || { echo "::error::SDK layout unexpected after unzip"; exit 1; }
+            CJC_BIN=$(find "$RUNNER_TEMP/cj-sdk" -maxdepth 6 -type f \( -name cjc -o -name cjc.exe \) | head -1)
+            [ -n "$CJC_BIN" ] || { echo "::error::cjc not found after unzip"; exit 1; }
+            SDK="$(dirname "$(dirname "$CJC_BIN")")"
+            has_cjc "$SDK" || { echo "::error::SDK layout unexpected after unzip: $SDK"; exit 1; }
             echo "using downloaded SDK at $SDK"
           else
             echo "::error::Cangjie 1.1.3 (cjnative) SDK not found."
             echo "请在 runner 上通过以下任一方式提供 SDK："
-            echo "  - 设置 secret/env CANGJIE_HOME 指向 SDK 根（含 bin/cjc）"
+            echo "  - 设置 secret/env CANGJIE_HOME 指向 SDK 根（含 bin/cjc[.exe]）"
             echo "  - 将 vendored SDK 置于仓库 cangjie-sdk-1.1.3/cangjie/"
             echo "  - 设置 secret CJ_SDK_PATH 指向 self-hosted runner 上的 SDK 根"
             echo "  - 设置 secret CJ_SDK_DOWNLOAD_URL 为 SDK zip 直链（CI 自动下载解压）"

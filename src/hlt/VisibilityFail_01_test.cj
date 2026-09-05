@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class ResolutionPrivateAccessTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.ResolutionPrivateAccess.code(), "E3004")
+        @Expect(ErrorCode.OverloadAmbiguity.code(), "E3004")
     }
 
     @TestCase func testReportMethod(): Unit {
@@ -16,6 +16,6 @@ class ResolutionPrivateAccessTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = sema.reportVisibilityFail(span: span, memberName: "privateField", accessPath: "公共访问私有成员")
-        @Expect(diag.code, ErrorCode.ResolutionPrivateAccess)
+        @Expect(diag.code, ErrorCode.OverloadAmbiguity)
     }
 }

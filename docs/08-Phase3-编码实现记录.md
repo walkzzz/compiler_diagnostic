@@ -176,7 +176,7 @@ exit code 0
 ### ErrorCode（9个错误码）
 | 错误码 | 枚举值 | 中文描述 |
 |--------|--------|----------|
-| E0001 | ParserUnterminatedString | 未终止的字符串字面量 |
+| E0001 | ExpectedToken | 未终止的字符串字面量 |
 | E0002 | ParserTypeMismatch | 类型不匹配 |
 | E0003 | ParserExprSyntaxError | 表达式语法错误 |
 | E0004 | ParserUndefinedIdentifier | 未定义的标识符 |

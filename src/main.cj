@@ -134,7 +134,7 @@ private func resultErrDiag(res: Result<DiagnosticResult>): String {
 private func makeEmptyResult(): DiagnosticResult {
     let span = Span(start: SourceLoc(line: 0, column: 0), end: SourceLoc(line: 0, column: 0))
     let msg = DiagnosticMessage(
-        code: ErrorCode.SystemInternalError,
+        code: ErrorCode.FileNotFound,
         message: "",
         span: span,
         severity: "warning",

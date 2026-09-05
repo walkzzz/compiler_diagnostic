@@ -38,7 +38,7 @@ public class PerfBenchmark {
     private func generateSampleDiagnostics(): List<DiagnosticMessage> {
         let result: List<DiagnosticMessage> = ArrayList<DiagnosticMessage>()
         let builder = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "测试消息",
             span: Span(
                 start: SourceLoc(line: 1, column: 0),

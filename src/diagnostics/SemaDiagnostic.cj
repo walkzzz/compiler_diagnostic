@@ -14,7 +14,7 @@ public class SemaDiagnostic {
 
     public func reportGenericInstantiateFail(span!: Span, genericName!: String, constraintViolation!: String): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.TypeConstraintViolation,
+            code: ErrorCode.MissingTypeParam,
             message: "泛型实例化失败：" + genericName + "，" + constraintViolation,
             span: span
         ).build()
@@ -22,7 +22,7 @@ public class SemaDiagnostic {
 
     public func reportOverloadAmbiguity(span!: Span, funcName!: String, candidates!: List<Candidate>): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.TypeAmbiguousOverload,
+            code: ErrorCode.AmbiguousType,
             message: "函数重载歧义：" + funcName + " 有多个匹配的重载",
             span: span
         ).setCandidates(candidates).build()
@@ -30,7 +30,7 @@ public class SemaDiagnostic {
 
     public func reportVisibilityFail(span!: Span, memberName!: String, accessPath!: String): DiagnosticMessage {
         return DiagnosticBuilder(
-            code: ErrorCode.ResolutionPrivateAccess,
+            code: ErrorCode.OverloadAmbiguity,
             message: "不可访问的成员：" + memberName + "，" + accessPath,
             span: span
         ).build()

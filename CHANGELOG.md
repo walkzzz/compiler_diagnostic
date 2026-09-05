@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-05
+
+错误码体系按《仓颉错误码体系（扩展版）》生产级落地（文档权威）。
+
+### Added
+- 按文档扩展版落地全量 **195 条命名子错误码**（19 大类），每条含子码编号、名称、说明、典型错误消息，并采用文档权威的典型消息（如 `expected '(' after 'if'`、`Internal Compiler Error, Error Code: 13`、`package name in cjpm.toml does not match directory name`）。
+- 新增 4 个类别：**Assembler(E43)、Fmt(E73)、Debugger(E74)、Profiler(E75)**；预留区 **E80–E89** 收编原 Sec/Conf/Telem/Lint（E80/E81/E82/E83）。
+- 随文档落地错误级别约定（ERROR / WARNING / NOTE / HELP / ICE）、编号空间规划（E00–E09 前端 … E90–E99 系统）与子码分段规则（001–099 通用、100–199 平台、900–999 预留）。
+- `tools/gen_vscode_map.py` 修复 `balanced()` 括号匹配越界（跨字符串/字符字面量中的括号误计数，导致仅解析 54/1543 条），现正确生成全量 1543 码映射。
+
+### Changed
+- 前缀重排使错误码前缀与文档一致（Opt→E41、Linker→E42、Build→E70、Test→E71、Doc→E72 等）。
+- `cjc_bridge` 关键词映射按文档校正：`unterminated string`/`unclosed string`→`UnterminatedString`(E0003)、`unexpected token`/`mismatched bracket`→`UnexpectedToken`(E0102)、`private`→`AccessViolation`(E1014)、`duplicate definition`/`redefinition`→`Redeclaration`(E1002)、`constraint violated`/`trait bound`→`UnsatisfiedConstraint`(E2003)、`import not found`→`UnresolvedImport`(E3001)。
+- 文档 ICE 级别 `E40-001 InternalCompilerError` 映射到 `Severity.Fatal`（`Severity` 枚举无 `Ice` 变体）。
+- 重复名消歧：`UndefinedSymbol`(E42-001)→`LinkerUndefinedSymbol`、`PackageNameMismatch`(E70-008)→`BuildPackageNameMismatch`；非法标识符 `Macro hygiene violation`(E02-009)→`MacroHygieneViolation`。
+- 注册表总量 1519 → **1543**（`cjc_bridge` 等新增类别补入）。
+
+### Fixed
+- 修复 VS Code 诊断映射表因解析越界长期仅含 54 条（应为 1543 条）的缺陷，现与注册表完全同步。
+
 ## [1.0.1] - 2026-09-05
 
 CI 可靠性加固 + 安全风格消减（非阻断）。

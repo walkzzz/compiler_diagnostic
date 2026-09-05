@@ -10,7 +10,7 @@ import std.collection.*
 @Test
 class ParserUndefinedIdentTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.SemaUndefinedSymbol.code(), "E1001")
+        @Expect(ErrorCode.UndefinedSymbol.code(), "E1001")
     }
 
     @TestCase func testReportMethod(): Unit {
@@ -18,7 +18,7 @@ class ParserUndefinedIdentTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = parser.reportUndefinedIdentifier(span: span, identifier: "foo", candidates: ArrayList<Candidate>([Candidate(name: "Foo", kind: "type"), Candidate(name: "bar", kind: "function")]))
-        @Expect(diag.code, ErrorCode.SemaUndefinedSymbol)
+        @Expect(diag.code, ErrorCode.UndefinedSymbol)
         @Expect(diag.candidates.isSome(), true)
     }
 }

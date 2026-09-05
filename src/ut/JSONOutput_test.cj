@@ -19,7 +19,7 @@ class JSONOutputTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = diagnostic_from_builder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "测试消息",
             span: span
         )
@@ -46,7 +46,7 @@ class JSONOutputTest {
         let loc = SourceLoc(line: 1, column: 1)
         let span = Span(start: loc, end: loc)
         let diag = diagnostic_from_builder(
-            code: ErrorCode.ParserInvalidExpression,
+            code: ErrorCode.ExpectedType,
             message: "包含控制字符\u{01}\u{02}",
             span: span
         )
@@ -59,7 +59,7 @@ class JSONOutputTest {
         let loc = SourceLoc(line: 1, column: 1)
         let span = Span(start: loc, end: loc)
         let diag = diagnostic_from_builder(
-            code: ErrorCode.ParserInvalidExpression,
+            code: ErrorCode.ExpectedType,
             message: "包含反斜杠\\和引号\"",
             span: span
         )

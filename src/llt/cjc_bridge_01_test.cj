@@ -20,13 +20,13 @@ class CjcBridgeIngestTest {
     @TestCase func testUndeclaredIdentifier(): Unit {
         let raw = "error: undeclared identifier 'foo'\n ==> a.cj:3:13:\n"
         match (resolveCjc(raw)) {
-            case Some(c) => @Expect(c == ErrorCode.SemaUndefinedSymbol, true)
+            case Some(c) => @Expect(c == ErrorCode.UndefinedSymbol, true)
             case None => @Expect(false, true)
         }
     }
 
     @TestCase func testSnippetNoFalsePositive(): Unit {
-        // 'private' 仅出现在片段行，不应误命中 ResolutionPrivateAccess
+        // 'private' 仅出现在片段行，不应误命中 OverloadAmbiguity
         let raw = "error: mismatched types\n ==> a.cj:2:20:\n  | privateField\n  | ^\n"
         match (resolveCjc(raw)) {
             case Some(c) => @Expect(c == ErrorCode.TypeMismatch, true)
@@ -39,7 +39,7 @@ class CjcBridgeIngestTest {
         let codes = parseCjcDiagnostics(raw)
         @Expect(codes.size, 2)
         @Expect(codes.contains(ErrorCode.TypeMismatch), true)
-        @Expect(codes.contains(ErrorCode.SemaUndefinedSymbol), true)
+        @Expect(codes.contains(ErrorCode.UndefinedSymbol), true)
     }
 
     @TestCase func testUnknownReturnsNone(): Unit {

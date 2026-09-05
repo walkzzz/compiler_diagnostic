@@ -58,34 +58,35 @@ struct CjcInternalCode {
 func buildCjcPatterns(): ArrayList<CjcPattern> {
     let l = ArrayList<CjcPattern>()
     // Lexer / Parser
-    l.add(CjcPattern(keyword: "unterminated string", code: ErrorCode.ParserUnterminatedString))
-    l.add(CjcPattern(keyword: "unclosed string", code: ErrorCode.ParserUnterminatedString))
-    l.add(CjcPattern(keyword: "mismatched bracket", code: ErrorCode.ParserMismatchedBracket))
-    l.add(CjcPattern(keyword: "unexpected token", code: ErrorCode.ParserInvalidExpression))
-    l.add(CjcPattern(keyword: "unexpected end of file", code: ErrorCode.ParserUnexpectedToken))
+    // Lexer / Parser —— 下述 keyword 映射到文档（扩展版）定义的子错误码
+    l.add(CjcPattern(keyword: "unterminated string", code: ErrorCode.UnterminatedString))   // E00-003
+    l.add(CjcPattern(keyword: "unclosed string", code: ErrorCode.UnterminatedString))       // E00-003
+    l.add(CjcPattern(keyword: "mismatched bracket", code: ErrorCode.UnexpectedToken))       // E01-002
+    l.add(CjcPattern(keyword: "unexpected token", code: ErrorCode.UnexpectedToken))         // E01-002
+    l.add(CjcPattern(keyword: "unexpected end of file", code: ErrorCode.UnexpectedToken))   // E01-002
     l.add(CjcPattern(keyword: "duplicate import", code: ErrorCode.ParserDuplicateImport))
     // Sema / 符号解析
-    l.add(CjcPattern(keyword: "undeclared identifier", code: ErrorCode.SemaUndefinedSymbol))
-    l.add(CjcPattern(keyword: "cannot find", code: ErrorCode.SemaUndefinedSymbol))
+    l.add(CjcPattern(keyword: "undeclared identifier", code: ErrorCode.UndefinedSymbol))
+    l.add(CjcPattern(keyword: "cannot find", code: ErrorCode.UndefinedSymbol))
     l.add(CjcPattern(keyword: "cannot infer", code: ErrorCode.TypeInferenceFailed))
     l.add(CjcPattern(keyword: "type inference", code: ErrorCode.TypeInferenceFailed))
-    l.add(CjcPattern(keyword: "duplicate definition", code: ErrorCode.SemaDuplicateImportItem))
-    l.add(CjcPattern(keyword: "redefinition", code: ErrorCode.SemaDuplicateImportItem))
+    l.add(CjcPattern(keyword: "duplicate definition", code: ErrorCode.Redeclaration))   // E10-002
+    l.add(CjcPattern(keyword: "redefinition", code: ErrorCode.Redeclaration))           // E10-002
     // Type
     l.add(CjcPattern(keyword: "mismatched types", code: ErrorCode.TypeMismatch))
     l.add(CjcPattern(keyword: "type mismatch", code: ErrorCode.TypeMismatch))
-    l.add(CjcPattern(keyword: "ambiguous", code: ErrorCode.TypeAmbiguousOverload))
-    l.add(CjcPattern(keyword: "constraint violated", code: ErrorCode.TypeConstraintViolation))
-    l.add(CjcPattern(keyword: "trait bound", code: ErrorCode.TypeConstraintViolation))
+    l.add(CjcPattern(keyword: "ambiguous", code: ErrorCode.AmbiguousType))
+    l.add(CjcPattern(keyword: "constraint violated", code: ErrorCode.UnsatisfiedConstraint)) // E20-003
+    l.add(CjcPattern(keyword: "trait bound", code: ErrorCode.UnsatisfiedConstraint))         // E20-003
     // Resolution / 可见性 / 导入
-    l.add(CjcPattern(keyword: "private", code: ErrorCode.ResolutionPrivateAccess))
-    l.add(CjcPattern(keyword: "module not found", code: ErrorCode.ResolutionModuleNotFound))
-    l.add(CjcPattern(keyword: "import not found", code: ErrorCode.ResolutionImportNotFound))
+    l.add(CjcPattern(keyword: "private", code: ErrorCode.AccessViolation))               // E10-014
+    l.add(CjcPattern(keyword: "module not found", code: ErrorCode.UnresolvedImport))     // E30-001
+    l.add(CjcPattern(keyword: "import not found", code: ErrorCode.UnresolvedImport))      // E30-001
     // Macro
-    l.add(CjcPattern(keyword: "macro", code: ErrorCode.MacroUndefinedIdentifier))
+    l.add(CjcPattern(keyword: "macro", code: ErrorCode.MacroNotFound))
     // Runtime / 内存
-    l.add(CjcPattern(keyword: "null pointer", code: ErrorCode.RuntimeNullDereference))
-    l.add(CjcPattern(keyword: "null dereference", code: ErrorCode.RuntimeNullDereference))
+    l.add(CjcPattern(keyword: "null pointer", code: ErrorCode.NullPointerDereference))
+    l.add(CjcPattern(keyword: "null dereference", code: ErrorCode.NullPointerDereference))
     // Backend / 链接
     l.add(CjcPattern(keyword: "llvm verify", code: ErrorCode.BackendLlvmVerifyFailed))
     l.add(CjcPattern(keyword: "linker", code: ErrorCode.CodegenLinkerFailed))
@@ -97,9 +98,9 @@ func buildCjcInternalCodes(): ArrayList<CjcInternalCode> {
     let l = ArrayList<CjcInternalCode>()
     // 下列 raw 为 cjc 官方内部码（intellij-cangjie 语义），右侧为本工程 ErrorCode。
     l.add(CjcInternalCode(raw: "e667", code: ErrorCode.TypeMismatch))          // type mismatch
-    l.add(CjcInternalCode(raw: "e75", code: ErrorCode.SemaUndefinedSymbol))    // undeclared identifier
-    l.add(CjcInternalCode(raw: "e673", code: ErrorCode.SemaDuplicateImportItem)) // duplicate definition
-    l.add(CjcInternalCode(raw: "e488", code: ErrorCode.ResolutionModuleNotFound)) // package/module not found
+    l.add(CjcInternalCode(raw: "e75", code: ErrorCode.UndefinedSymbol))    // undeclared identifier
+    l.add(CjcInternalCode(raw: "e673", code: ErrorCode.AbstractInstantiation)) // duplicate definition
+    l.add(CjcInternalCode(raw: "e488", code: ErrorCode.UnresolvedImport)) // package/module not found
     l.add(CjcInternalCode(raw: "e671", code: ErrorCode.TypeInferenceFailed))   // cannot infer type
     return l
 }

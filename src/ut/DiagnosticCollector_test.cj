@@ -12,7 +12,7 @@ class DiagnosticCollectorTest {
         let loc = SourceLoc(line: 1, column: 0)
         let span = Span(start: loc, end: loc)
         let diag = DiagnosticBuilder(
-            code: ErrorCode.ParserUnterminatedString,
+            code: ErrorCode.ExpectedToken,
             message: "test",
             span: span
         ).build()
@@ -24,7 +24,7 @@ class DiagnosticCollectorTest {
         let collector = DiagnosticCollector()
         let loc = SourceLoc(line: 1, column: 0)
         let span = Span(start: loc, end: loc)
-        let diag1 = DiagnosticBuilder(code: ErrorCode.ParserUnterminatedString, message: "m1", span: span).build()
+        let diag1 = DiagnosticBuilder(code: ErrorCode.ExpectedToken, message: "m1", span: span).build()
         let diag2 = DiagnosticBuilder(code: ErrorCode.TypeMismatch, message: "m2", span: span).build()
         let list: List<DiagnosticMessage> = ArrayList<DiagnosticMessage>([diag1, diag2])
         collector.addAll(list)
@@ -51,7 +51,7 @@ class DiagnosticCollectorTest {
         let collector = DiagnosticCollector()
         let loc = SourceLoc(line: 1, column: 0)
         let span = Span(start: loc, end: loc)
-        let diag = DiagnosticBuilder(code: ErrorCode.ParserInvalidExpression, message: "m", span: span).build()
+        let diag = DiagnosticBuilder(code: ErrorCode.ExpectedType, message: "m", span: span).build()
         collector.add(diag)
         @Expect(collector.count(), 1)
         collector.clear()
@@ -62,8 +62,8 @@ class DiagnosticCollectorTest {
         let collector = DiagnosticCollector()
         let loc = SourceLoc(line: 1, column: 0)
         let span = Span(start: loc, end: loc)
-        let d1 = DiagnosticBuilder(code: ErrorCode.ParserUnterminatedString, message: "a", span: span).build()
-        let d2 = DiagnosticBuilder(code: ErrorCode.ParserUnterminatedString, message: "b", span: span).build()
+        let d1 = DiagnosticBuilder(code: ErrorCode.ExpectedToken, message: "a", span: span).build()
+        let d2 = DiagnosticBuilder(code: ErrorCode.ExpectedToken, message: "b", span: span).build()
         let d3 = DiagnosticBuilder(code: ErrorCode.TypeMismatch, message: "c", span: span).build()
         collector.add(d1)
         collector.add(d2)
@@ -71,7 +71,7 @@ class DiagnosticCollectorTest {
         let groups = collector.groupByCode()
         @Expect(groups.size, 2)
         // E0001 should have 2 entries
-        let e0001List = groups.get(ErrorCode.ParserUnterminatedString.code()).getOrThrow()
+        let e0001List = groups.get(ErrorCode.ExpectedToken.code()).getOrThrow()
         @Expect(e0001List.size, 2)
         // E1001 should have 1 entry
         let e1001List = groups.get(ErrorCode.TypeMismatch.code()).getOrThrow()

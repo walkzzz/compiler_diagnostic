@@ -8,7 +8,7 @@ import compiler_diagnostic.diagnostics.*
 @Test
 class TypeConstraintViolationTest {
     @TestCase func testErrorCode(): Unit {
-        @Expect(ErrorCode.TypeConstraintViolation.code(), "E2006")
+        @Expect(ErrorCode.MissingTypeParam.code(), "E2006")
     }
 
     @TestCase func testReportMethod(): Unit {
@@ -16,6 +16,6 @@ class TypeConstraintViolationTest {
         let loc = SourceLoc(line: 10, column: 5)
         let span = Span(start: loc, end: loc)
         let diag = sema.reportGenericInstantiateFail(span: span, genericName: "List<T>", constraintViolation: "类型约束不满足")
-        @Expect(diag.code, ErrorCode.TypeConstraintViolation)
+        @Expect(diag.code, ErrorCode.MissingTypeParam)
     }
 }
