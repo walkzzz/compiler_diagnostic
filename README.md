@@ -168,18 +168,29 @@ compiler-diagnostic/
 | `cjpm build` | exit code 0 | ✅ |
 | 编译警告 | warning = 0（不使用 `-Woff all` 屏蔽） | ✅ |
 | 三层测试 | UT + HLT + LLT 全绿 | ✅ 87 用例全部通过（ut 47 + hlt 22 + llt 18） |
-| `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 最新扫描 MANDATORY=0；SUGGESTIONS 级 482 项（非阻断，多为命名/风格约定；G.PKG.01 通配导入受 1.1.3 命名导入限制） |
+| `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 最新扫描 MANDATORY=0；SUGGESTIONS 级 893 项（非阻断，详见下文；其中约 46% 为框架强制的误报） |
 
 > 注：`ci_test/` 为早期遗留测试框架（HLT/LLT 已迁移至 `src/hlt`、`src/llt` 并经 `cjpm test` 运行），保留仅为历史兼容；当前工程零警告，由 `cjpm build` 与 CI 的 warning=0 门禁共同保证。
 
 ## 已知非阻断提示（cjlint SUGGESTIONS）
 
-cjlint 最新扫描 `src/` 共报告 482 条 `SUGGESTIONS`（非 MANDATORY，不阻断赛事门禁），主要类别：
+cjlint 最新扫描 `src/` 共报告 **893 条 `SUGGESTIONS`**（非 MANDATORY，不阻断赛事门禁 `MANDATORY=0`）。按规则族分布：
 
-- `G.PKG.01` 通配符导入（如 `import x.*`）—— 可读性建议
-- `G.NAM.01 / G.NAM.02 / G.NAM.03 / G.NAM.04` 命名与文件名风格建议
-- `G.ERR.01 / G.ERR.03` 异常处理建议
-- `G.ITF.02 / G.ITF.04` 接口使用建议
-- `G.VAR.02` 变量作用域建议
+| 规则族 | 数量 | 性质 |
+|--------|------|------|
+| `G.PKG.01` 通配符导入（`import x.*`） | 292 | **框架强制误报**：`@Test` 宏与测试框架、以及 `compiler_diagnostic.*` 再导出模式均要求通配导入，无法消除 |
+| `G.NAM.01` 包名应匹配路径 | 117 | **框架强制误报**：cjpm 1.1.3 官方 colocated 布局要求包名 `compiler_diagnostic.{ut,hlt,llt}`，与 cjlint 的"包名=路径段"期望冲突 |
+| `G.NAM.02` 文件名小写 | 76 | 风格建议（如 `JSONOutput.cj`） |
+| `G.ITF.04` 避免直接以接口作类型 | 68 | 风格建议 |
+| `G.ERR.01` 异常处理 | 68 | 风格建议 |
+| `G.NAM.03` 标识符命名 | 62 | 风格建议 |
+| `G.ITF.02` 优先在类型定义处实现接口 | 62 | 风格建议 |
+| `G.VAR.02` 变量最小作用域 | 46 | 风格建议（多数可安全收窄） |
+| `G.ERR.03` 避免 `Option.getOrThrow` | 42 | 风格建议 |
+| `G.FUN.01` 函数单一职责 | 37 | 风格建议 |
+| `G.VAR.01` 优先不可变 | 15 | 风格建议（`var`→`let`） |
+| `G.NAM.04` 函数命名 | 8 | 风格建议 |
 
-以上均属风格建议，不影响编译、运行与赛事 `MANDATORY=0` 门禁。
+- 上述均属**风格建议**，不影响编译、运行与赛事 `MANDATORY=0` 门禁；CI 中 `tools/cjlint_check.py` 仅对 `MANDATORY` 级失败。
+- 前两类（共 409 项，约 46%）为仓颉 1.1.3 工具链布局/导入约束带来的**强制性误报**，消除它们会破坏 cjpm 官方布局或必需的通配导入，故保留现状；其余类别为可逐步优化的命名/接口/作用域风格，按需处理。
+- `from-cjc` 子命令已端到端验证：输入真实 cjc ANSI 报错可映射为结构化 JSON（如 `[{"code":"E2001"},{"code":"E1001"}]`）。
