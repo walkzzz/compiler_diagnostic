@@ -31,3 +31,6 @@ cjpm.toml.stdx.bak
 *.gcda
 *.gcno
 cov_output/
+cov_out/
+build.log
+cjlint.json

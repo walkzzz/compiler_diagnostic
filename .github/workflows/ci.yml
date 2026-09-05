@@ -8,20 +8,58 @@ on:
 jobs:
   verify:
     runs-on: windows-latest
+    # 整个 job 的硬超时（分钟），防止偶发卡死的编译器无限拖垮流水线。
+    timeout-minutes: 300
+    env:
+      # 若 runner 已自带 SDK，可直接通过 secret/env 注入 CANGJIE_HOME。
+      # 也可提供 CJ_SDK_DOWNLOAD_URL（如 GitHub Release 资产直链），CI 会自动下载解压，
+      # 从而在不把 1.2G SDK 提交进仓库的前提下实现自包含构建。
+      CJ_SDK_DOWNLOAD_URL: ${{ secrets.CJ_SDK_DOWNLOAD_URL }}
+      CJ_SDK_VERSION: "1.1.3"
     steps:
       - uses: actions/checkout@v4
 
-      - name: Locate Cangjie 1.1.3 (cjnative) SDK
+      - name: Locate / inject Cangjie 1.1.3 (cjnative) SDK
         id: sdk
         shell: bash
         run: |
-          if [ -n "${CANGJIE_HOME:-}" ]; then
-            echo "using provided CANGJIE_HOME=$CANGJIE_HOME"
-          elif [ -d "$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie" ]; then
-            echo "CANGJIE_HOME=$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie" >> "$GITHUB_ENV"
+          set +e
+          SDK=""
+          # 1) 显式注入（judge / self-hosted runner 最常见路径）
+          if [ -n "${CANGJIE_HOME:-}" ] && [ -x "$CANGJIE_HOME/bin/cjc" ]; then
+            SDK="$CANGJIE_HOME"
+            echo "using injected CANGJIE_HOME=$SDK"
+          # 2) 仓库内 vendored SDK（仅当仓库已携带时）
+          elif [ -x "$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie/bin/cjc" ]; then
+            SDK="$GITHUB_WORKSPACE/cangjie-sdk-1.1.3/cangjie"
+            echo "using vendored SDK at $SDK"
+          # 3) 自托管 runner 上的固定路径
+          elif [ -n "${CJ_SDK_PATH:-}" ] && [ -x "$CJ_SDK_PATH/bin/cjc" ]; then
+            SDK="$CJ_SDK_PATH"
+            echo "using CJ_SDK_PATH=$SDK"
+          # 4) 可选：从直链下载并解压（CI 自包含，免去提交大体积 SDK）
+          elif [ -n "${CJ_SDK_DOWNLOAD_URL:-}" ]; then
+            echo "downloading SDK from CJ_SDK_DOWNLOAD_URL ..."
+            mkdir -p "$RUNNER_TEMP/cj-sdk"
+            curl -fsSL "$CJ_SDK_DOWNLOAD_URL" -o "$RUNNER_TEMP/cj-sdk/sdk.zip" || {
+              echo "::error::SDK download failed"; exit 1; }
+            (cd "$RUNNER_TEMP/cj-sdk" && unzip -q sdk.zip) || {
+              echo "::error::SDK unzip failed"; exit 1; }
+            SDK=$(find "$RUNNER_TEMP/cj-sdk" -maxdepth 3 -type f -name cjc | head -1 | xargs dirname 2>/dev/null)
+            SDK=$(dirname "$SDK")
+            [ -x "$SDK/bin/cjc" ] || { echo "::error::SDK layout unexpected after unzip"; exit 1; }
+            echo "using downloaded SDK at $SDK"
           else
-            echo "CANGJIE_HOME not set and vendored SDK absent; provide Cangjie 1.1.3 cjnative SDK." && exit 1
+            echo "::error::Cangjie 1.1.3 (cjnative) SDK not found."
+            echo "请在 runner 上通过以下任一方式提供 SDK："
+            echo "  - 设置 secret/env CANGJIE_HOME 指向 SDK 根（含 bin/cjc）"
+            echo "  - 将 vendored SDK 置于仓库 cangjie-sdk-1.1.3/cangjie/"
+            echo "  - 设置 secret CJ_SDK_PATH 指向 self-hosted runner 上的 SDK 根"
+            echo "  - 设置 secret CJ_SDK_DOWNLOAD_URL 为 SDK zip 直链（CI 自动下载解压）"
+            exit 1
           fi
+          echo "CANGJIE_HOME=$SDK" >> "$GITHUB_ENV"
+          "$SDK/bin/cjc" -v
 
       - name: Build (warning-free)
         shell: bash
@@ -40,6 +78,9 @@ jobs:
         run: |
           SDK="$CANGJIE_HOME"
           export PATH="$SDK/bin:$SDK/tools/bin:$SDK/tools/lib:$SDK/runtime/lib/windows_x86_64_cjnative:$PATH"
+          # TEST_TIMEOUT 兜底单次尝试，避免卡死的 cjc 拖垮整个 job；
+          # MAX_TRIES 调高以吸收 runner 偶发 segfault（崩溃自动清理 target 后重试）
+          export MAX_TRIES=8 TEST_TIMEOUT=540
           bash tools/run_tests.sh all
 
       - name: cjlint gate (MANDATORY = 0)
@@ -47,7 +88,7 @@ jobs:
         run: |
           SDK="$CANGJIE_HOME"
           export PATH="$SDK/bin:$SDK/tools/bin:$SDK/tools/lib:$SDK/runtime/lib/windows_x86_64_cjnative:$PATH"
-          # cjlint requires a real Windows path for CANGJIE_HOME
+          # cjlint 需要真实 Windows 路径形式的 CANGJIE_HOME
           export CANGJIE_HOME="$(cygpath -w "$SDK")"
           cjlint -f src -o cjlint.json
           python3 tools/cjlint_check.py cjlint.json

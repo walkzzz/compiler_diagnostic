@@ -338,11 +338,11 @@ public enum ErrorCategory <: Equatable<ErrorCategory> {
 
 /// 错误码元数据（集中存放，避免在每个访问方法中重复 match）
 struct ErrorMeta {
-    var code: String
-    var category: ErrorCategory
-    var severity: Severity
-    var template: String
-    var fix: Option<FixSuggestion>
+    let code: String
+    let category: ErrorCategory
+    let severity: Severity
+    let template: String
+    let fix: Option<FixSuggestion>
     /// 结构化关联备注（B 方案：related notes / secondary labels）。每条绑定一个 span 角色名，
     /// 由诊断生产者据角色解析真实 Span；无角色绑定时作为纯文本备注展示。
     var notes: ArrayList<DiagnosticNote> = ArrayList<DiagnosticNote>()

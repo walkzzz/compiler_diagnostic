@@ -104,7 +104,7 @@ public class PatternMatcher {
         for (p in FormalLibrary.PATTERNS) {
             arr.add(p)
         }
-        var n = arr.size
+        let n = arr.size
         var i = 0
         while (i < n) {
             var j = 0

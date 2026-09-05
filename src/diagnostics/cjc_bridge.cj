@@ -33,9 +33,9 @@ import std.collection.*
 /// 单条桥接规则：在 cjc 诊断消息（已转小写）中命中 `keyword` 子串 → 映射到 `code`。
 struct CjcPattern {
     /// 用于匹配的子串（小写）
-    var keyword: String
+    let keyword: String
     /// 映射目标错误码变体
-    var code: ErrorCode
+    let code: ErrorCode
 
     public init(keyword!: String, code!: ErrorCode) {
         this.keyword = keyword
@@ -45,8 +45,8 @@ struct CjcPattern {
 
 /// cjc 内部码（如 E667）→ 本工程 ErrorCode 的确定性映射（可选增强路径）。
 struct CjcInternalCode {
-    var raw: String
-    var code: ErrorCode
+    let raw: String
+    let code: ErrorCode
 
     public init(raw!: String, code!: ErrorCode) {
         this.raw = raw

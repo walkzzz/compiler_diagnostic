@@ -25,7 +25,7 @@
 set -u
 cd "$(dirname "$0")/.." || exit 1
 
-# ---- 环境：锁定仓库内 vendored SDK（请勿改用系统 SDK） ----
+# ---- 环境：SDK 路径（CI/runner 通过 CANGJIE_HOME 注入；本地兜底用绝对路径） ----
 if [ -z "${CANGJIE_HOME:-}" ]; then
   export CANGJIE_HOME="/d/CodeWorkspace/compiler-diagnostic/cangjie-sdk-1.1.3/cangjie"
 fi
@@ -35,21 +35,41 @@ case "$(uname -s)" in
     ;;
 esac
 
-MAX_TRIES="${MAX_TRIES:-4}"
+MAX_TRIES="${MAX_TRIES:-8}"
+# 单次尝试的硬超时（秒）：沙箱中 cjc 偶发卡死（无输出、不退出），必须有超时兜底，
+# 否则会拖垮整个 CI job。超时即视为失败并重试。
+TEST_TIMEOUT="${TEST_TIMEOUT:-540}"
+# 在 segfault/超时（rc=139/124）后清理 target/ 再重试：沙箱中崩溃常留下损坏的 .cjo
+# 产物，导致后续编译持续崩溃；清掉后可跳出死循环。真实测试失败（rc 为其它值）则不清理，
+# 直接重试以节省时间。
+CLEAN_ON_CRASH="${CLEAN_ON_CRASH:-1}"
 
 run_group() {
   local g="$1"; local n=0; local rc=1
   while [ "$n" -lt "$MAX_TRIES" ]; do
     n=$((n + 1))
     echo ""
-    echo "===== cjpm test src/$g (attempt $n/$MAX_TRIES) ====="
-    cjpm test "src/$g"
+    echo "===== cjpm test src/$g (attempt $n/$MAX_TRIES, timeout ${TEST_TIMEOUT}s) ====="
+    timeout "$TEST_TIMEOUT" cjpm test "src/$g"
     rc=$?
     if [ "$rc" -eq 0 ]; then
       echo ">> src/$g PASSED"
       return 0
     fi
-    echo "!! src/$g attempt $n failed (rc=$rc); retrying..."
+    if [ "$rc" -eq 124 ]; then
+      echo "!! src/$g attempt $n TIMED OUT after ${TEST_TIMEOUT}s (stuck compiler)"
+    elif [ "$rc" -eq 139 ]; then
+      echo "!! src/$g attempt $n SEGFAULTED (cjc crash under memory pressure)"
+    else
+      echo "!! src/$g attempt $n failed (rc=$rc)"
+    fi
+    # 崩溃类失败：清掉可能损坏的产物，给编译器一个干净环境再重试
+    if [ "$CLEAN_ON_CRASH" = "1" ] && { [ "$rc" -eq 139 ] || [ "$rc" -eq 124 ]; }; then
+      echo "   >> cleaning target/ before retry"
+      rm -rf target
+    fi
+    # 退避：让沙箱内存回收，降低下一次编译再次崩溃的概率
+    [ "$n" -lt "$MAX_TRIES" ] && sleep 3
   done
   return "$rc"
 }

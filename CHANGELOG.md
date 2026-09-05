@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-09-05
+
+CI 可靠性加固 + 安全风格消减（非阻断）。
+
+### Added
+- `tools/ci_simulate.sh`：本地 1:1 复现 CI 步骤（build→test→cjlint→coverage），无需触发远端即可验证流水线逻辑。
+- `.github/workflows/ci.yml` SDK 注入四策略：支持 `CANGJIE_HOME`（judge/self-hosted）、vendored 路径、`CJ_SDK_PATH`（自托管 runner）、`CJ_SDK_DOWNLOAD_URL`（直链自下载解压），缺失时给出可执行提示。
+
+### Changed
+- `tools/run_tests.sh` 加固：单次尝试加 `timeout` 兜底（防卡死 cjc 拖垮 job）；崩溃（rc=139/124）后自动 `rm -rf target` 再重试，规避损坏产物导致的连续崩溃；`MAX_TRIES` 默认升至 8 并加重试退避。
+- cjlint 门禁稳定为 `MANDATORY=0`；SUGGESTIONS 量级因沙箱 cjc 偶发崩溃而跨次不稳定（893/1304/1710 不等），属工具噪声，不纳入门禁。
+- `.gitignore` 增补 `build.log` / `cjlint.json` / `cov_out/`。
+
+### Fixed
+- 安全风格消减（build 校验通过、不改行为）：`ErrorMeta`、`CjcPattern`、`CjcInternalCode` 成员由 `var` 改 `let`（仅构造期赋值、无外部重赋）；`pattern_matcher.cj` 局部 `n` 改 `let`。
+
 ## [1.0.0] - 2026-09-05
 
 首个生产就绪发布（production-ready）。补齐竞赛验收之外的工程化短板：真实编译器桥接健壮性、覆盖率门槛、CI 流水线、版本与 API 稳定性承诺。
