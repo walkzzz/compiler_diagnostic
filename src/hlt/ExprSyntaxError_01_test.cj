@@ -3,7 +3,7 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.diagnostics.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "ParserInvalidExpressionTest"
+// EXEC: cjpm test --filter "ParserInvalidExpressionTest"
 // EXPECT: TOTAL:.*2
 @Test
 class ParserInvalidExpressionTest {

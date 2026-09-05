@@ -1,5 +1,5 @@
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "ParserDiag01Test"
+// EXEC: cjpm test --filter "ParserDiag03Test"
 // EXPECT: TOTAL:.*2
 package compiler_diagnostic.llt
 import compiler_diagnostic.diagnostics.*
@@ -12,13 +12,13 @@ import compiler_diagnostic.diagnostics.Span
 import compiler_diagnostic.diagnostics.ParserDiagnostic
 
 @Test
-class ParserDiag01Test {
-    @TestCase func testUnterminatedString(): Unit {
+class ParserDiag03Test {
+    @TestCase func testExprSyntaxError(): Unit {
         let parser = ParserDiagnostic()
         let loc = SourceLoc(line: 10, column: 5)
-        let span = Span(start: loc, end: SourceLoc(line: 10, column: 20))
-        let diag = parser.reportUnterminatedString(span: span)
-        @Expect(diag.code.code(), "E0101")
-        @Expect(diag.message.contains("未终止"), true)
+        let span = Span(start: loc, end: loc)
+        let diag = parser.reportExprSyntaxError(span: span)
+        @Expect(diag.code.code(), "E0105")
+        @Expect(diag.message.contains("语法错误"), true)
     }
 }

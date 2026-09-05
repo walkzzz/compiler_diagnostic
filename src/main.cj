@@ -10,6 +10,7 @@ import compiler_diagnostic.diagnostics.*
 import compiler_diagnostic.diagnostic_scheduler.DiagnosticScheduler
 import compiler_diagnostic.diagnostic_scheduler.DiagnosticResult
 import std.collection.*
+import std.fs.*
 
 /// 性能基线（由 `cjpm run` 真实测量后固化，用于回归检测；timeRatio <= 1.05 视为通过）
 /// 实测：elapsedMs≈0.0（MonoTime 亚毫秒分辨率，操作过快显示为 0）、peakMemoryMB≈0.041
@@ -21,6 +22,7 @@ main(args: Array<String>): Int64 {
     match (sub) {
         case Subcommand.Run(r) => runCli(r)
         case Subcommand.Diagnose(d) => diagnoseCli(d)
+        case Subcommand.FromCjc(f) => fromCjcCli(f)
         case Subcommand.Default => defaultMain(args)
     }
 }
@@ -80,6 +82,36 @@ func diagnoseCli(d: DiagnoseArgs): Int64 {
         case Err(_) => makeEmptyResult()
     }
     println(DiagnosticScheduler.renderText(result))
+    return 0
+}
+
+/// from-cjc 子命令：读取 cjc 文本诊断输出文件 -> 解析为结构化 ErrorCode -> 输出 JSON 数组。
+/// 让 cjc_bridge 桥接层从“死代码”变为真实可用：可直接消费真实 cjc 报错。
+func fromCjcCli(f: FromCjcArgs): Int64 {
+    if (f.inputFile == "") {
+        println("usage: compiler_diagnostic from-cjc <cjc-output-file>")
+        return 2
+    }
+    var raw = ""
+    try {
+        let bytes = File.readFrom(f.inputFile)
+        raw = String.fromUtf8(bytes)
+    } catch (e: Exception) {
+        println("读取文件失败: " + f.inputFile)
+        return 2
+    }
+    let codes = parseCjcDiagnostics(raw)
+    var json = "["
+    var i = 0
+    while (i < codes.size) {
+        if (i > 0) {
+            json = json + ","
+        }
+        json = json + "{\"code\":\"" + getCodeStr(codes[i]) + "\"}"
+        i = i + 1
+    }
+    json = json + "]"
+    println(json)
     return 0
 }
 

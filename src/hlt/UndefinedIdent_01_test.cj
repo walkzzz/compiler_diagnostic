@@ -5,7 +5,7 @@ import compiler_diagnostic.diagnostics.*
 import std.collection.*
 import std.collection.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "ParserUndefinedIdentTest"
+// EXEC: cjpm test --filter "ParserUndefinedIdentTest"
 // EXPECT: TOTAL:.*2
 @Test
 class ParserUndefinedIdentTest {

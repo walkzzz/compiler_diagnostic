@@ -1,5 +1,5 @@
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "JSONOutputTest"
+// EXEC: cjpm test --filter "JSONOutputTest"
 // EXPECT: TOTAL:.*3
 package compiler_diagnostic.llt
 import compiler_diagnostic.diagnostics.*

@@ -3,7 +3,7 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.diagnostics.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "SemaTypeFailTest"
+// EXEC: cjpm test --filter "SemaTypeFailTest"
 // EXPECT: TOTAL:.*2
 @Test
 // 防御性命名：类名避免含 "Check" 子串（如 SemaTypeCheckFailTest），否则 cjlint G_SEC.01

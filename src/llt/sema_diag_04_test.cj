@@ -1,5 +1,5 @@
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "SemaDiag04Test"
+// EXEC: cjpm test --filter "SemaDiag04Test"
 // EXPECT: TOTAL:.*2
 package compiler_diagnostic.llt
 import compiler_diagnostic.diagnostics.*

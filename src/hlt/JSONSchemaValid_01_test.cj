@@ -3,7 +3,7 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.output.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "JSONSchemaValidTest"
+// EXEC: cjpm test --filter "JSONSchemaValidTest"
 // EXPECT: TOTAL:.*2
 @Test
 class JSONSchemaValidTest {

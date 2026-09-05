@@ -3,7 +3,7 @@ import std.unittest.testmacro.*
 import std.unittest.*
 import compiler_diagnostic.diagnostics.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "ErrorCodeTest"
+// EXEC: cjpm test --filter "ErrorCodeTest"
 // EXPECT: TOTAL:.*4
 @Test
 class ParserUnterminatedStringTest {

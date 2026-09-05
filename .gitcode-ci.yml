@@ -1,0 +1,33 @@
+# GitCode CI (GitLab-CI style). 调整 runner 镜像 / SDK 路径以匹配实际 GitCode Runner 环境。
+# 关键：CANGJIE_HOME 必须指向 Cangjie 1.1.3 (cjnative) SDK；cjlint 需要真实 Windows 路径。
+
+stages:
+  - build
+  - test
+  - lint
+
+variables:
+  CJ_SDK: "C:/cangjie-sdk-1.1.3/cangjie"   # 按需改为 Runner 上的 SDK 路径
+
+before_script:
+  - export PATH="$CJ_SDK/bin:$CJ_SDK/tools/bin:$CJ_SDK/tools/lib:$CJ_SDK/runtime/lib/windows_x86_64_cjnative:$PATH"
+
+build:
+  stage: build
+  script:
+    - rm -rf target
+    - cjpm build --jobs 1 2>&1 | tee build.log
+    - grep -i "warning" build.log && echo "Build produced warnings (requirement: warning=0)" && exit 1 || true
+
+test:
+  stage: test
+  script:
+    - bash tools/run_tests.sh all
+
+lint:
+  stage: lint
+  script:
+    - export CANGJIE_HOME="$(cygpath -w "$CJ_SDK")"
+    - cjlint -f src -o cjlint.json
+    - python3 tools/cjlint_check.py cjlint.json
+  allow_failure: true

@@ -5,7 +5,7 @@ import compiler_diagnostic.diagnostics.*
 import std.collection.*
 import std.collection.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "TypeAmbiguousOverloadTest"
+// EXEC: cjpm test --filter "TypeAmbiguousOverloadTest"
 // EXPECT: TOTAL:.*2
 @Test
 class TypeAmbiguousOverloadTest {

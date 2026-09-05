@@ -2,15 +2,17 @@
 cjc-version = "1.1.3"
 name = "compiler_diagnostic"
 description = "编译器诊断质量提升 - 结构化诊断、JSON输出、性能基准测试"
-version = "0.1.0"
+version = "1.0.0"
 output-type = "executable"
 category = "utility"
 target-dir = "target"
 src-dir = "src"
-# 独立测试包：测试源码统一放在顶层 test/ 下，与 src/ 生产代码物理隔离，
-# 子包按层次拆分（test/ut 单元测试 / test/hlt 高层测试 / test/llt 端到端测试）。
-# 按子包独立运行：cjpm test ut | cjpm test hlt | cjpm test llt；全量：cjpm test
-test-dir = "test"
+# 单元测试布局（遵循仓颉 cjpm 1.1.3 官方约定）：
+# 测试源码与对应生产包同处于 src/ 源码集，文件名必须以 `_test.cj` 结尾，
+# 由 cjpm 在 `cjpm test` 时自动识别并仅以 --test 编译，普通 `cjpm build` 会排除它们。
+# 三层测试包：src/ut（单元测试）、src/hlt（高层测试）、src/llt（端到端测试），
+# 包名分别为 compiler_diagnostic.{ut,hlt,llt}。
+# 运行：全量 `cjpm test`；按类名筛选 `cjpm test --filter "ClassName"`。
 
 [dependencies]
 # 无外部依赖，仅使用 std 和 stdx

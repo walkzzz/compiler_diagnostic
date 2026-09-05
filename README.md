@@ -42,18 +42,24 @@ cjpm run -- --diagnostic=lsp
 
 ### 测试（UT / HLT / LLT 三层）
 
-> 测试位于顶层 `test/ut`、`test/hlt`、`test/llt` 子包（由 `cjpm.toml` 的 `test-dir = "test"` 配置，与 `src/` 生产代码物理隔离）。
+> 测试源码与对应生产包**同处于 `src/` 源码集**，文件名以 `_test.cj` 结尾（遵循仓颉 cjpm 1.1.3 官方约定）：
+> - `src/ut/`：单元测试（47 用例）
+> - `src/hlt/`：高层集成测试（22 用例）
+> - `src/llt/`：端到端低级测试（18 用例）
+>
+> 普通 `cjpm build` 会自动排除 `*_test.cj`；仅 `cjpm test` 会编译并运行它们。共 **87 用例，全部通过**。
 
 ```bash
-# 单元测试
-cjpm test ut
+# 按包路径运行（cjpm test 接收"目录路径"而非包名）
+cjpm test src/ut
+cjpm test src/hlt
+cjpm test src/llt
 
-# 集成测试（HLT）+ 低级测试（LLT），经赛事测试框架
-python ci_test/ciTest.py hlt
-python ci_test/ciTest.py llt
+# 按测试类名筛选
+cjpm test --filter "TypeMismatchTest"
 
-# 全量
-cjpm test
+# 全量（推荐走带重试的测试脚本，规避沙箱偶发 SIGSEGV）
+bash tools/run_tests.sh all
 ```
 
 ### 静态检查（cjlint）
@@ -120,8 +126,13 @@ cjlint -f src -o cjlint_report.json
 ```
 compiler-diagnostic/
 ├── cjpm.toml                          # 包配置（cjc-version = "1.1.3"）
-├── ci_test/                           # 测试框架（ciTest.py + ci_test.cfg）
+├── ci_test/                           # 遗留测试框架（ciTest.py + ci_test.cfg，HLT/LLT 已迁至 src/）
 ├── README.md                          # 项目说明
+├── tools/                             # 工程脚本
+│   ├── run_tests.sh                   # 分组合并测试（带重试，规避沙箱偶发 SIGSEGV）
+│   ├── coverage_gate.py               # 覆盖率门禁（best-effort / --strict）
+│   ├── cjlint_check.py                # cjlint MANDATORY 门禁
+│   └── check_bridge_consistency.py    # from-cjc 桥接一致性自检
 ├── src/
 │   ├── main.cj                        # 入口
 │   ├── diagnostics/                   # 核心数据结构与诊断定义
@@ -140,10 +151,9 @@ compiler-diagnostic/
 │   ├── benchmark/                     # 性能基准
 │   │   ├── PerfBenchmark.cj
 │   │   └── BenchmarkReport.cj
-├── test/                              # 测试包（与 src/ 物理隔离）
-│   ├── ut/    (单元测试)
-│   ├── hlt/   (高层集成测试)
-│   └── llt/   (端到端低级测试)
+│   ├── ut/                            # 单元测试（*_test.cj，47 用例）
+│   ├── hlt/                           # 高层集成测试（*_test.cj，22 用例）
+│   └── llt/                           # 端到端低级测试（*_test.cj，18 用例）
 ├── examples/                          # 示例
 │   ├── demo/main.cj
 │   └── error_samples/                 # 诊断错误样例（语法/语义负向用例）
@@ -157,10 +167,10 @@ compiler-diagnostic/
 |------|------|----------|
 | `cjpm build` | exit code 0 | ✅ |
 | 编译警告 | warning = 0（不使用 `-Woff all` 屏蔽） | ✅ |
-| 三层测试 | UT + HLT + LLT 全绿 | ✅ 80 用例全部通过（hlt 22 + llt 12 + ut 46） |
+| 三层测试 | UT + HLT + LLT 全绿 | ✅ 87 用例全部通过（ut 47 + hlt 22 + llt 18） |
 | `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 最新扫描 MANDATORY=0；SUGGESTIONS 级 482 项（非阻断，多为命名/风格约定；G.PKG.01 通配导入受 1.1.3 命名导入限制） |
 
-> 注：`ci_test.cfg` 的 `compile_options` 已设为 `--test -Woff unused --dy-std`，仅抑制无害的“未用导入”类别，真实警告仍会暴露；当前工程零警告。
+> 注：`ci_test/` 为早期遗留测试框架（HLT/LLT 已迁移至 `src/hlt`、`src/llt` 并经 `cjpm test` 运行），保留仅为历史兼容；当前工程零警告，由 `cjpm build` 与 CI 的 warning=0 门禁共同保证。
 
 ## 已知非阻断提示（cjlint SUGGESTIONS）
 

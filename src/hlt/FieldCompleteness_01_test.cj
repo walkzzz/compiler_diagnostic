@@ -6,7 +6,7 @@ import compiler_diagnostic.output.*
 import std.collection.*
 import std.collection.*
 // EXEC: cjpm build
-// EXEC: cjpm test ut --filter "JSONFieldCompletenessTest"
+// EXEC: cjpm test --filter "JSONFieldCompletenessTest"
 // EXPECT: TOTAL:.*2
 @Test
 class JSONFieldCompletenessTest {

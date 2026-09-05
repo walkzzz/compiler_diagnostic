@@ -96,6 +96,7 @@ public enum Subcommand {
     | Default
     | Run(RunArgs)
     | Diagnose(DiagnoseArgs)
+    | FromCjc(FromCjcArgs)
 }
 
 /// run 子命令参数
@@ -116,13 +117,23 @@ public struct DiagnoseArgs {
     }
 }
 
-/// 顶部分发：args[0]=="run"/"diagnose" 走子命令，否则 Default（保留旧行为）
+/// from-cjc 子命令参数：读取 cjc 文本诊断输出文件，产出结构化 ErrorCode JSON
+public struct FromCjcArgs {
+    public var inputFile: String
+    public init(inputFile!: String) {
+        this.inputFile = inputFile
+    }
+}
+
+/// 顶部分发：args[0]=="run"/"diagnose"/"from-cjc" 走子命令，否则 Default（保留旧行为）
 public func dispatchSubcommand(args: Array<String>): Subcommand {
     if (args.size > 0) {
         if (args[0] == "run") {
             return Subcommand.Run(parseRunArgs(args))
         } else if (args[0] == "diagnose") {
             return Subcommand.Diagnose(parseDiagnoseArgs(args))
+        } else if (args[0] == "from-cjc") {
+            return Subcommand.FromCjc(parseFromCjcArgs(args))
         }
     }
     return Subcommand.Default
@@ -168,4 +179,17 @@ public func parseDiagnoseArgs(args: Array<String>): DiagnoseArgs {
         }
     }
     return DiagnoseArgs(tracePath: tracePath)
+}
+
+/// 解析 from-cjc 子命令：位置参数为 cjc 输出文件路径
+public func parseFromCjcArgs(args: Array<String>): FromCjcArgs {
+    var inputFile = ""
+    var i = 1
+    while (i < args.size) {
+        if (inputFile == "") {
+            inputFile = args[i]
+        }
+        i = i + 1
+    }
+    return FromCjcArgs(inputFile: inputFile)
 }
