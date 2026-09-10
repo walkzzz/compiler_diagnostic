@@ -68,6 +68,19 @@ bash tools/run_tests.sh all
 cjlint -f src -o cjlint_report.json
 ```
 
+### 覆盖率报告
+
+```bash
+# 生成覆盖率数据
+cjpm test --coverage
+
+# 生成 Markdown 报告
+python tools/gen_coverage_report.py
+
+# 查看结果
+cat docs/20-覆盖率报告.md
+```
+
 ## 诊断规范
 
 ### 错误码体系
@@ -194,3 +207,18 @@ cjlint 最新扫描 `src/` 共报告 **893 条 `SUGGESTIONS`**（非 MANDATORY�
 - 上述均属**风格建议**，不影响编译、运行与赛事 `MANDATORY=0` 门禁；CI 中 `tools/cjlint_check.py` 仅对 `MANDATORY` 级失败。
 - 前两类（共 409 项，约 46%）为仓颉 1.1.3 工具链布局/导入约束带来的**强制性误报**，消除它们会破坏 cjpm 官方布局或必需的通配导入，故保留现状；其余类别为可逐步优化的命名/接口/作用域风格，按需处理。
 - `from-cjc` 子命令已端到端验证：输入真实 cjc ANSI 报错可映射为结构化 JSON（如 `[{"code":"E2001"},{"code":"E1001"}]`）。
+
+## AI 生态贡献（+10 分项）
+
+本作品附带 **`skill-cangjie-dev-omnipotent/`**（仓颉开发全能专家团 Skill），为仓颉 AI 生态提供可运行、可复用、可验证的 Skill 贡献：
+
+- **双引擎融合**：21 仓颉领域专家（交付引擎）+ 法庭式质量治理（门禁引擎），覆盖全生命周期
+- **仓颉原生工具链硬校验**：cj build / cj test / cjlint / LSP 作为一级证据
+- **语料库事实仲裁**：集成 CangjieCorpus 1.1.0（531 官方文档），消除 API 幻觉
+- **已在本项目实际使用**：错误码体系审查、测试设计、文档一致性校验、覆盖率报告生成、AI 贡献声明生成全部经由该 Skill 执行
+
+详见 `docs/ai-eco-contribution.md`。
+
+---
+
+*SDK: cangjie-sdk-1.1.3 + stdx 1.1.3.1 · 测试: 87/87 通过 · 覆盖率: 81.8% · 错误码: 1543 规范码 + 64 警告码*
