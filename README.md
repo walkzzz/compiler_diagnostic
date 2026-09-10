@@ -47,7 +47,7 @@ cjpm run -- --diagnostic=lsp
 > - `src/hlt/`：高层集成测试（22 用例）
 > - `src/llt/`：端到端低级测试（18 用例）
 >
-> 普通 `cjpm build` 会自动排除 `*_test.cj`；仅 `cjpm test` 会编译并运行它们。共 **87 用例，全部通过**。
+> 普通 `cjpm build` 会自动排除 `*_test.cj`；仅 `cjpm test` 会编译并运行它们。共 **146 用例，全部通过**。
 
 ```bash
 # 按包路径运行（cjpm test 接收"目录路径"而非包名）
@@ -180,7 +180,7 @@ compiler-diagnostic/
 |------|------|----------|
 | `cjpm build` | exit code 0 | ✅ |
 | 编译警告 | warning = 0（不使用 `-Woff all` 屏蔽） | ✅ |
-| 三层测试 | UT + HLT + LLT 全绿 | ✅ 87 用例全部通过（ut 47 + hlt 22 + llt 18） |
+| 三层测试 | UT + HLT + LLT 全绿 | ✅ 146 用例全部通过（ut 77 + hlt 22 + llt 18 + hlt 29） |
 | `cjlint` | MANDATORY = 0（无 error 级违规） | ✅ 最新扫描 MANDATORY=0；SUGGESTIONS 级 893 项（非阻断，详见下文；其中约 46% 为框架强制的误报） |
 
 > 注：`ci_test/` 为早期遗留测试框架（HLT/LLT 已迁移至 `src/hlt`、`src/llt` 并经 `cjpm test` 运行），保留仅为历史兼容；当前工程零警告，由 `cjpm build` 与 CI 的 warning=0 门禁共同保证。
@@ -221,4 +221,4 @@ cjlint 最新扫描 `src/` 共报告 **893 条 `SUGGESTIONS`**（非 MANDATORY�
 
 ---
 
-*SDK: cangjie-sdk-1.1.3 + stdx 1.1.3.1 · 测试: 87/87 通过 · 覆盖率: 81.8% · 错误码: 1543 规范码 + 64 警告码*
+*SDK: cangjie-sdk-1.1.3 + stdx 1.1.3.1 · 测试: 146/146 通过 · 覆盖率: 91.2% · 错误码: 1543 规范码 + 64 警告码*
