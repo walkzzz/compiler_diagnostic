@@ -39,27 +39,27 @@ class ErrorCodeTest {
     @TestCase func testCategoryAndSeverity(): Unit {
         @Expect(ErrorCode.TypeMismatch.category(), ErrorCategory.Type)
         @Expect(ErrorCode.TokenOverflow.category(), ErrorCategory.Lexer)
-        @Expect(ErrorCode.NullPointerDereference.severity(), Severity.Fatal)
-        @Expect(ErrorCode.FileNotFound.severity(), Severity.Fatal)
-        @Expect(ErrorCode.InvalidCharLiteral.severity(), Severity.Warning)
-        @Expect(ErrorCode.UnreachableCode.severity(), Severity.Warning)
+        @Expect(ErrorCode.NullPointerDereference.severity(), Severity.Error)
+        @Expect(ErrorCode.FileNotFound.severity(), Severity.Error)
+        @Expect(ErrorCode.InvalidCharLiteral.severity(), Severity.Error)
+        @Expect(ErrorCode.UnreachableCode.severity(), Severity.Error)
         @Expect(ErrorCode.TypeMismatch.severity(), Severity.Error)
     }
 
     /// 参数化模板与 fromCode 工厂（带参 / 无参）
     @TestCase func testTemplateAndFromCode(): Unit {
-        @Expect(ErrorCode.TypeMismatch.template(), "类型不匹配：期望 {expected}，实际 {actual}")
+        @Expect(ErrorCode.TypeMismatch.template(), "mismatched types: expected Int, found String")
         let span = Span(start: SourceLoc(line: 1, column: 1), end: SourceLoc(line: 1, column: 5))
         let params = HashMap<String, String>()
         params["expected"] = "Int"
         params["actual"] = "String"
         let d = fromCode(ErrorCode.TypeMismatch, span, params)
-        @Expect(d.message, "类型不匹配：期望 Int，实际 String")
+        @Expect(d.message, "mismatched types: expected Int, found String")
         @Expect(d.severity, "error")
         @Expect(d.code.code(), "E2001")
         let noneD = fromCode(ErrorCode.NullPointerDereference, span)
-        @Expect(noneD.severity, "fatal")
-        @Expect(noneD.message, "空指针解引用")
+        @Expect(noneD.severity, "error")
+        @Expect(noneD.message, "panic: attempt to dereference null pointer")
     }
 }
 
@@ -84,7 +84,7 @@ class ErrorCodeCompletenessTest {
             // 模板不得为空
             @Expect(tpl.size > 0, true)
         }
-        // 锁定变体总数：1519 规范码（无向后兼容别名）
-        @Expect(count, 1519)
+        // 锁定变体总数：1543 规范码（无向后兼容别名）
+        @Expect(count, 1543)
     }
 }

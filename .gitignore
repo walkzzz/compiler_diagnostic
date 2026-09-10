@@ -23,6 +23,12 @@ scratch/
 # ===== Agent memory (WorkBuddy internal) =====
 .workbuddy/
 
+# ===== IDE / editor local settings =====
+.vscode/
+
+# ===== Build cache =====
+.cache/
+
 # ===== Leftover helper scripts / backups =====
 add_imports.py
 cjpm.toml.stdx.bak
@@ -34,3 +40,10 @@ cov_output/
 cov_out/
 build.log
 cjlint.json
+
+# ===== Macro expansion artifacts =====
+*.macrocall
+
+# ===== Temporary clone repos (not part of the library) =====
+cangjie_docs_repo/
+cangjie_corpus_repo/
