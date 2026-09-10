@@ -1,0 +1,131 @@
+{
+  "$schema": "cangjie-expert-team/runtime-adaptivity/v1",
+  "version": "8.0",
+  "description": "仓颉专家团运行时自适配 — 吸收 openJiuwen 在固定模型策略下依据运行时证据动态改写执行的思想",
+
+  "context_management": {
+    "description": "渐进压缩 + 结构感知 + 卸载检索 — 管理专家执行过程中的上下文窗口",
+    "strategies": {
+      "progressive_compression": {
+        "trigger": "context_length > 0.8 * max_context",
+        "action": "summarize_oldest_rounds",
+        "preserve": ["task_goal", "key_decisions", "latest_3_rounds", "rail_state"],
+        "compression_ratio_target": 0.5
+      },
+      "structure_aware": {
+        "description": "识别仓颉代码结构，按语义块压缩而非按行压缩",
+        "block_types": ["package_decl", "class_def", "func_def", "import_block", "test_block"],
+        "compressible": ["import_block", "test_block", "comment_block"],
+        "non_compressible": ["class_def_signature", "func_def_signature", "package_decl"]
+      },
+      "offload_retrieval": {
+        "description": "将大段参考代码卸载到 CangjieSkills 知识库，仅保留检索句柄",
+        "offload_target": "CangjieSkills",
+        "handle_format": "retrieval_pointer",
+        "reload_on_demand": true
+      }
+    },
+    "budget_per_expert": {
+      "cangjie-compiler": 32768,
+      "cangjie-runtime": 24576,
+      "cangjie-std": 16384,
+      "cangjie-framework": 24576,
+      "cangjie-ai": 32768,
+      "default": 16384
+    }
+  },
+
+  "goal_mode": {
+    "description": "任务级目标模式 — 根据运行时证据在 continue/complete/blocked 之间切换",
+    "modes": {
+      "continue": {
+        "condition": "goal_not_reached AND budget_available AND no_blocking_error",
+        "action": "proceed_to_next_round"
+      },
+      "complete": {
+        "condition": "goal_check_passed OR all_pipeline_stages_done",
+        "action": "fire_on_task_complete_rails_and_return"
+      },
+      "blocked": {
+        "condition": "error_count > threshold OR human_review_required",
+        "action": "pause_and_request_human_input",
+        "timeout": 3600,
+        "on_timeout": "proceed_with_warning_and_log"
+      },
+      "resume": {
+        "condition": "task_was_interrupted AND checkpoint_exists",
+        "action": "restore_from_checkpoint_and_continue"
+      },
+      "stop": {
+        "condition": "budget_exhausted OR user_cancelled OR max_rounds_exceeded",
+        "action": "fire_on_task_complete_rails_and_return_partial"
+      }
+    },
+    "transition_matrix": {
+      "continue→complete": "goal_check_passed",
+      "continue→blocked": "error_count > 3",
+      "continue→stop": "budget_exhausted",
+      "blocked→continue": "human_approved",
+      "blocked→stop": "timeout_exceeded",
+      "complete→resume": "new_subtask_arrived"
+    }
+  },
+
+  "lsp_driven_passive_feedback": {
+    "description": "仓颉 LSP 被动反馈 — 收集编译器/语言服务诊断，注入下一轮上下文",
+    "lsp_server": "cangjie-lsp",
+    "diagnostic_types": {
+      "error": {
+        "action": "inject_fix_suggestion",
+        "priority": "high",
+        "max_suggestions": 3,
+        "source": ["compiler", "type_checker", "borrow_checker"]
+      },
+      "warning": {
+        "action": "annotate_context",
+        "priority": "medium",
+        "max_suggestions": 5,
+        "source": ["linter", "unused_detector", "style_checker"]
+      },
+      "hint": {
+        "action": "optional_optimize",
+        "priority": "low",
+        "max_suggestions": 2,
+        "source": ["performance_analyzer", "idiom_suggester"]
+      }
+    },
+    "feedback_loop": {
+      "collect": "after_each_tool_call",
+      "inject": "before_next_model_call",
+      "deduplicate": true,
+      "rate_limit": "max_10_diagnostics_per_round"
+    }
+  },
+
+  "self_reflection": {
+    "description": "跨任务经验提取 — 任务完成后提取可复用经验，存入专家知识库",
+    "triggers": ["on_task_complete", "on_exception_resolved"],
+    "extraction": {
+      "what_to_extract": [
+        "successful_patterns",
+        "failed_approaches",
+        "tool_selection_history",
+        "rail_effectiveness",
+        "context_usage_profile"
+      ],
+      "storage": "CangjieSkills://expert_experience/{expert_id}/",
+      "format": "structured_json_with_metadata"
+    },
+    "reuse": {
+      "retrieval": "similarity_match_on_task_type",
+      "injection_point": "pre_invoke",
+      "max_experiences": 3,
+      "confidence_threshold": 0.8
+    },
+    "meta_learning": {
+      "description": "跨专家经验聚合 — 发现跨专家的通用模式",
+      "aggregation_interval": "every_10_tasks",
+      "output": "config/rails/rail-system.json#new_rails_or_priority_adjustments"
+    }
+  }
+}

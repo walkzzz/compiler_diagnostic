@@ -1,0 +1,165 @@
+{
+  "$schema": "cangjie-expert-team/swarm-flow/v1",
+  "version": "8.0",
+  "description": "仓颉专家团 Swarm Flow — 吸收 openJiuwen 蜂群流编排思想，7 个算子 + 仓颉专用模板",
+
+  "operators": {
+    "budget": {
+      "description": "预算控制算子 — 管理 token/时间/轮次预算",
+      "params": {
+        "max_tokens": 200000,
+        "max_rounds": 20,
+        "max_parallel": 4,
+        "on_exceed": "compact|stop|human"
+      },
+      "applies_to": ["all_modes"]
+    },
+    "parallel": {
+      "description": "并行执行算子 — 多专家同时工作",
+      "params": {
+        "experts": ["array_of_expert_ids"],
+        "merge_strategy": "first_complete|vote|aggregate",
+        "isolation": "context_split"
+      },
+      "applies_to": ["swarm"]
+    },
+    "compact": {
+      "description": "上下文压缩算子 — 当上下文超限时渐进压缩",
+      "params": {
+        "trigger_threshold": 0.8,
+        "strategy": "structure_aware",
+        "preserve": ["task_goal", "key_decisions", "latest_results"],
+        "offload_to": "CangjieSkills_retrieval"
+      },
+      "applies_to": ["all_modes"]
+    },
+    "pipeline": {
+      "description": "流水线算子 — 专家按序执行，前者输出为后者输入",
+      "params": {
+        "stages": ["array_of_expert_ids"],
+        "handoff_format": "structured_result",
+        "fail_fast": true
+      },
+      "applies_to": ["swarm", "sub_agent"]
+    },
+    "agent_session": {
+      "description": "代理会话算子 — 创建独立专家会话",
+      "params": {
+        "expert": "expert_id",
+        "inherit_context": true,
+        "context_budget": 8192,
+        "rail_ids": ["rail-intent-classification", "rail-quality-gate"]
+      },
+      "applies_to": ["sub_agent", "swarm"]
+    },
+    "human": {
+      "description": "人工审查算子 — 在关键节点暂停等待人工确认",
+      "params": {
+        "review_points": ["architecture", "security_audit", "breaking_change"],
+        "timeout": 3600,
+        "on_timeout": "proceed_with_warning"
+      },
+      "applies_to": ["swarm"]
+    },
+    "return": {
+      "description": "返回算子 — 收集并格式化最终结果",
+      "params": {
+        "aggregate": "best|merge|all",
+        "format": "markdown|json|skill_md",
+        "include_trace": true
+      },
+      "applies_to": ["all_modes"]
+    }
+  },
+
+  "templates": {
+    "new-project": {
+      "description": "新建仓颉项目模板",
+      "pipeline": [
+        { "expert": "cangjie-orientation", "task": "确定项目类型和初始结构" },
+        { "expert": "cangjie-framework", "task": "选择框架和依赖" },
+        { "expert": "cangjie-tools", "task": "初始化 cjpm 项目" },
+        { "expert": "cangjie-doc", "task": "生成 README 和项目文档" },
+        { "expert": "cangjie-cicd", "task": "配置 CI/CD workflow" }
+      ],
+      "human_review": ["after_framework_selection"],
+      "budget": { "max_tokens": 100000, "max_rounds": 10 }
+    },
+    "feature-dev": {
+      "description": "功能开发模板 — 多专家协作开发新功能",
+      "pipeline": [
+        { "expert": "cangjie-router", "task": "意图分类，确定涉及的专家" },
+        { "expert": "cangjie-compiler", "task": "语言特性支持检查", "parallel": true },
+        { "expert": "cangjie-std", "task": "标准库 API 检查", "parallel": true },
+        { "expert": "cangjie-framework", "task": "框架集成设计" },
+        { "expert": "cangjie-sec", "task": "安全审计", "parallel": true },
+        { "expert": "cangjie-tools", "task": "构建和测试" },
+        { "expert": "cangjie-doc", "task": "文档更新" }
+      ],
+      "human_review": ["after_framework_integration"],
+      "budget": { "max_tokens": 150000, "max_rounds": 15 }
+    },
+    "bug-fix": {
+      "description": "Bug 修复模板",
+      "pipeline": [
+        { "expert": "cangjie-router", "task": "定位 bug 所属领域" },
+        { "expert": "cangjie-runtime", "task": "运行时复现和诊断", "parallel": true },
+        { "expert": "cangjie-compiler", "task": "编译器诊断分析", "parallel": true },
+        { "expert": "cangjie-tools", "task": "cjlint + cjprof 定位" },
+        { "expert": "cangjie-router", "task": "路由到领域专家修复" },
+        { "expert": "cangjie-tools", "task": "回归测试" }
+      ],
+      "budget": { "max_tokens": 80000, "max_rounds": 8 }
+    },
+    "performance-opt": {
+      "description": "性能优化模板",
+      "pipeline": [
+        { "expert": "cangjie-runtime", "task": "cjprof 性能分析" },
+        { "expert": "cangjie-compiler", "task": "编译优化建议", "parallel": true },
+        { "expert": "cangjie-std", "task": "算法/数据结构优化", "parallel": true },
+        { "expert": "cangjie-tools", "task": "基准测试验证" }
+      ],
+      "budget": { "max_tokens": 100000, "max_rounds": 10 }
+    },
+    "release-flow": {
+      "description": "发布流程模板",
+      "pipeline": [
+        { "expert": "cangjie-tools", "task": "全量测试通过检查" },
+        { "expert": "cangjie-doc", "task": "CHANGELOG 更新", "parallel": true },
+        { "expert": "cangjie-release", "task": "版本号管理和标签" },
+        { "expert": "cangjie-cicd", "task": "多平台构建矩阵" },
+        { "expert": "cangjie-release", "task": "发布包创建" },
+        { "expert": "cangjie-comm", "task": "发布公告" }
+      ],
+      "human_review": ["before_release", "after_multi_platform_build"],
+      "budget": { "max_tokens": 120000, "max_rounds": 12 }
+    },
+    "cross-platform-migration": {
+      "description": "跨平台迁移模板",
+      "pipeline": [
+        { "expert": "cangjie-compiler", "task": "平台兼容性分析" },
+        { "expert": "cangjie-runtime", "task": "运行时差异评估", "parallel": true },
+        { "expert": "cangjie-stdx", "task": "平台特定 API 适配", "parallel": true },
+        { "expert": "cangjie-cicd", "task": "目标平台构建配置" },
+        { "expert": "cangjie-tools", "task": "交叉编译验证" }
+      ],
+      "human_review": ["after_compatibility_analysis"],
+      "budget": { "max_tokens": 150000, "max_rounds": 15 }
+    },
+    "eco-lib-development": {
+      "description": "生态库开发模板 — 仓颉生态三方库开发全流程",
+      "pipeline": [
+        { "expert": "cangjie-orientation", "task": "库定位和命名规范" },
+        { "expert": "cangjie-std", "task": "标准库 API 对齐检查" },
+        { "expert": "cangjie-framework", "task": "框架集成设计" },
+        { "expert": "cangjie-sec", "task": "安全合规审计", "parallel": true },
+        { "expert": "cangjie-tools", "task": "cjpm 包配置" },
+        { "expert": "cangjie-doc", "task": "API 文档 + 示例" },
+        { "expert": "cangjie-cicd", "task": "CI/CD + 多平台测试" },
+        { "expert": "cangjie-release", "task": "中心仓发布" }
+      ],
+      "human_review": ["after_design", "before_publish"],
+      "budget": { "max_tokens": 200000, "max_rounds": 20 }
+    }
+  }
+}

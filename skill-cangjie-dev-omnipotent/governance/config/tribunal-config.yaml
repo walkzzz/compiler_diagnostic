@@ -1,0 +1,109 @@
+# 审判庭档位配置（仓颉适配版）
+# 整合自 code_quality_governance_swarm/bind.md 的 level_config + 模型绑定
+# 工具集已从 Python 工具（pylint 等）适配为仓颉原生工具链
+
+version: "1.0"
+
+# ── 五级档位 ──────────────────────────────────────────
+level_config:
+  L0:
+    name: "极简模式"
+    score_range: [0, 20]
+    max_round: 1
+    inspection_level: 0
+    cross_examine: false
+    tool_set: ["cj_build"]
+    executor_enable: false
+    recompose_tribunal: false
+  L1:
+    name: "快速模式"
+    score_range: [21, 40]
+    max_round: 2
+    inspection_level: 1
+    cross_examine: false
+    tool_set: ["cj_build", "cj_test"]
+    knowledge_top_k: 3
+    executor_enable: false
+    recompose_tribunal: false
+  L2:
+    name: "标准模式"
+    score_range: [41, 60]
+    max_round: 3
+    inspection_level: 2
+    cross_examine: true
+    tool_set: ["cj_build", "cj_test", "cjlint", "cjfmt"]
+    model_mode: "cross"
+    knowledge_enable: true
+    knowledge_top_k: 5
+    executor_enable: true
+    recompose_tribunal: true
+    recompose_condition: "整改完成率 >= 80%"
+  L3:
+    name: "严格模式"
+    score_range: [61, 80]
+    max_round: 5
+    inspection_level: 2
+    cross_examine: "2v2"
+    tool_set: ["cj_build", "cj_test", "cjlint", "cjfmt", "cjprof", "cjsc"]
+    model_mode: "cross"
+    knowledge_enable: true
+    knowledge_top_k: 8
+    business_case_verify: true
+    executor_enable: true
+    recompose_tribunal: true
+    recompose_condition: "P0全部完成，P1完成率 >= 80%"
+  L4:
+    name: "极致模式"
+    score_range: [81, 100]
+    max_round: 7
+    inspection_level: 2
+    cross_examine: "3v3"
+    tool_set: ["cj_build", "cj_test", "cjlint", "cjfmt", "cjprof", "cjsc", "cjpm_audit"]
+    model_mode: "multi_vote"
+    knowledge_enable: true
+    knowledge_top_k: 10
+    human_confirm_node: true
+    compliance_report: true
+    executor_enable: true
+    recompose_tribunal: true
+    recompose_condition: "P0全部完成，P1全部完成，P2完成率 >= 90%"
+    human_confirm_recompose: true
+
+# ── 治理工具 → 仓颉原生映射 ──────────────────────────
+# 源 code_quality_governance_swarm 的 Python 工具在仓颉语境下的等价物
+tool_mapping:
+  code_lint:        { cangjie: "cjlint",        note: "仓颉静态检查，替代 pylint" }
+  code_sandbox:     { cangjie: "cj build + cj run", note: "编译并运行验证，替代 Python 沙箱" }
+  complexity_scan:  { cangjie: "cjlint --complexity + cjprof", note: "复杂度与性能剖析" }
+  security_scan:    { cangjie: "cjsc / cangjie-sec 专家审计", note: "安全扫描由 cangjie-sec 角色卡承载" }
+  dependency_scan:  { cangjie: "cjpm deps / cjpm audit", note: "依赖扫描走 cjpm" }
+  env_detector:     { cangjie: "cj --version + cjpm check", note: "环境检测走工具链" }
+  evidence_verifier:{ cangjie: "cj test",       note: "证据验证以测试执行结果为准" }
+  fix_validator:    { cangjie: "cj build + cj test", note: "整改验证" }
+  execution_report_generator: { cangjie: "内置 doc 生成", note: "整改报告由 executor 直接产出" }
+  doc_generator:    { cangjie: "cangjie-doc 专家", note: "文档生成走 cangjie-doc 角色卡" }
+  knowledge_extractor: { cangjie: "自学习闭环",  note: "见 human-and-learning-rules.md" }
+  inspector_audit:  { cangjie: "inspector_general 角色", note: "监察复核" }
+
+# ── 模型绑定（低幻觉关键岗位用强模型+低温）──────────
+model_binding:
+  judge:             { model: "强模型", temperature: 0.1 }
+  inspector_general: { model: "强模型", temperature: 0.1 }
+  route_judge:       { model: "强模型", temperature: 0.1 }
+  executor:          { model: "强模型", temperature: 0.3 }
+  prosecutor:        { model: "标准模型", temperature: 0.4 }
+  defender:          { model: "标准模型", temperature: 0.4 }
+  hive_commander:    { model: "标准模型", temperature: 0.3 }
+  intent_clarifier:  { model: "标准模型", temperature: 0.2 }
+
+# 异模型配置（L2+ 自动启用，打破集体幻觉）
+cross_model_config:
+  enable_level: 2
+  note: "控方/法官/总监察长/执行官使用不同来源模型，避免同源幻觉"
+
+# ── 知识库配置（按需检索注入）──────────────────────
+knowledge_config:
+  enable: true
+  indexes: ["./knowledge/rules", "./knowledge/cases", "./knowledge/best_practice", "./knowledge/false_cases"]
+  weight_level: { official: 1.0, review: 0.7, pending: 0.3 }
+  language_tag: "cangjie"

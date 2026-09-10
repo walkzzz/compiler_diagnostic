@@ -1,0 +1,172 @@
+{
+  "$schema": "cangjie-expert-team/rail-system/v1",
+  "version": "8.0",
+  "description": "仓颉专家团 Rail 能力编排系统 — 吸收 openJiuwen Rail 机制，将横切关注点从专家业务逻辑中分离",
+
+  "hook_taxonomy": {
+    "$comment": "H = H_invoke ∪ H_call ∪ H_task — 11 个 hook 点",
+    "H_invoke": ["pre_invoke", "on_round_start", "post_invoke", "on_goal_check"],
+    "H_call": ["pre_model_call", "post_model_call", "post_tool_call", "on_exception"],
+    "H_task": ["on_delegate", "on_round_end", "on_task_complete"]
+  },
+
+  "rails": [
+    {
+      "id": "rail-intent-classification",
+      "name": "意图分类 Rail",
+      "description": "在 pre_invoke 阶段对用户请求进行意图分类，决定路由到哪个专家",
+      "hooks": ["pre_invoke"],
+      "priority": 10,
+      "visibility_gate": { "required_role": "router", "min_confidence": 0.7 },
+      "config": {
+        "intent_categories": [
+          "compiler-dev", "runtime-dev", "toolchain-dev", "stdlib-dev",
+          "stdx-dev", "framework-dev", "database-dev", "network-dev",
+          "ai-dev", "security-dev", "ui-dev", "education", "community",
+          "release-management", "cicd-engineering", "document-governance",
+          "skill-document", "knowledge-base", "harness-engineering"
+        ],
+        "fallback": "cangjie-orientation"
+      },
+      "compose_with": []
+    },
+    {
+      "id": "rail-knowledge-injection",
+      "name": "知识注入 Rail",
+      "description": "在 on_round_start 阶段从 CangjieSkills 知识库注入相关上下文",
+      "hooks": ["on_round_start"],
+      "priority": 20,
+      "visibility_gate": { "knowledge_base": "CangjieSkills", "max_tokens": 4096 },
+      "config": {
+        "source": "CangjieSkills",
+        "retrieval": "progressive_disclosure",
+        "strategy": "structure_aware"
+      },
+      "compose_with": ["rail-intent-classification"]
+    },
+    {
+      "id": "rail-safety-audit",
+      "name": "安全审计 Rail",
+      "description": "在 post_tool_call 阶段对生成的仓颉代码进行安全检查（国密合规、内存安全）",
+      "hooks": ["post_tool_call", "on_exception"],
+      "priority": 30,
+      "visibility_gate": { "required_expertise": ["cangjie-sec"], "scan_types": ["crypto", "ffi", "memory"] },
+      "config": {
+        "checks": ["sm2_sm3_sm4_compliance", "ffi_safety", "memory_safety", "unsafe_block_audit"],
+        "auto_fix": false,
+        "report_format": "structured"
+      },
+      "compose_with": []
+    },
+    {
+      "id": "rail-quality-gate",
+      "name": "质量检查 Rail",
+      "description": "在 on_round_end 阶段执行代码审查 + Lint + 编译检查",
+      "hooks": ["on_round_end"],
+      "priority": 40,
+      "visibility_gate": { "tools": ["cjlint", "cjfmt", "cjc"], "block_on_error": false },
+      "config": {
+        "linters": ["cjlint", "cjfmt --check"],
+        "compiler_check": "cjc --check",
+        "test_command": "cjpm test",
+        "fail_threshold": "warning"
+      },
+      "compose_with": ["rail-safety-audit"]
+    },
+    {
+      "id": "rail-budget-control",
+      "name": "预算控制 Rail",
+      "description": "在 pre_model_call 阶段检查 token/时间预算，超限则触发 compact 或 stop",
+      "hooks": ["pre_model_call", "on_round_end"],
+      "priority": 15,
+      "visibility_gate": { "budget_type": "token+time", "enforce": true },
+      "config": {
+        "max_tokens_per_task": 200000,
+        "max_rounds": 20,
+        "compact_threshold": 0.8,
+        "stop_threshold": 0.95
+      },
+      "compose_with": []
+    },
+    {
+      "id": "rail-doc-generation",
+      "name": "文档生成 Rail",
+      "description": "在 on_task_complete 阶段自动生成/更新 SKILL.md 和 API 文档",
+      "hooks": ["on_task_complete"],
+      "priority": 60,
+      "visibility_gate": { "auto_generate": ["skill_md", "api_doc", "changelog"] },
+      "config": {
+        "outputs": ["SKILL.md", "API.md", "CHANGELOG.md"],
+        "format": "progressive_disclosure"
+      },
+      "compose_with": []
+    },
+    {
+      "id": "rail-delegate-router",
+      "name": "委托路由 Rail",
+      "description": "在 on_delegate 阶段处理专家间委托，支持 Swarm Flow 多专家编排",
+      "hooks": ["on_delegate"],
+      "priority": 25,
+      "visibility_gate": { "max_delegates": 4, "allow_swarm": true },
+      "config": {
+        "swarm_templates": ["feature-dev", "bug-fix", "release-flow", "eco-lib-development"],
+        "parallel_max": 4,
+        "human_review_points": ["architecture", "security_audit"]
+      },
+      "compose_with": ["rail-intent-classification", "rail-budget-control"]
+    },
+    {
+      "id": "rail-runtime-adapt",
+      "name": "运行时自适配 Rail",
+      "description": "在 post_model_call 和 on_round_end 阶段，依据运行时证据动态调整执行策略",
+      "hooks": ["post_model_call", "on_round_end"],
+      "priority": 35,
+      "visibility_gate": { "mechanisms": ["context_management", "goal_mode", "lsp_feedback", "self_reflection"] },
+      "config": {
+        "context_management": "config/runtime/runtime-adaptivity.json#/context_management",
+        "goal_mode": "config/runtime/runtime-adaptivity.json#/goal_mode",
+        "lsp_feedback": "config/runtime/runtime-adaptivity.json#/lsp_driven_passive_feedback",
+        "self_reflection": "config/runtime/runtime-adaptivity.json#/self_reflection"
+      },
+      "compose_with": ["rail-budget-control", "rail-quality-gate"]
+    },
+    {
+      "id": "rail-cangjie-lsp",
+      "name": "仓颉 LSP 被动反馈 Rail",
+      "description": "在 post_tool_call 阶段收集仓颉 LSP 诊断信息，注入下一轮上下文",
+      "hooks": ["post_tool_call"],
+      "priority": 45,
+      "visibility_gate": { "lsp_server": "cangjie-lsp", "diagnostic_types": ["error", "warning", "hint"] },
+      "config": {
+        "diagnostic_actions": {
+          "error": "inject_fix_suggestion",
+          "warning": "annotate_context",
+          "hint": "optional_optimize"
+        }
+      },
+      "compose_with": ["rail-runtime-adapt"]
+    },
+    {
+      "id": "rail-release-verification",
+      "name": "发布验证 Rail",
+      "description": "在 on_task_complete 阶段对发布类任务执行多平台构建验证",
+      "hooks": ["on_task_complete"],
+      "priority": 50,
+      "visibility_gate": { "trigger_experts": ["cangjie-release", "cangjie-cicd"] },
+      "config": {
+        "platforms": ["linux-aarch64", "linux-x86_64", "macos-arm64", "windows-x86_64"],
+        "checks": ["compile", "test", "package", "checksum"],
+        "auto_release": false
+      },
+      "compose_with": ["rail-quality-gate"]
+    }
+  ],
+
+  "composition_rules": {
+    "$comment": "Rail 组合规则 — priority 越低越先执行",
+    "execution_order": "ascending_priority",
+    "conflict_resolution": "highest_priority_wins",
+    "parallel_hooks": ["post_tool_call", "on_round_end"],
+    "sequential_hooks": ["pre_invoke", "on_round_start", "pre_model_call", "post_model_call", "on_goal_check", "post_invoke", "on_task_complete"]
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "$schema": "cangjie-expert-team/cluster-dynamic/v1",
+  "version": "8.0",
+  "description": "仓颉专家团动态集群配置 — 替代静态路由表，每个专家带 rail_id 引用、swarm_template、capability gate、context_budget",
+
+  "experts": [
+    {
+      "id": "cangjie-orchestrator",
+      "code": "CJ-ORCHESTRATOR",
+      "name": "蜂群流编排专家",
+      "skill": "skills/cangjie-orchestrator/SKILL.md",
+      "rail_ids": ["rail-delegate-router", "rail-budget-control"],
+      "swarm_templates": ["all"],
+      "capability_gate": { "can_delegate": true, "can_parallel": true, "max_sub_agents": 4 },
+      "context_budget": 32768,
+      "priority": 5
+    },
+    {
+      "id": "cangjie-router",
+      "code": "CJ-ROUTER",
+      "name": "技能路由器",
+      "skill": "skills/cangjie-router/SKILL.md",
+      "rail_ids": ["rail-intent-classification", "rail-delegate-router"],
+      "swarm_templates": [],
+      "capability_gate": { "can_delegate": true, "can_parallel": false },
+      "context_budget": 8192,
+      "priority": 10
+    },
+    {
+      "id": "cangjie-compiler",
+      "code": "CJ-COMP",
+      "name": "编译器大师",
+      "skill": "skills/cangjie-compiler/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate", "rail-cangjie-lsp"],
+      "swarm_templates": ["feature-dev", "bug-fix", "performance-opt"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 32768,
+      "priority": 20
+    },
+    {
+      "id": "cangjie-runtime",
+      "code": "CJ-RUNTIME",
+      "name": "运行时专家",
+      "skill": "skills/cangjie-runtime/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate", "rail-cangjie-lsp"],
+      "swarm_templates": ["feature-dev", "bug-fix", "performance-opt"],
+      "capability_gate": { "tools": ["cjprof", "cjpm run"], "can_parallel": true },
+      "context_budget": 24576,
+      "priority": 20
+    },
+    {
+      "id": "cangjie-tools",
+      "code": "CJ-TOOLS",
+      "name": "工具链架构师",
+      "skill": "skills/cangjie-tools/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "release-flow"],
+      "capability_gate": { "tools": ["cjpm", "cjfmt", "cjlint", "cjprof"], "can_parallel": true },
+      "context_budget": 16384,
+      "priority": 25
+    },
+    {
+      "id": "cangjie-std",
+      "code": "CJ-STD",
+      "name": "标准库权威",
+      "skill": "skills/cangjie-std/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate", "rail-cangjie-lsp"],
+      "swarm_templates": ["feature-dev", "eco-lib-development"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 16384,
+      "priority": 30
+    },
+    {
+      "id": "cangjie-stdx",
+      "code": "CJ-STDX",
+      "name": "扩展库专家",
+      "skill": "skills/cangjie-stdx/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-safety-audit", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "eco-lib-development", "cross-platform-migration"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 16384,
+      "priority": 30
+    },
+    {
+      "id": "cangjie-framework",
+      "code": "CJ-FRAMEWORK",
+      "name": "框架架构师",
+      "skill": "skills/cangjie-framework/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate", "rail-cangjie-lsp"],
+      "swarm_templates": ["new-project", "feature-dev", "eco-lib-development"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 24576,
+      "priority": 25
+    },
+    {
+      "id": "cangjie-db",
+      "code": "CJ-DB",
+      "name": "数据库专家",
+      "skill": "skills/cangjie-db/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-safety-audit", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "eco-lib-development"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 16384,
+      "priority": 30
+    },
+    {
+      "id": "cangjie-net",
+      "code": "CJ-NET",
+      "name": "网络协议专家",
+      "skill": "skills/cangjie-net/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-safety-audit", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "eco-lib-development"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 16384,
+      "priority": 30
+    },
+    {
+      "id": "cangjie-ai",
+      "code": "CJ-AI",
+      "name": "AI 原生架构师",
+      "skill": "skills/cangjie-ai/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "new-project"],
+      "capability_gate": { "tools": ["CangjieMagic", "cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 32768,
+      "priority": 25
+    },
+    {
+      "id": "cangjie-sec",
+      "code": "CJ-SEC",
+      "name": "安全专家",
+      "skill": "skills/cangjie-sec/SKILL.md",
+      "rail_ids": ["rail-safety-audit", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "release-flow"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true, "blocking": true },
+      "context_budget": 16384,
+      "priority": 15
+    },
+    {
+      "id": "cangjie-ui",
+      "code": "CJ-UI",
+      "name": "UI 架构师",
+      "skill": "skills/cangjie-ui/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-quality-gate"],
+      "swarm_templates": ["feature-dev", "new-project"],
+      "capability_gate": { "tools": ["cjc", "cjpm"], "can_parallel": true },
+      "context_budget": 16384,
+      "priority": 30
+    },
+    {
+      "id": "cangjie-edu",
+      "code": "CJ-EDU",
+      "name": "教育推广大使",
+      "skill": "skills/cangjie-edu/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-doc-generation"],
+      "swarm_templates": [],
+      "capability_gate": { "tools": [], "can_parallel": false },
+      "context_budget": 8192,
+      "priority": 50
+    },
+    {
+      "id": "cangjie-comm",
+      "code": "CJ-COMM",
+      "name": "社区运营官",
+      "skill": "skills/cangjie-comm/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection", "rail-doc-generation"],
+      "swarm_templates": ["release-flow"],
+      "capability_gate": { "tools": [], "can_parallel": false },
+      "context_budget": 8192,
+      "priority": 50
+    },
+    {
+      "id": "cangjie-doc",
+      "code": "CJ-DOC",
+      "name": "文档治理专家",
+      "skill": "skills/cangjie-doc/SKILL.md",
+      "rail_ids": ["rail-doc-generation", "rail-knowledge-injection"],
+      "swarm_templates": ["release-flow", "eco-lib-development"],
+      "capability_gate": { "tools": ["mdgen"], "can_parallel": true },
+      "context_budget": 12288,
+      "priority": 40
+    },
+    {
+      "id": "cangjie-release",
+      "code": "CJ-RELEASE",
+      "name": "发布管理专家",
+      "skill": "skills/cangjie-release/SKILL.md",
+      "rail_ids": ["rail-release-verification", "rail-quality-gate"],
+      "swarm_templates": ["release-flow"],
+      "capability_gate": { "tools": ["release.sh", "gh"], "can_parallel": true },
+      "context_budget": 12288,
+      "priority": 35
+    },
+    {
+      "id": "cangjie-cicd",
+      "code": "CJ-CICD",
+      "name": "多平台发布工程专家",
+      "skill": "skills/cangjie-cicd/SKILL.md",
+      "rail_ids": ["rail-release-verification", "rail-quality-gate"],
+      "swarm_templates": ["release-flow", "cross-platform-migration"],
+      "capability_gate": { "tools": ["gh", "cjpm"], "can_parallel": true },
+      "context_budget": 12288,
+      "priority": 35
+    },
+    {
+      "id": "cangjie-orientation",
+      "code": "CJ-ORIENT",
+      "name": "入门导航",
+      "skill": "skills/cangjie-orientation/SKILL.md",
+      "rail_ids": ["rail-knowledge-injection"],
+      "swarm_templates": [],
+      "capability_gate": { "tools": [], "can_parallel": false },
+      "context_budget": 8192,
+      "priority": 60
+    }
+  ],
+
+  "routing_rules": {
+    "default_rails": ["rail-intent-classification", "rail-budget-control", "rail-runtime-adapt"],
+    "fallback_expert": "cangjie-orientation",
+    "swarm_trigger_threshold": 2,
+    "$comment": "当匹配专家数 >= swarm_trigger_threshold 时，触发 Swarm Flow 编排"
+  }
+}
